@@ -19,10 +19,15 @@ const PROVIDERS = {
 };
 
 const PROMPT =
-  '你是营养估算助手。识别图中的食物，估算这一份可食部分的重量与营养。' +
+  '你是专业的营养估算助手。识别照片中的食物并估算营养（多为中式家常菜/快餐）。' +
+  '若图中有多样食物，合并为这一餐整体，name 写主要食物名（如"米饭+红烧肉"）。' +
   '只输出一行 JSON，不要解释、不要 Markdown 代码块：' +
   '{"name":"中文名20字内","grams":数字,"kcal":数字,"protein":蛋白克,"carb":碳水克,"fat":脂肪克,"confidence":0到1,"uncertain":false}\n' +
-  '规则：数值都是这一份的总量（不是每100g）；图中不是食物或看不清时 uncertain=true 且 confidence<=0.3。';
+  '规则：\n' +
+  '1. 数值是照片中这份食物的总量（不是每100g），按可食部分计（去壳/去骨/弃汤渣）。\n' +
+  '2. 参考常见份量：一碗米饭约200g、一个鸡蛋约50g、一份炒菜约250-350g、一杯奶茶约400ml。\n' +
+  '3. kcal 要与宏量自洽：kcal ≈ protein*4 + carb*4 + fat*9，偏差控制在 ±20% 内。\n' +
+  '4. 画面清晰可辨时 confidence 取 0.7-0.9；不是食物或看不清时 uncertain=true 且 confidence<=0.3。';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

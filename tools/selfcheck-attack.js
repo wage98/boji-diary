@@ -461,8 +461,65 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
 });
+
+// ===== v7.9 增量：桌宠 Q 版形象 / 眨眼 / 彩蛋 / 知识库扩充 / 数据化回答 / 复制上一餐 =====
+function v79Checks() {
+  // I1 形象：10 情绪 + 眨眼帧全部输出有效 SVG
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const f = w.eval('nahidaSVG');
+    const moods = ['happy','cheer','proud','expect','think','sad','sleep','wave','hover','drag','blink'];
+    const okAll = moods.every(m => { const s = f(m);
+      return s.indexOf('<svg') === 0 && s.indexOf('undefined') < 0 && s.indexOf('NaN') < 0 && s.indexOf('<script') < 0; });
+    check('I1 形象 v7.9：11 种帧（含眨眼）输出均有效', () => okAll);
+  }
+  // I2 眨眼帧支持对象参数（保留嘴型/腮红，不产生 NaN）
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const hb = w.eval('nahidaSVG')({ eye:'closed', mouth:'o', blush:1, brow:'up', fx:'' });
+    check('I2 眨眼帧对象参数 → 有效 SVG', () => hb.indexOf('<svg') === 0 && hb.indexOf('NaN') < 0);
+  }
+  // I3 眨眼调度与连点彩蛋已接线
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('I3 scheduleBlink / petTapEgg 已定义', () =>
+      w.eval('typeof scheduleBlink') === 'function' && w.eval('typeof petTapEgg') === 'function');
+  }
+  // I4/I5 知识库扩充与新条目命中
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('I4 知识库条数 ≥ 60', () => w.eval('window.__KB').length >= 60);
+    const r1 = w.eval('nahidaReply')('奶茶能喝吗');
+    const r2 = w.eval('nahidaReply')('引体向上做不了');
+    check('I5 新知识条目可命中（奶茶/引体）', () => r1.indexOf('液态热量') >= 0 && r2.indexOf('离心') >= 0);
+  }
+  // I6–I8 数据化回答（优先级与兜底）
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const dr = w.eval('dataReply');
+    check('I6 体重趋势（有档案无曲线）→ 引导记录而非档案文案', () => dr('最近体重趋势如何').indexOf('还没有体重曲线') >= 0);
+    check('I7 本周统计回答含天数且不报错', () => dr('本周练了几次').indexOf('本周') >= 0);
+    check('I8 吃什么建议（无记录）→ 结合蛋白缺口给推荐', () => dr('今天吃什么').indexOf('蛋白还差') >= 0);
+  }
+  // I9/I10 一键复制上一餐
+  {
+    const yst = new Date(); yst.setDate(yst.getDate() - 1);
+    const yk = yst.getFullYear() + '-' + (yst.getMonth() + 1) + '-' + yst.getDate();
+    const w = boot(J({ profile: { weight: 70 },
+      meals: { [yk]: { 0: [{ n:'鸡胸', p:35, c:0, f:3, q:1, photo:'data:image/jpeg;base64,AAAA' }] } } }));
+    w.goModule('diet');
+    const row = w.document.querySelector('[data-rep]');
+    check('I9 该餐今天为空且有历史 → 显示一键复制行', () => !!row && row.textContent.indexOf('鸡胸') >= 0);
+    if (row) {
+      w.__click(row);
+      const tk = w.eval('todayKey')();
+      const arr = w.__S.meals[tk] && w.__S.meals[tk][0];
+      check('I10 点击复制 → 条目新增且照片已去除', () => !!arr && arr.length === 1 && arr[0].n === '鸡胸' && !arr[0].photo);
+    }
+  }
+}

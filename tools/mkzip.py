@@ -1,6 +1,6 @@
 import zipfile, os
 
-ZIP = '薄肌日记-v7.7-交接包.zip'
+ZIP = '薄肌日记-v7.8-交接包.zip'
 
 z = zipfile.ZipFile(ZIP, 'w', zipfile.ZIP_DEFLATED)
 
@@ -10,7 +10,7 @@ for p in files:
     if os.path.exists(p):
         z.write(p, 'boji-diary/' + p)
 
-for d in ['assets', 'docs', 'tools', os.path.join('.workbuddy', 'memory')]:
+for d in ['assets', 'docs', 'tools', 'server', os.path.join('.workbuddy', 'memory')]:
     for root, dirs, fs in os.walk(d):
         for f in fs:
             rel = os.path.join(root, f).replace(os.sep, '/')

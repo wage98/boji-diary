@@ -16,6 +16,7 @@ const AUTHOR = { name: 'boji-diary', email: 'boji-diary@users.noreply.github.com
 const PROJ = path.join(__dirname, '..');
 const SKIP_DIR = new Set(['.git', '.workbuddy', '_archive', 'node_modules', 'dist', 'build']);
 const SKIP_EXT = new Set(['.zip', '.tmp', '.log', '.mjs']);
+const SKIP_PREFIX = ['_shot'];   // 形象截图临时文件（.html/.png）不推送
 
 function walk(dir, rel, out) {
   for (const name of fs.readdirSync(dir)) {
@@ -25,6 +26,7 @@ function walk(dir, rel, out) {
     const r = rel ? rel + '/' + name : name;
     if (st.isDirectory()) { if (!SKIP_DIR.has(name)) walk(abs, r, out); continue; }
     if (SKIP_EXT.has(path.extname(name).toLowerCase())) continue;
+    if (SKIP_PREFIX.some(p => name.startsWith(p))) continue;
     out.push({ rel: r, abs });
   }
 }

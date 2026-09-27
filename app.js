@@ -1,5 +1,5 @@
 /* ============================================================
-   薄肌日记 v7.8 · app.js
+   薄肌日记 v7.9 · app.js
    手机桌面常驻二次元桌宠（纳西妲）健身 App —— 居家哑铃方案
    - 常驻浮层桌宠：情绪状态机 + 待机循环 + 左右缘直立探头吸附 + 点击对话 + 事件反应
    - 桌宠=桌面主屏，dock 展开 训练/饮食/聊天/数据/我的
@@ -20,6 +20,10 @@
            ④桌宠换肤：方案 A 分层 SVG 自绘形象（10 情绪 = 图层参数组合）
            + 图片压缩异步化（createImageBitmap/OffscreenCanvas 优先，主线程不卡）+ 输入夹取二次校验
            + Keep 风格记录流（热量/蛋白可视化 + 卡片化 + 主行动按钮）
+   - v7.9：①桌宠形象重制为精致 Q 版（渐变虹膜/睫毛/发丝线/腮红；PET_THEME 主题化为「捏桌宠」铺路）
+           ②眨眼动画（保留嘴型只换眼型）+ 连点彩蛋 ③AI 识别：prompt 升级（中餐份量锚点+宏量自洽）
+           + 同图缓存省额度 + 失败可重试 + 错误分类提示 ④知识库 42→62 条 + 问句归一化匹配
+           + 数据化回答新增（体重趋势/本周统计/吃什么建议）⑤饮食「一键复制上一餐」（去照片防膨胀）
    - 复用 v6 已验证资产：训练计划(4训练日23动作 + B站章节时间戳) / 知识库 / 打卡 / 数据
    纯前端 · localStorage 持久化 · 无构建
    ============================================================ */
@@ -152,7 +156,7 @@ const KB = [
     more:'分摊到 3–4 餐，每餐 25–40g 蛋白吸收利用更好。参考：鸡胸 150g≈35g、鸡蛋 1 个≈6g、蛋白粉 1 勺≈24g、牛奶 250ml≈8g。' },
   { q:'练完吃什么', a:'训练后 1–2 小时补充蛋白 + 碳水，如鸡胸+饭或蛋白粉+香蕉。\n*[B] 证据：运动后营养窗口有利于合成*', k:['练完','后','吃','补充'] },
   { q:'练前要吃吗', a:'训练前 1–2 小时少量碳水 + 蛋白即可，别吃太撑。\n*[B] 证据：训前碳水提升表现*', k:['练前','前','吃'] },
-  { q:'喝水重要吗', a:'每天 30–40 ml/kg，训练中小口多次，缺水掉力量。\n*[B] 证据：脱水降运动表现*', k:['喝水','水','喝','饮水'],
+  { q:'喝水重要吗', a:'每天 30–40 ml/kg，训练中小口多次，缺水掉力量。\n*[B] 证据：脱水降运动表现*', k:['喝水','饮水','缺水','补水'],
     more:'简易判断：尿液淡黄=够；深黄=补。训练中每 15–20 分钟喝 100–200ml，别等口渴再灌。' },
   { q:'食物热量怎么估算', a:'手掌法：掌心≈100g肉、拳头≈1碗饭、拇指≈1勺油。更准可查 OpenFoodFacts 开源食物数据库。\n*[B] 证据：OpenFoodFacts 公开营养数据库*', k:['热量','估算','卡路里','kcal'],
     more:'外食估算三招：①油和酱料单独算（1 勺油≈126 kcal）；②主食按碗算（1 碗米饭≈200 kcal）；③看得到原材料的菜比浓汤/红烧/干锅低 30–50%。' },
@@ -185,6 +189,35 @@ const KB = [
   { q:'练后要拉伸多久', a:'训练后 5–10 分钟静态拉伸，每个部位 15–30 秒。\n*[C] 证据：柔韧性与恢复*', k:['拉伸','放松','柔韧'] },
   { q:'多久能看到效果', a:'力量 2–4 周提升，体型 8–12 周可见变化，别天天称体重。\n*[B] 证据：训练适应时间进程*', k:['多久','效果','变化','没效果'] },
   { q:'早上练还是晚上练', a:'以能长期坚持的时间为准，规律性比时段更重要。\n*[C] 证据：训练时间与依从性*', k:['早上','晚上','时间','几点'] },
+  // ——— v7.9 增补：训练进阶 ———
+  { q:'卧推没感觉胸没充血', a:'多为肩代偿。肩胛后收下沉、哑铃下放到乳线略下、顶峰挤压 1 秒；先做 2 组轻重量飞鸟找发力感。\n*[C] 证据：念动一致与孤立预热*', k:['卧推','没感觉','胸','充血','发力'],
+    more:'三步找回发力感：①空手做卧推姿势，想象“把两肘往中间夹”；②用 50% 重量做 12 次哑铃飞鸟预热；③正式组降到能完美控制再上量。胸肌发达者常犯的错是“用手推”，想着“肘推”而不是“手推”。' },
+  { q:'俯卧撑做不了几个', a:'降阶：跪姿或手撑 elevated（桌上）俯卧撑，节奏放慢 2-1-2，每周 2 次每次 3 组到接近力竭。\n*[C] 证据：渐进降阶训练*', k:['俯卧撑','做不了','撑'] },
+  { q:'引体向上做不了', a:'用弹力带辅助或做反向划船；或跳上杠慢慢下（离心引体 5 秒），每周 2 次，4–8 周多数人能完成首个标准引体。\n*[B] 证据：离心训练与力量迁移*', k:['引体','向上','单杠','拉不起'] },
+  { q:'腹肌怎么练', a:'卷腹/举腿都行，但露腹肌靠体脂——腹肌是“瘦”出来的不是“练”出来的。\n*[B] 证据：局部减脂不成立*', k:['腹肌','马甲','卷腹','六块'],
+    more:'两步走：①腹肌训练每周 3 次、每次 3 个动作各 15–20 次（卷腹/举腿/平板支撑）；②饮食控制热量让体脂降（男 <15%、女 <22% 左右开始明显）。只练腹不减脂，永远隔着一层。' },
+  { q:'手臂怎么练粗', a:'弯举（二头）+ 颈后臂屈伸（三头），孤立动作放训练末尾，每周 2 次各 3–4 组。\n*[C] 证据：小肌群容量建议*', k:['手臂','二头','三头','弯举','臂屈伸','粗'] },
+  { q:'背部怎么练厚', a:'划船是核心：单臂哑铃划船注重肩胛后缩（想象“把肘往髋口袋放”），配合俯身双臂划船，每周 12–16 组。\n*[B] 证据：背部肌电与划船变式*', k:['背','划船','背阔肌','厚'] },
+  { q:'硬拉怎么做', a:'居家可用哑铃罗马尼亚硬拉练臀腿后链：髋向后坐、膝微弯、腰背平直，感受大腿后侧拉紧再站直。\n*[B] 证据：髋铰链模式*', k:['硬拉','罗马尼亚','臀','后链'],
+    more:'自检：①起始时杠/哑铃贴腿；②下放过程想着“把臀部往后推”，不是“往下蹲”；③全程腰背平直，若腰弯了立刻减重。每周 2 次每组 8–10 次。' },
+  { q:'肩弹响还能推吗', a:'疼就停。推类换上斜或减少幅度（推到肘与肩平），加弹力带外旋强化肩袖，2 周不缓解就医。\n*[B] 证据：肩袖与康复性训练*', k:['弹响','肩袖','肩疼','肩膀疼'] },
+  // ——— v7.9 增补：营养实战 ———
+  { q:'食堂怎么吃增肌', a:'一荤一素一半主食打底；多选蒸煮炖，少选油炸/糖醋/红烧；蛋白不够可用鸡蛋/牛奶/豆制品补。\n*[C] 证据：外食选择策略*', k:['食堂','上班','外食','公司'] },
+  { q:'夜宵吃不吃', a:'饿了就吃蛋白类：鸡蛋、无糖酸奶、牛奶、豆腐干；避开油炸高糖。总量计入当日热量即可，不必有负罪感。\n*[C] 证据：进食时间与总量*', k:['夜宵','晚上吃','饿了','睡前吃'] },
+  { q:'咖啡能喝吗', a:'训练前 30–60 分钟一杯黑咖啡可提升表现与专注；下午 3 点后别喝，避免影响睡眠。\n*[B] 证据：咖啡因与运动表现*', k:['咖啡','咖啡因','提神'] },
+  { q:'奶茶零食怎么处理', a:'液态热量不顶饱、最易超标——一周 1–2 次解馋可以，喝了就记进当日热量，其他餐清淡对冲。\n*[C] 证据：液态热量与饱腹感*', k:['奶茶','零食','甜','饮料'] },
+  { q:'蛋白吃不够怎么办', a:'加餐补：酸奶+坚果、水煮蛋、豆腐干、豆浆。效率手段才是蛋白粉（1 勺≈24g）。\n*[B] 证据：蛋白分摊吸收*', k:['吃不够','补蛋白','加餐'] },
+  // ——— v7.9 增补：计划与瓶颈 ———
+  { q:'哑铃太轻怎么办', a:'四招提高难度：慢速离心 4 秒、单侧训练（单臂推/单腿蹲）、缩短组间休息、把次数加到 20+。长期建议入手可调哑铃。\n*[B] 证据：轻负荷训练技术*', k:['太轻','重量不够','哑铃轻','最大重量'] },
+  { q:'每组做多少次', a:'增肌 8–12 次/组，力量 4–6 次，耐力 15+ 次；居家轻重量往 12–20 次靠，最后一两次接近力竭。\n*[A] 证据：重复区间与肌肥大*', k:['几次','每组','次数','做多少'] },
+  // ——— v7.9 增补：恢复与身体信号 ———
+  { q:'抽筋怎么办', a:'立即反向拉伸（小腿抽筋勾脚尖）至缓解；平时保证水+电解质（出汗多可补淡盐水）、热身充分。\n*[C] 证据：电解质与肌肉痉挛*', k:['抽筋','痉挛','腿抽'] },
+  { q:'训练头晕', a:'立刻停下坐下，别硬撑。常见原因：空腹低血糖、憋气、起身太快。吃点东西休息，若反复出现请就医。\n*[B] 证据：运动性低血压与低血糖*', k:['头晕','眼花','低血糖','恶心'] },
+  { q:'泡沫轴有用吗', a:'有。训练后每个部位滚压 30–60 秒、酸痛点停留 20 秒，可短期缓解酸痛与改善柔韧。\n*[B] 证据：SMR 与恢复*', k:['泡沫轴','滚','放松','按摩'] },
+  // ——— v7.9 增补：身体数据与特殊时期 ———
+  { q:'体脂怎么看', a:'家用体脂秤误差 ±3–5%，看趋势别纠结绝对值；腰围更直观——腰围下降+力量保持=在掉脂不掉肌。\n*[B] 证据：BIA 体脂测量误差*', k:['体脂','bmi','体脂率','腰围'] },
+  { q:'经期能练吗', a:'多数可以低中强度训练（有研究显示不适期中低强度运动反而缓解症状），避免大重量与倒立类；量多/痛得厉害就休息。\n*[B] 证据：运动与月经周期*', k:['经期','生理期','大姨妈','月经'] },
+  { q:'体重不涨怎么办', a:'先记录 3 天饮食算均值——多数人是“以为吃多了”。热量每天再加 200–300 kcal（≈1 碗饭+1 勺蛋白粉），称重固定早晨空腹。\n*[C] 证据：能量平衡核查法*', k:['不涨','体重不增','瘦','吃不胖'] },
 ];
 
 /* ---------- 多轮对话上下文（记住上一话题，支持追问与“结合我的数据”回答） ---------- */
@@ -213,10 +246,37 @@ function dataReply(q){
   if(/连续|打卡几天|坚持了|几天了|streak/.test(q)){
     return `你已经连续打卡 ${streak()} 天，累计 ${Object.keys(STATE.checkins).length} 天 (｡･ω･｡)ﾉ\n${streak()>=7?'一周以上啦，保持节奏！':'先定个小目标：连打 7 天。'}`;
   }
+  if(/体重.*(趋势|变化|曲线)|最近.*(瘦|胖|轻|重)|(瘦|胖|轻|重)了/.test(q)){
+    const arr=cleanWeights();
+    if(arr.length===0) return '还没有体重曲线记录——在「数据」页记一笔，或在「我的」页改体重，我就开始帮你跟踪趋势~';
+    const first=arr[0], last=arr[arr.length-1], diff=+(last.w-first.w).toFixed(1);
+    const span=arr.length>1 ? `从 ${first.d} 的 ${first.w}kg 到 ${last.d} 的 ${last.w}kg` : `最近一次 ${last.d} 记录 ${last.w}kg`;
+    const verdict = arr.length<2 ? '多记几天我才能画出趋势（建议每周固定同一天早晨空腹称）。'
+      : diff>0 ? `涨了 ${diff}kg——增肌期理想节奏是每月 +0.5~1kg，涨太快多半是脂肪，可把热量回调 100–200 kcal。`
+      : diff<0 ? `降了 ${Math.abs(diff)}kg——若你在减脂这是好节奏；若在增肌则要把热量加回来。`
+      : '体重稳定——增肌期说明热量刚好够维持，想增重就每天加 200 kcal。';
+    return `${span}（共 ${arr.length} 次记录）\n${verdict}`;
+  }
   if(/体重|多重|多少斤|目标/.test(q)){
     return STATE.profile
       ? `档案里是 ${STATE.profile.height}cm / ${STATE.profile.weight}kg，单哑铃 ${STATE.profile.dumbbell}kg。\n按此计算：蛋白目标 ${g.protein}g、热量约 ${g.kcal} kcal、饮水 ${g.water} ml。可在“我的”页随时改，改完立即生效。`
       : '还没设置档案，去“我的”页填一下身高体重，我才能给你算目标~';
+  }
+  if(/本周|这周|一周.*(练|打)|连打|坚持/.test(q) || /练了.*几次/.test(q)){
+    const now=new Date(); const mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7));
+    const mk=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    let days=0, sets=0;
+    for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i);
+      const ck=STATE.checkins[mk(d)]; if(ck&&ck.ex){ const n=Object.values(ck.ex).filter(Boolean).length; if(n){days++; sets+=n;} } }
+    return `本周（周一起）已练 ${days} 天、完成 ${sets} 个动作。\n${days>=4?'节奏很好，注意恢复(★ω★)':days>=2?'不错，再练 1–2 天就到位。':'本周还没达标——目标 3–4 次，今晚就开始？'}`;
+  }
+  if(!/练/.test(q) && /吃什么|吃啥|推荐.{0,4}吃|饮食建议|三餐/.test(q)){
+    const key=todayKey(), meals=STATE.meals[key]||{}; let pTot=0;
+    Object.keys(meals).forEach(mi=>(meals[mi]||[]).forEach(f=>{ pTot += (f.p||0) * mealQty(f); }));
+    const gap=Math.round(g.protein-pTot);
+    if(gap>10) return `今天蛋白还差约 ${gap}g。推荐：鸡胸 150g（≈35g 蛋白）/ 鸡蛋 2 个+牛奶 250ml（≈20g）/ 豆腐干 100g（≈16g）。\n拍照记一笔，我帮你盯着总量~`;
+    if(pTot>0) return `今天蛋白已记录 ${Math.round(pTot)}g（目标 ${g.protein}g），基本够了。主食碳水别怕吃——练前练后都是好时机(｡･ω･｡)`;
+    return '还没记录今天的第一餐。拍照记一笔更准；想先看看有什么，点任意一餐的「手动选」可以翻 80+ 常见食物库~';
   }
   if(/上次(重量|练)|加重|加重量|超负荷/.test(q)){
     const t2=getDayType(wd()); if(t2==='rest' || !STATE.exLast[t2]) return '还没有上一次的重量记录，先练一轮并填起始重量，我就记住啦~';
@@ -241,9 +301,10 @@ function nahidaReply(text){
   }
   // 2) 结合本机数据的个性化回答
   const dr=dataReply(q); if(dr){ CTX.turns++; return dr; }
-  // 3) 知识库匹配（关键词命中计分）
+  // 3) 知识库匹配（问句归一化 + 关键词命中计分）
+  const nq=String(q).replace(/[\s?？!！。，,\.、～~的啊呢吧嘛]/g,'');
   let best=null,bs=0;
-  for(const item of KB){ let s=0; for(const k of item.k) if(q.indexOf(k.toLowerCase())>=0) s+=2; if(s>bs){bs=s;best=item;} }
+  for(const item of KB){ let s=0; for(const k of item.k) if(nq.indexOf(k.toLowerCase())>=0) s+=2; if(s>bs){bs=s;best=item;} }
   if(bs>0){ CTX.lastItem=best; CTX.lastQ=raw; CTX.turns++; return best.a + (best.more ? '\n（回我“再详细点”，我展开讲）' : ''); }
   // 4) 寒暄
   if(/你好|hi|在吗|在呢|嗨/.test(q)) return `你好呀，我是${COACH_NAME}，你的居家哑铃增肌教练(｡･ω･｡)ﾉ\n训练、营养、恢复都可以问我——我只回答有出处的，没把握的会直说。`;
@@ -377,107 +438,252 @@ const LINES = {
   wave:['你来啦！','嗨~ 想我了没','在呢在呢，随时找我','抓到你啦(｡･ω･｡)ﾉ'],
   hover:['诶？你碰我啦(｡õ∀õ)','嘿嘿，被你发现啦~','摸摸头，舒服~','我一直在哦，放心'],
   drag:['带我去哪儿呀~','飞咯飞咯(｡ˇ∀ˇ)','抓稳咯，别松手！','去新位置安家啦'],
+  tickle:['哈哈哈好痒(｡•̀ᴗ-)✧','别戳啦别戳啦~','再戳我就要唱歌咯♪','嘻嘻，最喜欢主人啦'],
   idleLong:['主人好久没动啦，记得起来拉伸一下哦','偷偷提醒：喝口水、眨眨眼~','久坐伤身，站起来走走嘛(｡•ᴗ•｡)','我陪你，但也要动一动呀'],
 };
 const _lastIdx = {};
 function pickLine(pool){ const arr = LINES[pool] || LINES.happy; if(arr.length===1) return arr[0];
   let i; do { i = Math.floor(Math.random()*arr.length); } while(i === _lastIdx[pool]); _lastIdx[pool] = i; return arr[i]; }
-/* ---------- 桌宠形象 v7.8：方案 A「分层 SVG」自绘皮肤 ----------
-   设计要点：一种情绪 = 一组图层参数（眼型/嘴型/腮红/特效），不是 8 张独立图。
-   → 单文件零依赖、整体几 KB、换情绪只换参数；将来做「捏桌宠」可直接复用图层。
-   皮肤可切换：'svg'（自绘，默认） / 'official'（原素材，需自备版权）。 */
-const PET_FACE = {
-  happy : { eye:'open',   mouth:'smile', blush:1, fx:''      },
-  cheer : { eye:'smile',  mouth:'o',     blush:1, fx:'star'  },
-  proud : { eye:'open',   mouth:'smile', blush:1, fx:'spark' },
-  expect: { eye:'star',   mouth:'small', blush:1, fx:'note'  },
-  think : { eye:'squint', mouth:'small', blush:0, fx:'think' },
-  sad   : { eye:'tear',   mouth:'wave',  blush:0, fx:'sweat' },
-  sleep : { eye:'closed', mouth:'small', blush:0, fx:'zzz'   },
-  wave  : { eye:'smile',  mouth:'smile', blush:1, fx:'note'  },
-  hover : { eye:'open',   mouth:'o',     blush:1, fx:'heart' },
-  drag  : { eye:'star',   mouth:'o',     blush:1, fx:'star'  },
+/* ---------- 桌宠形象 v7.9：方案 A「分层 SVG」· 精致 Q 版自绘皮肤 ----------
+   设计要点：
+   ① 一种情绪 = 一组图层参数（眼型/嘴型/腮红/特效），不是 N 张独立图 → 几 KB、零依赖。
+   ② 图层顺序：后发 → 身体（腿/裙/袖/臂） → 脸 → 刘海与鬓发 → 腮红 → 眉 → 眼 → 嘴 → 头饰 → 特效。
+      眉眼嘴画在刘海之上（二次元标准「透刘海」画法），保证表情始终清晰。
+   ③ 配色集中在 PET_THEME，将来做「捏桌宠」只需改主题对象，图层代码不动。
+   ④ Q 版头身比约 1.35:1（头 78px / 身 58px），五官集中、眼大、下巴圆。 */
+const PET_THEME = {
+  hairHi:'#ffffff', hairA:'#f2f9f0', hairB:'#d2e8d6', hairC:'#a3ccb0', hairD:'#7db08e',
+  skinA:'#fff6ec', skinB:'#ffdfc4', skinSh:'#f3c3a0',
+  eyeA:'#b4f0c8', eyeB:'#4dbb84', eyeC:'#186344', eyeLine:'#3b2f28',
+  dressA:'#ffffff', dressB:'#e9f2e8', trimA:'#93d89f', trimB:'#4da269',
+  shoe:'#6cb379', gold:'#f3cd72', blush:'#ff8ca4', blush2:'#ff7f97',
+  leaf:'#7ec98c'
 };
-// 单眼绘制：cx 为眼中心 x（左 48 / 右 72），kind 决定形状
-function petEye(kind, cx){
-  const cy = 60, ink = '#2f6b52';
-  if(kind==='smile')  return `<path d="M${cx-6} ${cy} C${cx-3} ${cy-5} ${cx+3} ${cy-5} ${cx+6} ${cy}" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
-  if(kind==='closed') return `<path d="M${cx-6} ${cy+1} C${cx-3} ${cy+5} ${cx+3} ${cy+5} ${cx+6} ${cy+1}" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
-  if(kind==='star')   return `<path d="M${cx} ${cy-7} l1.9 4.2 4.6.4 -3.5 3 1 4.5 -4-2.4 -4 2.4 1-4.5 -3.5-3 4.6-.4Z" fill="${ink}"/>`;
-  const open = `<ellipse cx="${cx}" cy="${cy}" rx="7" ry="8.6" fill="#4f9c78"/>
-    <ellipse cx="${cx}" cy="${cy+1}" rx="5" ry="6.4" fill="#2f6b52"/>
-    <circle cx="${cx-2}" cy="${cy-2.6}" r="2.3" fill="#fff"/>
-    <circle cx="${cx+2.4}" cy="${cy+3}" r="1.3" fill="#bff0d6" opacity=".85"/>`;
-  if(kind==='open')   return open + `<path d="M${cx-7.5} ${cy-7} C${cx-4} ${cy-10} ${cx+4} ${cy-10} ${cx+7.5} ${cy-7}" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-  if(kind==='squint') return `<g>${open}<path d="M${cx-8} ${cy-4.6} h16 v3 h-16 Z" fill="#e9f6e2" opacity=".95"/></g>`;
-  if(kind==='tear')   return open + `<path d="M${cx+5} ${cy+7} c1.6 2.4 2.6 3.8 2.6 5 a2.6 2.6 0 0 1-5.2 0 c0-1.2 1-2.6 2.6-5Z" fill="#7ec8f0"/>`;
-  return open;
+// 眼型参数表：每种情绪一组
+const PET_FACE = {
+  happy : { eye:'open',   mouth:'smile', blush:1, brow:'up',   fx:''      },
+  cheer : { eye:'smile',  mouth:'grin',  blush:1, brow:'up',   fx:'star'  },
+  proud : { eye:'open',   mouth:'smile', blush:1, brow:'flat', fx:'spark' },
+  expect: { eye:'star',   mouth:'small', blush:1, brow:'up',   fx:'note'  },
+  think : { eye:'squint', mouth:'small', blush:0, brow:'down', fx:'think' },
+  sad   : { eye:'tear',   mouth:'wave',  blush:0, brow:'sad',  fx:'sweat' },
+  sleep : { eye:'closed', mouth:'small', blush:0, brow:'flat', fx:'zzz'   },
+  wave  : { eye:'smile',  mouth:'grin',  blush:1, brow:'up',   fx:'note'  },
+  hover : { eye:'open',   mouth:'o',     blush:1, brow:'up',   fx:'heart' },
+  drag  : { eye:'star',   mouth:'o',     blush:1, brow:'up',   fx:'star'  },
+  blink : { eye:'closed', mouth:'smile', blush:1, brow:'flat', fx:''      },
+};
+const PET_DEFS = (function(){
+  const T = PET_THEME;
+  return `<defs>
+    <linearGradient id="ph" x1=".5" y1="0" x2=".5" y2="1">
+      <stop offset="0" stop-color="${T.hairHi}"/><stop offset=".38" stop-color="${T.hairA}"/>
+      <stop offset=".76" stop-color="${T.hairB}"/><stop offset="1" stop-color="${T.hairC}"/></linearGradient>
+    <linearGradient id="ps" x1=".5" y1="0" x2=".5" y2="1">
+      <stop offset="0" stop-color="${T.skinA}"/><stop offset="1" stop-color="${T.skinB}"/></linearGradient>
+    <radialGradient id="pe" cx=".5" cy=".32" r=".8">
+      <stop offset="0" stop-color="${T.eyeA}"/><stop offset=".5" stop-color="${T.eyeB}"/>
+      <stop offset="1" stop-color="${T.eyeC}"/></radialGradient>
+    <linearGradient id="pd" x1=".5" y1="0" x2=".5" y2="1">
+      <stop offset="0" stop-color="${T.dressA}"/><stop offset="1" stop-color="${T.dressB}"/></linearGradient>
+    <linearGradient id="pt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${T.trimA}"/><stop offset="1" stop-color="${T.trimB}"/></linearGradient>
+    <radialGradient id="pb" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="${T.blush2}" stop-opacity=".95"/>
+      <stop offset=".55" stop-color="${T.blush}" stop-opacity=".55"/>
+      <stop offset="1" stop-color="${T.blush}" stop-opacity="0"/></radialGradient>
+  </defs>`;
+})();
+/* 图层 1：后发（含两侧垂发与发梢） */
+function petHairBack(){
+  return `<g>
+    <ellipse cx="60" cy="51" rx="45.5" ry="42.5" fill="url(#ph)"/>
+    <path d="M24 58 C17 78 14 99 17 115 C24 107 30 91 33 74 C34 66 34 61 33 55Z" fill="url(#ph)"/>
+    <path d="M96 58 C103 78 106 99 103 115 C96 107 90 91 87 74 C86 66 86 61 87 55Z" fill="url(#ph)"/>
+    <path d="M17 112 C16 119 18 125 22 128 C25 122 25 116 24 111Z" fill="${PET_THEME.hairC}"/>
+    <path d="M103 112 C104 119 102 125 98 128 C95 122 95 116 96 111Z" fill="${PET_THEME.hairC}"/>
+  </g>`;
 }
+/* 图层 2：身体（腿 → 鞋 → 裙 → 领 → 腰饰 → 泡泡袖 → 手臂） */
+function petBody(){
+  const T = PET_THEME;
+  return `<g>
+    <rect x="49" y="124" width="8.6" height="15" rx="4.3" fill="url(#ps)"/>
+    <rect x="62.4" y="124" width="8.6" height="15" rx="4.3" fill="url(#ps)"/>
+    <path d="M47.6 135 C47.6 142 51 146 55.4 146 C59 146 60 142 60 135Z" fill="${T.shoe}"/>
+    <path d="M60 135 C60 142 61 146 64.6 146 C69 146 72.4 142 72.4 135Z" fill="${T.shoe}"/>
+    <path d="M47.6 143 C51 145 59 145 60 143 L60 146 L47.6 146Z" fill="#57976a"/>
+    <path d="M60 143 C61 145 69 145 72.4 143 L72.4 146 L60 146Z" fill="#57976a"/>
+    <path d="M47 91 C44 101 42 113 39 123 C36.4 130 34.6 132.6 34.6 132.6 L85.4 132.6 C85.4 132.6 83.6 130 81 123 C78 113 76 101 73 91 C69 87 51 87 47 91Z" fill="url(#pd)"/>
+    <path d="M34.6 130.4 C46 134.4 74 134.4 85.4 130.4 L85.4 134 C74 138 46 138 34.6 134Z" fill="#dbe8dc"/>
+    <path d="M52 87.6 C56 92.4 64 92.4 68 87.6 C65 89.6 55 89.6 52 87.6Z" fill="url(#pt)"/>
+    <path d="M45.4 107 C52 111 68 111 74.6 107" stroke="url(#pt)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <circle cx="60" cy="109" r="2.8" fill="${T.gold}"/>
+    <circle cx="60" cy="109" r="1.2" fill="#fff" opacity=".7"/>
+    <ellipse cx="43.6" cy="98.6" rx="8.2" ry="7.2" fill="url(#pd)"/>
+    <ellipse cx="76.4" cy="98.6" rx="8.2" ry="7.2" fill="url(#pd)"/>
+    <path d="M38.6 103 C34.6 110 32.6 118 33.6 124 C36.6 123 39.6 117 41.6 110Z" fill="url(#ps)"/>
+    <path d="M81.4 103 C85.4 110 87.4 118 86.4 124 C83.4 123 80.4 117 78.4 110Z" fill="url(#ps)"/>
+    <circle cx="34.8" cy="125.6" r="4.2" fill="url(#ps)"/>
+    <circle cx="85.2" cy="125.6" r="4.2" fill="url(#ps)"/>
+  </g>`;
+}
+/* 图层 3：脸（包子脸：上圆下微尖、下巴圆润） */
+const PET_FACE_SHAPE = 'M23 52 C23 32 37 21 60 21 C83 21 97 32 97 52 C97 69 84 87 60 87 C36 87 23 69 23 52Z';
+function petFace(){
+  return `<g>
+    <path d="${PET_FACE_SHAPE}" fill="url(#ps)"/>
+    <path d="M34 50 C36 42 42 37 50 42 C53 46 56 48 60 48 C64 48 67 46 70 42 C78 37 84 42 86 50 C84 44 79 40 73 39 C69 41 65 43 60 43 C55 43 51 41 47 39 C41 40 36 44 34 50Z" fill="${PET_THEME.skinSh}" opacity=".5"/>
+  </g>`;
+}
+/* 图层 4：前发（刘海 + 两侧鬓发 + 呆毛 + 高光） */
+function petHairFront(){
+  const T = PET_THEME;
+  return `<g>
+    <path d="M60 5 C66 1 75 2 80 7.4 C73 7.4 66.6 9.6 62.4 14.6 C60.6 10.6 59.4 7.6 60 5Z" fill="url(#ph)"/>
+    <path d="M23 54 C23 34 37 20 60 20 C83 20 97 34 97 54
+             C94 46 90.4 40.4 86.4 37.4
+             C85.4 50 84.4 62 84.4 74
+             C81 69 79 61 78.2 52.6
+             C76 47.6 72.6 45.6 68.6 45.4
+             C66.4 49 63.4 51.2 60 51.4
+             C56.6 51.2 53.6 49 51.4 45.4
+             C47.4 45.6 44 47.6 41.8 52.6
+             C41 61 39 69 35.6 74
+             C35.6 62 34.6 50 33.6 37.4
+             C29.6 40.4 26 46 23 54Z" fill="url(#ph)"/>
+    <path d="M31 43 C39 27 50 24.6 61 24.6 C72 24.6 83 28 89 43 C81 32 72 28.4 61 28.4 C49 28.4 39 32.6 31 43Z" fill="#fff" opacity=".5"/>
+    <g stroke="${T.hairD}" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".55">
+      <path d="M50.6 25.6 C49.6 32 49.4 38 50.2 44.4"/>
+      <path d="M60 23 C60 30 60 38 60 49.4"/>
+      <path d="M69.4 25.6 C70.4 32 70.6 38 69.8 44.4"/>
+      <path d="M41.4 30.6 C40 38 39.6 46 40.4 54.6"/>
+      <path d="M78.6 30.6 C80 38 80.4 46 79.6 54.6"/>
+    </g>
+    <path d="M41.8 52.6 C44 47.6 47.4 45.6 51.4 45.4 C53.6 49 56.6 51.2 60 51.4 C63.4 51.2 66.4 49 68.6 45.4 C72.6 45.6 76 47.6 78.2 52.6" stroke="${T.hairD}" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".65"/>
+    <path d="M33.6 37.4 C34.6 50 35.6 62 35.6 74" stroke="${T.hairD}" stroke-width="1" fill="none" opacity=".5"/>
+    <path d="M86.4 37.4 C85.4 50 84.4 62 84.4 74" stroke="${T.hairD}" stroke-width="1" fill="none" opacity=".5"/>
+  </g>`;
+}
+/* 图层 5：眉毛（画在刘海之上 = 二次元「透刘海」） */
+function petBrow(kind){
+  const c = PET_THEME.eyeC, op = .62;
+  const up   = `<path d="M39.6 51.4 Q46 47.2 52.4 50.4" stroke="${c}" stroke-width="1.9" fill="none" stroke-linecap="round" opacity="${op}"/>
+                <path d="M67.6 50.4 Q74 47.2 80.4 51.4" stroke="${c}" stroke-width="1.9" fill="none" stroke-linecap="round" opacity="${op}"/>`;
+  const flat = `<path d="M40 51.6 L52 50.2" stroke="${c}" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="${op}"/>
+                <path d="M68 50.2 L80 51.6" stroke="${c}" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="${op}"/>`;
+  const down = `<path d="M40 50 Q46 47 52 51.6" stroke="${c}" stroke-width="1.9" fill="none" stroke-linecap="round" opacity="${op}"/>
+                <path d="M68 51.6 Q74 47 80 50" stroke="${c}" stroke-width="1.9" fill="none" stroke-linecap="round" opacity="${op}"/>`;
+  const sadB = `<path d="M39.6 49.4 Q46 52.6 52.4 53.4" stroke="${c}" stroke-width="1.9" fill="none" stroke-linecap="round" opacity="${op}"/>
+                <path d="M67.6 53.4 Q74 52.6 80.4 49.4" stroke="${c}" stroke-width="1.9" fill="none" stroke-linecap="round" opacity="${op}"/>`;
+  if(kind==='flat') return flat;
+  if(kind==='down') return down;
+  if(kind==='sad')  return sadB;
+  return up;
+}
+/* 图层 6：单眼绘制（cx=45.6 左 / 74.4 右；side 决定眼尾朝向） */
+function petEye(kind, cx, side){
+  const T = PET_THEME, cy = 63, L = T.eyeLine;
+  const tailX = (side === 'L') ? cx - 9.4 : cx + 9.4;
+  const tail  = `<path d="M${tailX} ${cy-3.2} l${(side==='L'?-3.4:3.4)} -2.4" stroke="${L}" stroke-width="2.7" fill="none" stroke-linecap="round"/>`;
+  const lash  = `<path d="M${cx-9.4} ${cy-3.2} Q${cx} ${cy-11.8} ${cx+9.4} ${cy-3.2}" stroke="${L}" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+  const lid   = `<path d="M${cx-7} ${cy-9.6} Q${cx} ${cy-13.4} ${cx+7} ${cy-9.6}" stroke="${T.eyeC}" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".5"/>`;
+  if(kind==='smile')  return `<g><path d="M${cx-9} ${cy+1.2} Q${cx} ${cy-7.4} ${cx+9} ${cy+1.2}" stroke="${L}" stroke-width="3.3" fill="none" stroke-linecap="round"/>${tail}</g>`;
+  if(kind==='closed') return `<g><path d="M${cx-9} ${cy-1.4} Q${cx} ${cy+4.6} ${cx+9} ${cy-1.4}" stroke="${L}" stroke-width="2.9" fill="none" stroke-linecap="round"/><path d="M${cx-7} ${cy-7} Q${cx} ${cy-10.4} ${cx+7} ${cy-7}" stroke="${L}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".55"/></g>`;
+  if(kind==='star')   return `<path d="M${cx} ${cy-9.4} l2.7 5.8 6.3.5 -4.8 4.1 1.5 6.2 -5.7-3.4 -5.7 3.4 1.5-6.2 -4.8-4.1 6.3-.5Z" fill="${T.gold}" stroke="${T.eyeC}" stroke-width=".9" stroke-linejoin="round"/>`;
+  const white = `<ellipse cx="${cx}" cy="${cy}" rx="9.2" ry="10.2" fill="#fff"/>`;
+  const iris  = `<ellipse cx="${cx}" cy="${cy+.8}" rx="7.8" ry="8.8" fill="url(#pe)"/>`;
+  const pupil = `<ellipse cx="${cx}" cy="${cy+1.8}" rx="3.7" ry="5.1" fill="${T.eyeC}"/>`;
+  const hi    = `<ellipse cx="${cx-2.9}" cy="${cy-3.6}" rx="3" ry="2.7" fill="#fff" opacity=".97"/>
+                 <circle cx="${cx+3.4}" cy="${cy+4.2}" r="1.6" fill="#fff" opacity=".72"/>`;
+  const under = `<path d="M${cx-8.6} ${cy+6.6} Q${cx} ${cy+10.4} ${cx+8.6} ${cy+6.6}" stroke="${L}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".45"/>`;
+  const base  = white + iris + pupil + hi + under + lash + tail + lid;
+  if(kind==='squint') return `<g>${white}${iris}${hi}
+      <path d="M${cx-10} ${cy-1.6} Q${cx} ${cy-5.2} ${cx+10} ${cy-1.6} L${cx+10} ${cy-14} L${cx-10} ${cy-14} Z" fill="${PET_THEME.skinA}"/>
+      <path d="M${cx-10} ${cy-1.6} Q${cx} ${cy-5.2} ${cx+10} ${cy-1.6}" stroke="${L}" stroke-width="3.1" fill="none" stroke-linecap="round"/>${tail}</g>`;
+  if(kind==='tear')   return `<g>${base}<path d="M${cx+6.8} ${cy+8.4} c1.9 2.7 2.9 4.2 2.9 5.6 a2.9 2.9 0 0 1-5.8 0 c0-1.4 1-2.9 2.9-5.6Z" fill="#7ec8f0" opacity=".92"/><path d="M${cx+5.6} ${cy+9.6} q.8 1.6 1.6 2.4" stroke="#fff" stroke-width=".9" fill="none" opacity=".8"/></g>`;
+  if(kind==='wide')   return `<g><ellipse cx="${cx}" cy="${cy}" rx="10" ry="11.4" fill="#fff"/>
+      <ellipse cx="${cx}" cy="${cy+1}" rx="6.2" ry="7.2" fill="url(#pe)"/>
+      <ellipse cx="${cx}" cy="${cy+1.8}" rx="2.8" ry="4" fill="${T.eyeC}"/>
+      <ellipse cx="${cx-2.6}" cy="${cy-3.4}" rx="2.6" ry="2.3" fill="#fff" opacity=".97"/>${under}${lash}${tail}</g>`;
+  if(kind==='heart')  return `<path d="M${cx} ${cy+7.6} c-6.4-7.2-16.6-3-16.6 5.4 0 7.6 10.6 13.4 16.6 18.8 6-5.4 16.6-11.2 16.6-18.8 0-8.4-10.2-12.6-16.6-5.4Z" fill="#ff8fa6" stroke="#e26a83" stroke-width=".9"/>`;
+  return `<g>${base}</g>`;
+}
+/* 图层 7：嘴 */
 function petMouth(kind){
-  const ink='#c2696f';
-  if(kind==='o')     return `<ellipse cx="60" cy="74" rx="3.2" ry="3.8" fill="${ink}"/>`;
-  if(kind==='small') return `<path d="M58.4 74.4 h3.2" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`;
-  if(kind==='wave')  return `<path d="M56 75.5 C58 72.5 60 77 62 74" stroke="${ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
-  return `<path d="M55.6 71.6 C58 75 62 75 64.4 71.6" stroke="${ink}" stroke-width="1.9" fill="none" stroke-linecap="round"/>`;
+  const m = '#c26b74', my = 77.4, dk = '#a9505b';
+  if(kind==='o')     return `<g><ellipse cx="60" cy="${my}" rx="4.4" ry="5.2" fill="${dk}"/><ellipse cx="60" cy="${my+1.8}" rx="3" ry="2.8" fill="#e58a92"/></g>`;
+  if(kind==='small') return `<path d="M58 ${my+.4} Q60 ${my+2.8} 62 ${my+.4}" stroke="${m}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  if(kind==='wave')  return `<path d="M55.4 ${my+1.2} Q57.8 ${my-2.4} 60 ${my+1.2} Q62.2 ${my-2.4} 64.6 ${my+1.2}" stroke="${m}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  if(kind==='grin')  return `<g><path d="M53.6 ${my-1.6} Q60 ${my+7.4} 66.4 ${my-1.6} Q60 ${my-3.4} 53.6 ${my-1.6}Z" fill="${dk}"/><path d="M56.6 ${my+1.8} Q60 ${my+5.4} 63.4 ${my+1.8} Q60 ${my+3} 56.6 ${my+1.8}Z" fill="#fff" opacity=".85"/></g>`;
+  return `<path d="M55.2 ${my-1.8} Q60 ${my+3.6} 64.8 ${my-1.8}" stroke="${m}" stroke-width="2.1" fill="none" stroke-linecap="round"/>`;
 }
+/* 图层 8：特效 */
 function petFx(kind){
-  if(kind==='star')  return `<g fill="#ffd76e"><path d="M96 34 l2 4.6 5 .4-3.8 3.3 1.1 5-4.3-2.6-4.3 2.6 1.1-5-3.8-3.3 5-.4Z"/><path d="M18 46 l1.4 3.3 3.6.3-2.7 2.3.8 3.6-3.1-1.9-3.1 1.9.8-3.6-2.7-2.3 3.6-.3Z" opacity=".8"/></g>`;
-  if(kind==='spark') return `<g fill="#ffe9a8"><circle cx="98" cy="40" r="2.4"/><circle cx="92" cy="30" r="1.5"/><circle cx="22" cy="50" r="2"/><circle cx="28" cy="42" r="1.3"/></g>`;
-  if(kind==='note')  return `<g fill="#8fbf90" font-family="serif"><text x="92" y="38" font-size="13">&#9834;</text><text x="20" y="52" font-size="10">&#9835;</text></g>`;
-  if(kind==='think') return `<g><ellipse cx="95" cy="34" rx="9" ry="6.5" fill="#fff" opacity=".9"/><circle cx="88" cy="42" r="2" fill="#fff" opacity=".8"/><circle cx="84" cy="47" r="1.3" fill="#fff" opacity=".65"/></g>`;
-  if(kind==='sweat') return `<path d="M94 30 c2.6 4 4 6 4 8 a4 4 0 0 1-8 0 c0-2 1.4-4 4-8Z" fill="#8fd0f0"/>`;
-  if(kind==='zzz')   return `<g fill="#8ea8c9" font-family="serif" font-style="italic"><text x="88" y="34" font-size="12">z</text><text x="96" y="26" font-size="9">z</text><text x="102" y="20" font-size="7">z</text></g>`;
-  if(kind==='heart') return `<path d="M95 40 c-3-3.4-8-1.4-8 2.6 0 3.6 5 6.4 8 9 3-2.6 8-5.4 8-9 0-4-5-6-8-2.6Z" fill="#ff9db0"/>`;
+  const T = PET_THEME;
+  if(kind==='star')  return `<g fill="${T.gold}"><path d="M100 30 l2.1 4.8 5.2.4-4 3.4 1.2 5.1-4.5-2.7-4.5 2.7 1.2-5.1-4-3.4 5.2-.4Z"/><path d="M16 44 l1.5 3.5 3.8.3-2.9 2.4.9 3.8-3.3-2-3.3 2 .9-3.8-2.9-2.4 3.8-.3Z" opacity=".85"/></g>`;
+  if(kind==='spark') return `<g fill="${T.gold}" opacity=".9"><circle cx="101" cy="38" r="2.6"/><circle cx="94" cy="28" r="1.6"/><circle cx="19" cy="48" r="2.1"/><circle cx="26" cy="40" r="1.4"/></g>`;
+  if(kind==='note')  return `<g fill="#7fb98a" font-family="serif"><text x="95" y="34" font-size="14">&#9834;</text><text x="17" y="50" font-size="10">&#9835;</text></g>`;
+  if(kind==='think') return `<g><ellipse cx="97" cy="31" rx="9.4" ry="6.8" fill="#fff" opacity=".92"/><ellipse cx="97" cy="31" rx="9.4" ry="6.8" fill="none" stroke="${T.trimB}" stroke-width="1" opacity=".5"/><circle cx="88" cy="40" r="2.1" fill="#fff" opacity=".85"/><circle cx="83" cy="46" r="1.4" fill="#fff" opacity=".7"/></g>`;
+  if(kind==='sweat') return `<path d="M96 28 c2.8 4.2 4.2 6.4 4.2 8.4 a4.2 4.2 0 0 1-8.4 0 c0-2 1.4-4.2 4.2-8.4Z" fill="#8fd0f0" opacity=".9"/>`;
+  if(kind==='zzz')   return `<g fill="#8ea8c9" font-family="serif" font-style="italic"><text x="92" y="32" font-size="13">z</text><text x="100" y="23" font-size="9.5">z</text><text x="106" y="16" font-size="7.5">z</text></g>`;
+  if(kind==='heart') return `<path d="M98 36 c-3.2-3.6-8.4-1.5-8.4 2.8 0 3.8 5.2 6.8 8.4 9.6 3.2-2.8 8.4-5.8 8.4-9.6 0-4.3-5.2-6.4-8.4-2.8Z" fill="#ff8fa6"/>`;
   return '';
 }
+/* 组装：一种情绪 = 一组图层参数（也支持传对象，供眨眼等瞬时帧复用嘴型/腮红） */
 function nahidaSVG(mood){
-  const f = PET_FACE[mood] || PET_FACE.happy;
+  const f = (mood && typeof mood==='object') ? mood : (PET_FACE[mood] || PET_FACE.happy);
+  const T = PET_THEME;
   const blush = f.blush
-    ? `<ellipse cx="42" cy="69" rx="5.4" ry="3.2" fill="#ff9db0" opacity=".5"/><ellipse cx="78" cy="69" rx="5.4" ry="3.2" fill="#ff9db0" opacity=".5"/>`
+    ? `<ellipse cx="38.2" cy="71.4" rx="9.4" ry="6" fill="url(#pb)"/><ellipse cx="81.8" cy="71.4" rx="9.4" ry="6" fill="url(#pb)"/>`
     : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
-  <defs>
-    <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#e7f7e0"/><stop offset=".55" stop-color="#a9dba6"/><stop offset="1" stop-color="#7cc08a"/></linearGradient>
-    <linearGradient id="dg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fffdf8"/><stop offset="1" stop-color="#f0ead9"/></linearGradient>
-    <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff1e2"/><stop offset="1" stop-color="#ffdfc8"/></linearGradient>
-  </defs>
-  <path d="M22 62 C22 26 38 12 60 12 C82 12 98 26 98 62 C98 78 94 92 90 102 C88 86 84 72 78 66 L42 66 C36 72 32 86 30 102 C26 92 22 78 22 62Z" fill="url(#hg)"/>
-  <path d="M28 58 C22 78 20 98 25 116 C31 106 35 94 38 84 Z" fill="url(#hg)"/>
-  <path d="M92 58 C98 78 100 98 95 116 C89 106 85 94 82 84 Z" fill="url(#hg)"/>
-  <path d="M60 80 C47 80 41 89 39 101 C35 113 33 126 31 134 L89 134 C87 126 85 113 81 101 C79 89 73 80 60 80Z" fill="url(#dg)"/>
-  <path d="M46 84 C52 97 68 97 74 84 C70 79 50 79 46 84Z" fill="#fffdf8"/>
-  <path d="M50.5 83 L60 93 L69.5 83" stroke="#e8c46a" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <circle cx="60" cy="97" r="2.6" fill="#e8c46a"/>
-  <rect x="35" y="92" width="8.5" height="27" rx="4.2" fill="url(#sk)"/>
-  <rect x="76.5" y="92" width="8.5" height="27" rx="4.2" fill="url(#sk)"/>
-  <rect x="51" y="130" width="7" height="16" rx="3.5" fill="url(#sk)"/>
-  <rect x="62" y="130" width="7" height="16" rx="3.5" fill="url(#sk)"/>
-  <ellipse cx="60" cy="58" rx="30" ry="29" fill="url(#sk)"/>
-  <path d="M30 52 C30 28 42 18 60 18 C78 18 90 28 90 52 C84 40 76 34 66 33 C58 38 46 40 38 44 C34 47 31 49 30 52Z" fill="url(#hg)"/>
-  <path d="M60 18 C62 8 70 5 76 9 C69 10 64 13 62 19Z" fill="url(#hg)"/>
-  <path d="M31 46 C26 56 25 70 27 82 C31 70 33 58 36 50Z" fill="url(#hg)"/>
-  <path d="M89 46 C94 56 95 70 93 82 C89 70 87 58 84 50Z" fill="url(#hg)"/>
-  ${blush}
-  ${petEye(f.eye,48)}${petEye(f.eye,72)}
-  ${petMouth(f.mouth)}
-  <path d="M60 24 C66 15 77 15 81 22 C74 28 64 30 60 24Z" fill="#7cc47f"/>
-  <circle cx="76" cy="21" r="2.2" fill="#e8c46a"/>
-  ${petFx(f.fx)}
+${PET_DEFS}
+<ellipse cx="60" cy="146" rx="26" ry="4" fill="#000" opacity=".07"/>
+${petHairBack()}
+${petBody()}
+${petFace()}
+${petHairFront()}
+${blush}
+${petBrow(f.brow)}
+${petEye(f.eye, 45.6, 'L')}${petEye(f.eye, 74.4, 'R')}
+${petMouth(f.mouth)}
+<path d="M81 17.6 C89.4 9.6 100.6 11.6 103.6 19.6 C95.6 23.6 87.6 23.6 81 17.6Z" fill="url(#pt)"/>
+<path d="M83.6 18.6 C89.6 14.6 97 15.6 101 19.6" stroke="#fff" stroke-width="1.3" fill="none" opacity=".55"/>
+<circle cx="86.6" cy="16.4" r="3.4" fill="#fff"/>
+<circle cx="86.6" cy="16.4" r="1.7" fill="${T.gold}"/>
+${petFx(f.fx)}
 </svg>`;
 }
 const PET_ART = {};   // 情绪 → dataURI 缓存（同一情绪只生成一次）
 function petArtURI(mood){
-  if(!PET_ART[mood]) PET_ART[mood] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(nahidaSVG(mood));
-  return PET_ART[mood];
+  const k = (mood && typeof mood==='object') ? 'obj:' + JSON.stringify(mood) : (mood || 'happy');
+  if(!PET_ART[k]) PET_ART[k] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(nahidaSVG(mood));
+  return PET_ART[k];
 }
 // 皮肤映射层：换形象只改这里，桌宠引擎与 CSS 动画完全不动
 function applyPetArt(mood){
   const img = document.getElementById('pet-img'); if(!img) return;
   if(STATE.petSkin === 'official'){ img.src = 'assets/nahida-icon.webp'; return; }
   img.src = petArtURI(mood || STATE.petMood || 'happy');
+}
+// 随机眨眼：只对睁眼情绪生效；瞬时帧保留原嘴型/腮红，135ms 后还原。官方皮肤不支持图层，自动跳过
+let blinkTimer=null;
+function scheduleBlink(){
+  clearTimeout(blinkTimer);
+  blinkTimer = setTimeout(()=>{
+    const mood = STATE.petMood || 'happy';
+    const f = PET_FACE[mood];
+    if(f && (f.eye==='open' || f.eye==='star') && STATE.petSkin==='svg' && !document.hidden){
+      const img = document.getElementById('pet-img');
+      if(img){
+        img.src = petArtURI({ eye:'closed', mouth:f.mouth, blush:f.blush, brow:f.brow, fx:'' });
+        setTimeout(()=>{ if(STATE.petMood===mood) applyPetArt(mood); scheduleBlink(); }, 135);
+        return;
+      }
+    }
+    scheduleBlink();
+  }, 3000 + Math.random()*3800);
 }
 let petTimer=null, idleTimer=null, sleepTimer=null, nudgeTimer=null;
 function setMood(mood, autoRevertMs){
@@ -546,12 +752,23 @@ function dockToNearest(){
   const off = clamp(cy/sr.height, 0.1, 0.9);
   STATE.petDock = { edge, off }; save(); applyDock();
 }
+// 连点彩蛋：5 秒内轻点 ≥5 次 → 特殊反应（不影响轻点打开助手的默认行为）
+let _tapTimes=[];
+function petTapEgg(){
+  const now = Date.now();
+  _tapTimes = _tapTimes.filter(t=>now-t<5000); _tapTimes.push(now);
+  if(_tapTimes.length>=5){
+    _tapTimes=[];
+    say(pickLine('tickle'));
+    setMood('drag', 2200);
+  }
+}
 function initPet(){
   const pet = $('#pet'); if(!pet) return;
   if(STATE.petPos && !STATE.petDock){ STATE.petDock = { edge:'right', off:0.62 }; }  // 兼容旧版位置数据
   applyDock();
   setMood(STATE.petMood && LINES[STATE.petMood] ? STATE.petMood : 'happy');
-  petWake(); petIdle();
+  petWake(); petIdle(); scheduleBlink();
   let sx,sy,ox,oy,dragged=false,pid=null;
   pet.addEventListener('pointerdown', e=>{
     pid=e.pointerId; pet.setPointerCapture(pid); pet.classList.add('dragging');
@@ -573,7 +790,7 @@ function initPet(){
   const end=()=>{
     if(pid===null) return;
     pet.releasePointerCapture(pid); pid=null; pet.classList.remove('dragging');
-    if(!dragged){ openAssistant(); }            // 轻点 = 展开助手对话
+    if(!dragged){ petTapEgg(); openAssistant(); }            // 轻点 = 展开助手对话（连点有彩蛋）
     else { dockToNearest(); setMood('happy', 1600); }   // 拖拽 = 吸附最近边
     petWake();
   };
@@ -876,6 +1093,16 @@ const foodKcal = f => (+f.kcalFix > 0) ? Math.round(+f.kcalFix * mealQty(f)) : M
 function bar2(pct, cls){
   return `<div class="bar2 ${cls||''}"><i style="width:${Math.max(0,Math.min(100,+pct||0))}%"></i></div>`;
 }
+// 找最近一次该餐有记录的条目（今天往前 7 天），用于「⏩ 一键复制」降低录入摩擦
+function lastMealEntries(mi){
+  for(let i=1;i<=7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    const arr=(STATE.meals[k]||{})[mi];
+    if(Array.isArray(arr) && arr.length) return arr;
+  }
+  return null;
+}
 function renderDiet(body){
   const key=todayKey();
   const meals=STATE.meals[key]||{};
@@ -910,7 +1137,14 @@ function renderDiet(body){
           <span class="fd-q">${q}份 · ${foodKcal(f)} kcal</span>
           <span class="fd-x" data-dec="${mi}:${i}">−</span><span class="fd-x" data-inc="${mi}:${i}">+</span>
           <span class="lr-ar fd-del" data-del="${mi}:${i}">✕</span></div>`; });
-    } else html+=`<p style="font-size:12px;color:var(--faint)">还没记录</p>`;
+    } else {
+      html+=`<p style="font-size:12px;color:var(--faint)">还没记录</p>`;
+      const lastArr=lastMealEntries(mi);
+      if(lastArr){
+        const names=lastArr.slice(0,2).map(f=>esc(String(f.n||'').slice(0,10))).join('、');
+        html+=`<div class="rep-row" data-rep="${mi}" role="button" tabindex="0">⏩ 一键复制上次：${names}${lastArr.length>2?` 等 ${lastArr.length} 项`:''}</div>`;
+      }
+    }
     html+=`<div class="row-btns" style="margin-top:10px">
       <button class="btn-grad" data-photo="${mi}">📷 拍下这一餐</button>
       <button class="ex-do" data-album="${mi}">🖼 相册</button>
@@ -925,6 +1159,20 @@ function renderDiet(body){
   $$('#mod-body [data-photo]').forEach(b=>b.onclick=()=>openPhotoIntake(+b.dataset.photo,body,true));
   $$('#mod-body [data-album]').forEach(b=>b.onclick=()=>openPhotoIntake(+b.dataset.album,body,false));
   $$('#mod-body [data-add]').forEach(b=>b.onclick=()=>openFoodSheet(+b.dataset.add,body,null));
+  // 一键复制上次该餐：深拷贝条目（去照片省空间）、克数校验沿用记录时的字段
+  $$('#mod-body [data-rep]').forEach(el=>el.onclick=()=>{
+    const mi=+el.dataset.rep; const src=lastMealEntries(mi); if(!src) return;
+    const key=todayKey();
+    STATE.meals[key]=STATE.meals[key]||{}; STATE.meals[key][mi]=STATE.meals[key][mi]||[];
+    src.forEach(f=>{
+      const rec=Object.assign({}, f);
+      delete rec.photo;                      // 复制的条目不再带照片缩略图
+      if(rec.p!=null){ rec.p=+rec.p; rec.c=+rec.c; rec.f=+rec.f; }
+      STATE.meals[key][mi].push(rec);
+    });
+    save(); renderDiet(body);
+    toast(`已复制 ${src.length} 项到${MEAL_NAMES[mi]}，可调整份量`);
+  });
   // 改：± 份数
   $$('#mod-body [data-inc]').forEach(x=>x.onclick=()=>{ const [mi,i]=x.dataset.inc.split(':').map(Number); changeQty(mi,i,+0.5,body); });
   $$('#mod-body [data-dec]').forEach(x=>x.onclick=()=>{ const [mi,i]=x.dataset.dec.split(':').map(Number); changeQty(mi,i,-0.5,body); });
@@ -999,10 +1247,15 @@ function compressImage(file, maxPx, cb){
             ③模型估算仍有误差（±15~30%），结果页强制可校正，绝不盲信。
    ============================================================ */
 const VISION_PROMPT =
-  '你是营养估算助手。识别图中的食物，估算这一份可食部分的重量与营养。' +
+  '你是专业的营养估算助手。识别照片中的食物并估算营养（多为中式家常菜/快餐）。' +
+  '若图中有多样食物，合并为这一餐整体，name 写主要食物名（如"米饭+红烧肉"）。' +
   '只输出一行 JSON，不要解释、不要 Markdown 代码块：' +
   '{"name":"中文名20字内","grams":数字,"kcal":数字,"protein":蛋白克,"carb":碳水克,"fat":脂肪克,"confidence":0到1,"uncertain":false}\n' +
-  '规则：数值都是这一份的总量（不是每100g）；图中不是食物或看不清时 uncertain=true 且 confidence<=0.3。';
+  '规则：\n' +
+  '1. 数值是照片中这份食物的总量（不是每100g），按可食部分计（去壳/去骨/弃汤渣）。\n' +
+  '2. 参考常见份量：一碗米饭约200g、一个鸡蛋约50g、一份炒菜约250-350g、一杯奶茶约400ml。\n' +
+  '3. kcal 要与宏量自洽：kcal ≈ protein*4 + carb*4 + fat*9，偏差控制在 ±20% 内。\n' +
+  '4. 画面清晰可辨时 confidence 取 0.7-0.9；不是食物或看不清时 uncertain=true 且 confidence<=0.3。';
 const VISION_TIMEOUT = 18000, VISION_RETRY = 1;
 // 二次校验：模型可能返回离谱值 / 前后矛盾的宏量与热量，一律夹取 + 交叉验证
 function sanitizeVision(o){
@@ -1089,6 +1342,7 @@ async function visionRecognize(base64){
 }
 /* ---------- 拍照 / 相册两个独立入口（修复：旧版写死 capture 导致相册入口不可用） ---------- */
 let _fsPhotoFile=null;   // 当前照片原文件（供条码检测用高清图；仅在面板存续期内持有）
+const _aiCache=new Map(); // AI 识别同图缓存（内存级：b64 → 结果），避免重开面板/重试重复消耗调用次数
 function openPhotoIntake(mi, body, camera){
   const inp=document.createElement('input');
   inp.type='file'; inp.accept='image/*';
@@ -1373,40 +1627,70 @@ function openFoodSheet(mi, body, photo){
       else bcFail('照片处理失败');
     };
   }
-  // —— AI 视觉识别（v7.8：仅在用户配置了识别服务时启用；失败一律明确降级，不假装识别过） ——
+  // —— AI 视觉识别（v7.9：同图缓存省额度 + 失败可重试 + 错误分类提示；未配置时完全不出现） ——
   const vcfg=STATE.vision||{};
   if(photo && (vcfg.mode==='proxy' || vcfg.mode==='direct') && _fsPhotoFile){
     const resEl=list.querySelector('#fs-result');
     const aiBox=document.createElement('div');
     aiBox.className='fs-ai';
-    aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 视觉识别中…</div>
-      <div class="sk-row"><i></i><i></i><i></i></div>
-      <p class="fs-none">正在调用视觉大模型（约 3–15 秒）。失败会自动降级为本地匹配，不会卡住。</p>`;
     resEl.appendChild(aiBox);
-    const aiFail=msg=>{ aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 识别未成功</div>
-      <p class="fs-none warn-lo">${esc(msg)} · 已降级为下方本地库/历史匹配，可手动选择并校正。</p>`; };
-    (async ()=>{
-      const du=await new Promise(r=>{ try{ compressImage(_fsPhotoFile, 512, r); }catch(_){ r(null); } });
-      const b64=(typeof du==='string' && du.indexOf(',')>0) ? du.slice(du.indexOf(',')+1) : '';
-      if(!b64){ aiFail('图片处理失败'); return; }
-      let r=null;
-      try{ r=await visionRecognize(b64); }catch(_){ r={ ok:false, error:'识别请求异常' }; }
-      if(!r || !r.ok){ aiFail((r && r.error) || '识别失败'); return; }
-      const d=r.data, g=Math.max(10, d.grams);
+    const aiWait=()=>{ aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 视觉识别中…</div>
+      <div class="sk-row"><i></i><i></i><i></i></div>
+      <p class="fs-none">正在调用视觉大模型（约 3–15 秒）。失败会自动降级为本地匹配，不会卡住。</p>`; };
+    // 错误分类：给可操作的下一步，而不是一句干巴巴的「失败」
+    const aiErrTip=e=>{
+      if(/HTTP 401|HTTP 403/.test(e)) return '访问凭据无效——到「我的 → AI 食物识别」核对口令/Key';
+      if(/HTTP 429/.test(e)) return '请求太频繁或额度用尽，稍等再试';
+      if(/HTTP 5\d\d/.test(e)) return '识别服务暂时不可用（服务器错误），稍后再试';
+      if(e==='请求超时') return '请求超时——网络慢或服务未响应';
+      if(e==='网络错误') return '网络不可用——检查网络后重试';
+      return String(e);
+    };
+    const run=()=>{
+      aiWait();
+      (async ()=>{
+        const du=await new Promise(r=>{ try{ compressImage(_fsPhotoFile, 512, r); }catch(_){ r(null); } });
+        const b64=(typeof du==='string' && du.indexOf(',')>0) ? du.slice(du.indexOf(',')+1) : '';
+        if(!b64){ aiFail('图片处理失败'); return; }
+        // 同图缓存：同一次会话内重开面板/重试同一张照片，不重复消耗调用次数
+        let r=null;
+        if(_aiCache.has(b64)){ r=_aiCache.get(b64); }
+        else{
+          try{ r=await visionRecognize(b64); }catch(_){ r={ ok:false, error:'识别请求异常' }; }
+          if(_aiCache.size>12) _aiCache.delete(_aiCache.keys().next().value);   // 上限保护
+          _aiCache.set(b64, r);
+        }
+        if(!r || !r.ok){ aiFail(aiErrTip((r && r.error) || '识别失败'), true); return; }
+        renderAiHit(r.data);
+      })();
+    };
+    const renderAiHit=d=>{
+      const g=Math.max(10, d.grams);
       const [cl, cc]=confLabel(d.conf);
       aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 识别结果 <span class="cf-badge ${cc}">${cl} ${Math.round(d.conf*100)}%</span></div>
         <div class="food-row ai" data-ai="1"><div class="fr-m"><b>${esc(d.name)}</b>
           <span>${d.grams}g · 蛋白 ${d.p}g · 碳水 ${d.c}g · 脂肪 ${d.f}g · 约 ${d.kcal} kcal</span></div>
           <span class="lr-ar">用这个 ›</span></div>
         ${d.uncertain ? `<p class="fs-none warn-lo">模型不太确定这是食物（或画面不清）。建议换角度重拍，或手动选择相近食物。</p>`
-          : `<p class="fs-none">估算存在 ±15~30% 误差，点上方结果后可改克数与热量。</p>`}`;
+          : `<p class="fs-none">估算存在 ±15~30% 误差，点上方结果后可改克数与热量。</p>`}
+        <button class="btn-grad ghost-btn" id="ai-retry" type="button">🔄 重新识别这张照片</button>`;
       const row=aiBox.querySelector('[data-ai]');
       if(row) row.onclick=()=>{
         _fsSel={ n:d.name, p:+(d.p*100/g).toFixed(1), c:+(d.c*100/g).toFixed(1), f:+(d.f*100/g).toFixed(1),
                  kcal100:Math.round(d.kcal*100/g), per100:true, grams:g, q:1, src:'ai', conf:d.conf };
         renderEditor(); toast('已采用 AI 结果，请核对克数');
       };
-    })();
+      const rb=aiBox.querySelector('#ai-retry');
+      if(rb) rb.onclick=run;
+    };
+    const aiFail=(msg, retry)=>{
+      aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 识别未成功</div>
+        <p class="fs-none warn-lo">${esc(msg)} · 已降级为下方本地库/历史匹配，可手动选择并校正。</p>
+        ${retry?'<button class="btn-grad ghost-btn" id="ai-retry" type="button">🔄 重试识别</button>':''}`;
+      const rb=aiBox.querySelector('#ai-retry');
+      if(rb) rb.onclick=run;
+    };
+    run();
   }
   const searchEl=list.querySelector('#food-search');
   searchEl.oninput=e=>renderHits(e.target.value);
