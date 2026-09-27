@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A6DCC4"/>
+      <stop offset="0.55" stop-color="#C2B6EA"/>
+      <stop offset="1" stop-color="#E7A7BF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="38%" r="60%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="200" r="150" fill="url(#glow)"/>
+  <!-- 桌宠头像（圆脸 + 双丸子头 + 草元素点缀，呼应纳西妲） -->
+  <g>
+    <circle cx="256" cy="232" r="118" fill="#FFF7FB"/>
+    <!-- 发饰宝珠（招牌） -->
+    <circle cx="150" cy="150" r="22" fill="#7FC4B8"/>
+    <circle cx="362" cy="150" r="22" fill="#F3C3D4"/>
+    <!-- 眼睛 -->
+    <circle cx="212" cy="226" r="15" fill="#36324C"/>
+    <circle cx="300" cy="226" r="15" fill="#36324C"/>
+    <circle cx="217" cy="221" r="5" fill="#fff"/>
+    <circle cx="305" cy="221" r="5" fill="#fff"/>
+    <!-- 腮红 -->
+    <circle cx="186" cy="262" r="13" fill="#F3A9BE" opacity="0.7"/>
+    <circle cx="326" cy="262" r="13" fill="#F3A9BE" opacity="0.7"/>
+    <!-- 微笑 -->
+    <path d="M226 272 Q256 300 286 272" stroke="#36324C" stroke-width="9" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- 草元素粒子 -->
+  <g fill="#7FC4B8" opacity="0.9">
+    <circle cx="96" cy="330" r="9"/>
+    <circle cx="416" cy="340" r="9"/>
+    <circle cx="140" cy="408" r="7"/>
+    <circle cx="372" cy="410" r="7"/>
+  </g>
+  <text x="256" y="466" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="46" font-weight="700" fill="#2c5044">薄肌日记</text>
+</svg>

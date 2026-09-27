@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!--
+  薄肌日记 v7.6 · 桌宠常驻「居家哑铃」健身 App
+  主界面 = 手机桌面常驻二次元桌宠（纳西妲，沿用 v6 官方素材，溯源见 assets/CREDITS.md）
+  角色素材：miHoYo《原神》纳西妲官方立绘/头像（static.wikia.nocookie.net/gensin-impact，经 Fandom API 获取直链）
+  纯前端单页 · localStorage 持久化 · 无构建步骤
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F3F0FB">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<title>薄肌日记 · 纳西妲的居家哑铃健身桌宠</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="stage">
+  <!-- 手机外壳 mockup -->
+  <div class="phone" id="phone">
+    <div class="bezel">
+      <div class="notch"><span class="cam"></span></div>
+      <div class="screen" id="screen">
+
+        <!-- 桌面壁纸（纳西妲官方卡，模糊作底） -->
+        <div class="wallpaper" id="wallpaper"></div>
+        <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+
+        <!-- 状态栏 -->
+        <div class="statusbar">
+          <span id="sb-time">9:41</span>
+          <span class="sb-right"><i class="sig"></i><i class="wifi"></i><i class="bat"></i></span>
+        </div>
+
+        <!-- 桌面主屏（桌宠即主界面） -->
+        <main class="homescreen" id="home">
+          <div class="clock-widget">
+            <div class="c-time" id="c-time">9:41</div>
+            <div class="c-date" id="c-date">周日 · 9月27日</div>
+          </div>
+          <div class="home-stats" id="home-stats"><!-- 今日三连：训练日/已打卡/连续 --></div>
+          <div class="home-card" id="home-today"><!-- 今日训练速览：一眼看到当天动作 --></div>
+
+          <!-- 常驻浮层桌宠（可拖拽、吸附、记忆位置） -->
+          <div class="pet" id="pet" role="button" aria-label="纳西妲桌宠" tabindex="0">
+            <div class="pet-bubble" id="pet-bubble"></div>
+            <div class="pet-body">
+              <img class="pet-img" id="pet-img" src="assets/nahida-icon.webp" alt="纳西妲">
+              <div class="pet-ring"></div>
+              <div class="pet-mood" id="pet-mood">✦</div>
+              <!-- 招牌发饰宝珠（纳西妲标志）+ 草元素粒子：让桌宠“活起来”（轻量 Live2D 等效） -->
+              <span class="pet-akuma a1"></span>
+              <span class="pet-akuma a2"></span>
+            </div>
+            <div class="pet-particles" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="pet-shadow"></div>
+          </div>
+
+          <!-- 底部 dock：从桌宠展开的各模块入口 -->
+          <nav class="dock" id="dock">
+            <button class="dock-item" data-go="training"><span class="di">🏋️</span><b>训练</b></button>
+            <button class="dock-item" data-go="diet"><span class="di">🍱</span><b>饮食</b></button>
+            <button class="dock-item pet-talk" id="pet-talk"><span class="di">💬</span><b>聊天</b></button>
+            <button class="dock-item" data-go="data"><span class="di">📈</span><b>数据</b></button>
+            <button class="dock-item" data-go="profile"><span class="di">👤</span><b>我的</b></button>
+          </nav>
+        </main>
+
+        <!-- 助手对话面板（点宠物或聊天展开） -->
+        <section class="panel assistant" id="assistant" aria-hidden="true">
+          <header class="panel-head">
+            <img class="ph-av" src="assets/nahida-icon.webp" alt="">
+            <div class="ph-meta"><b>纳西妲</b><span id="ph-status">在线 · 你的增肌教练</span></div>
+            <button class="ph-close" data-close="assistant">✕</button>
+          </header>
+          <div class="chat" id="chat"></div>
+          <div class="quick" id="quick"></div>
+          <div class="chat-input">
+            <input id="chat-text" type="text" placeholder="问纳西妲任何训练/营养问题…" maxlength="80">
+            <button id="chat-send">发送</button>
+          </div>
+        </section>
+
+        <!-- 通用模块面板（训练/饮食/数据/我的） -->
+        <section class="panel module" id="module" aria-hidden="true">
+          <header class="panel-head">
+            <button class="ph-back" data-close="module">‹</button>
+            <div class="ph-meta"><b id="mod-title">模块</b><span id="mod-sub"></span></div>
+            <button class="ph-close" data-close="module">✕</button>
+          </header>
+          <div class="mod-body" id="mod-body"></div>
+        </section>
+
+        <!-- 训练页内部：周历 + 当日动作（在 module 内渲染） -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 首启引导 -->
+<div class="modal-mask" id="onboard" aria-hidden="true">
+  <div class="modal">
+    <h3>先认识一下你(｡･ω･｡)ﾉ</h3>
+    <p class="sub">我是纳西妲，你的<b>居家哑铃</b>增肌教练，以后常驻你手机桌面陪你练啦~</p>
+    <label>身高 (cm)<input id="ob-h" type="number" inputmode="decimal" placeholder="170"></label>
+    <label>体重 (kg)<input id="ob-w" type="number" inputmode="decimal" placeholder="65"></label>
+    <label>单哑铃最大重量 (kg)<input id="ob-d" type="number" inputmode="decimal" placeholder="10"></label>
+    <button class="btn-grad" id="ob-save">开始和纳西妲一起练</button>
+  </div>
+</div>
+
+<!-- 训练完成弹窗 -->
+<div class="modal-mask" id="done-modal" aria-hidden="true">
+  <div class="modal">
+    <div class="done-emoji" id="done-emoji">🎉</div>
+    <h3 id="done-title">今日训练完成！</h3>
+    <p class="sub" id="done-sub"></p>
+    <div class="done-stats" id="done-stats"></div>
+    <button class="btn-grad" id="done-ok">收到~</button>
+  </div>
+</div>
+
+<!-- 食物记录面板（饮食页 → 拍照/手动记录后的估算校正） -->
+<div class="modal-mask sheet" id="food-sheet" aria-hidden="true">
+  <div class="modal">
+    <h3>记录食物</h3>
+    <p class="sub">拍照后系统按常见食物估算，选一项再校正名称/份量/热量即可。</p>
+    <div class="food-list" id="food-list"></div>
+    <button class="btn-grad ghost" id="food-close">取消</button>
+  </div>
+</div>
+
+<!-- 拍照取景隐藏入口（饮食页拍照记录用） -->
+
+<!-- 组间休息计时器 -->
+<div class="rest-timer hidden" id="rest-timer">
+  <div class="rt-ring"><span id="rt-sec">60</span></div>
+  <div class="rt-label">组间休息</div>
+  <button id="rt-skip">跳过</button>
+</div>
+
+<!-- toast -->
+<div class="toast hidden" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

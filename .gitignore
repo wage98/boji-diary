@@ -1,0 +1,11 @@
+# 内部工作目录（记忆/日志，不入库）
+.workbuddy/
+
+# 本地归档（旧版源码 / 未使用素材 / 历史二维码，保留在本地但不入库）
+_archive/
+
+# 常见杂项
+node_modules/
+__pycache__/
+.DS_Store
+Thumbs.db

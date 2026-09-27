@@ -1,0 +1,21 @@
+{
+  "name": "薄肌日记 · 纳西妲的居家哑铃健身桌宠",
+  "short_name": "薄肌日记",
+  "description": "手机桌面常驻二次元桌宠健身 App（居家哑铃方案 · 训练 · 拍照饮食记录 · 月历打卡）",
+  "lang": "zh-CN",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F0FB",
+  "theme_color": "#F3F0FB",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
