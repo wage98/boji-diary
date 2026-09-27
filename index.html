@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  薄肌日记 v7.6 · 桌宠常驻「居家哑铃」健身 App
+  薄肌日记 v7.8 · 桌宠常驻「居家哑铃」健身 App
   主界面 = 手机桌面常驻二次元桌宠（纳西妲，沿用 v6 官方素材，溯源见 assets/CREDITS.md）
   角色素材：miHoYo《原神》纳西妲官方立绘/头像（static.wikia.nocookie.net/gensin-impact，经 Fandom API 获取直链）
   纯前端单页 · localStorage 持久化 · 无构建步骤
@@ -121,11 +121,11 @@
   </div>
 </div>
 
-<!-- 食物记录面板（饮食页 → 拍照/手动记录后的估算校正） -->
+<!-- 食物记录面板（v7.8 识别结果页：拍照/相册 → 条码/历史/本地库匹配 + 置信度 → 校正 → 确认） -->
 <div class="modal-mask sheet" id="food-sheet" aria-hidden="true">
   <div class="modal">
     <h3>记录食物</h3>
-    <p class="sub">拍照后系统按常见食物估算，选一项再校正名称/份量/热量即可。</p>
+    <p class="sub">拍照留档后按条码 / 历史 / 食物库匹配并标注置信度；低置信度会明确提示，名称份量热量都能改。</p>
     <div class="food-list" id="food-list"></div>
     <button class="btn-grad ghost" id="food-close">取消</button>
   </div>

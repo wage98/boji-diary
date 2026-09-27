@@ -71,7 +71,7 @@ ok($('#mod-body').innerHTML.includes('/ ' + g.kcal + ' kcal'), '热量目标行�
 // 7. 拍照校正面板：搜索 → 选食物 → 改份量 → 添加
 w.openFoodSheet(1, $('#mod-body'), 'data:image/jpeg;base64,AAAA');
 ok($('#food-sheet').classList.contains('show'), '拍照校正面板打开');
-ok(doc.querySelector('.fs-photo img') !== null, '照片缩略图显示在校正面板');
+ok(doc.querySelector('.fs-hero img') !== null, '照片缩略图显示在识别结果页');
 const search = $('#food-search');
 search.value = '鸡胸'; input(search);
 const hits = $$('#food-hits [data-hit]');

@@ -1,5 +1,5 @@
 /* ============================================================
-   薄肌日记 v7.6 · app.js
+   薄肌日记 v7.8 · app.js
    手机桌面常驻二次元桌宠（纳西妲）健身 App —— 居家哑铃方案
    - 常驻浮层桌宠：情绪状态机 + 待机循环 + 左右缘直立探头吸附 + 点击对话 + 事件反应
    - 桌宠=桌面主屏，dock 展开 训练/饮食/聊天/数据/我的
@@ -13,6 +13,13 @@
           ⑥番茄ToDo 式统计：统计格 + 连续天数激励 + 月历可视化
    - v7.6：仓库治理（死代码接线/清理）+ 拍照识别攻坚（81 项本地库 + OpenFoodFacts 在线查询
             + 热量手动覆盖 + 失败兜底）+ 智能助手（42 条知识库 + 多轮上下文 + 结合本机数据）
+   - v7.7：识别流程重做（拍照/相册分离 → 三级匹配识别 + 置信度徽章 → 结果页校正 → 确认添加）
+           + OpenFoodFacts 条码识别（BarcodeDetector，探测到才显示）+ 弱网自动重试 + 加载骨架
+   - v7.8：①AI 视觉识别（可插拔：自建代理 / OpenAI 兼容直连，含二次校验与失败降级，默认关闭）
+           ②自定义动作（任何日期可练，含休息日）③体重曲线（手写 SVG，零依赖）
+           ④桌宠换肤：方案 A 分层 SVG 自绘形象（10 情绪 = 图层参数组合）
+           + 图片压缩异步化（createImageBitmap/OffscreenCanvas 优先，主线程不卡）+ 输入夹取二次校验
+           + Keep 风格记录流（热量/蛋白可视化 + 卡片化 + 主行动按钮）
    - 复用 v6 已验证资产：训练计划(4训练日23动作 + B站章节时间戳) / 知识库 / 打卡 / 数据
    纯前端 · localStorage 持久化 · 无构建
    ============================================================ */
@@ -320,10 +327,19 @@ let STATE = Object.assign({
   scores:{},                                 // v7.5：每日训练评分 { feel, energy, sat, at }
   petPos:null, petDock:null, petMood:'happy', lastPetTouch:Date.now(),
   planEdits:{}, exLast:{}, editPlan:false,   // v7.3：计划可编辑 + 渐进超负荷记忆
+  petSkin:'svg',                             // v7.8：桌宠皮肤 'svg' 自绘 / 'official' 原素材
+  myEx:[],                                   // v7.8：自定义动作 [{id,name,part,sets,reps,rest,note}]
+  bodyWeights:[],                            // v7.8：体重曲线 [{d:'Y-M-D', w:70.5}]
+  vision:{ mode:'off', endpoint:'', token:'', model:'glm-4v-flash' },  // v7.8：AI 图像识别
 }, load());
 // v7.5 数据迁移：旧版饮水按“杯”（1杯≈250ml），一次性换算为 ml
 if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
 if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
+// v7.8 迁移：新增字段容错（脏数据不至于让整页白屏）
+if(!Array.isArray(STATE.myEx)) STATE.myEx = [];
+if(!Array.isArray(STATE.bodyWeights)) STATE.bodyWeights = STATE.bodyWeights && typeof STATE.bodyWeights === 'object' ? [] : [];
+if(!STATE.vision || typeof STATE.vision !== 'object') STATE.vision = { mode:'off', endpoint:'', token:'', model:'glm-4v-flash' };
+if(STATE.petSkin !== 'official') STATE.petSkin = 'svg';
 
 /* ---------- 工具 ---------- */
 const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
@@ -366,11 +382,109 @@ const LINES = {
 const _lastIdx = {};
 function pickLine(pool){ const arr = LINES[pool] || LINES.happy; if(arr.length===1) return arr[0];
   let i; do { i = Math.floor(Math.random()*arr.length); } while(i === _lastIdx[pool]); _lastIdx[pool] = i; return arr[i]; }
+/* ---------- 桌宠形象 v7.8：方案 A「分层 SVG」自绘皮肤 ----------
+   设计要点：一种情绪 = 一组图层参数（眼型/嘴型/腮红/特效），不是 8 张独立图。
+   → 单文件零依赖、整体几 KB、换情绪只换参数；将来做「捏桌宠」可直接复用图层。
+   皮肤可切换：'svg'（自绘，默认） / 'official'（原素材，需自备版权）。 */
+const PET_FACE = {
+  happy : { eye:'open',   mouth:'smile', blush:1, fx:''      },
+  cheer : { eye:'smile',  mouth:'o',     blush:1, fx:'star'  },
+  proud : { eye:'open',   mouth:'smile', blush:1, fx:'spark' },
+  expect: { eye:'star',   mouth:'small', blush:1, fx:'note'  },
+  think : { eye:'squint', mouth:'small', blush:0, fx:'think' },
+  sad   : { eye:'tear',   mouth:'wave',  blush:0, fx:'sweat' },
+  sleep : { eye:'closed', mouth:'small', blush:0, fx:'zzz'   },
+  wave  : { eye:'smile',  mouth:'smile', blush:1, fx:'note'  },
+  hover : { eye:'open',   mouth:'o',     blush:1, fx:'heart' },
+  drag  : { eye:'star',   mouth:'o',     blush:1, fx:'star'  },
+};
+// 单眼绘制：cx 为眼中心 x（左 48 / 右 72），kind 决定形状
+function petEye(kind, cx){
+  const cy = 60, ink = '#2f6b52';
+  if(kind==='smile')  return `<path d="M${cx-6} ${cy} C${cx-3} ${cy-5} ${cx+3} ${cy-5} ${cx+6} ${cy}" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  if(kind==='closed') return `<path d="M${cx-6} ${cy+1} C${cx-3} ${cy+5} ${cx+3} ${cy+5} ${cx+6} ${cy+1}" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  if(kind==='star')   return `<path d="M${cx} ${cy-7} l1.9 4.2 4.6.4 -3.5 3 1 4.5 -4-2.4 -4 2.4 1-4.5 -3.5-3 4.6-.4Z" fill="${ink}"/>`;
+  const open = `<ellipse cx="${cx}" cy="${cy}" rx="7" ry="8.6" fill="#4f9c78"/>
+    <ellipse cx="${cx}" cy="${cy+1}" rx="5" ry="6.4" fill="#2f6b52"/>
+    <circle cx="${cx-2}" cy="${cy-2.6}" r="2.3" fill="#fff"/>
+    <circle cx="${cx+2.4}" cy="${cy+3}" r="1.3" fill="#bff0d6" opacity=".85"/>`;
+  if(kind==='open')   return open + `<path d="M${cx-7.5} ${cy-7} C${cx-4} ${cy-10} ${cx+4} ${cy-10} ${cx+7.5} ${cy-7}" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  if(kind==='squint') return `<g>${open}<path d="M${cx-8} ${cy-4.6} h16 v3 h-16 Z" fill="#e9f6e2" opacity=".95"/></g>`;
+  if(kind==='tear')   return open + `<path d="M${cx+5} ${cy+7} c1.6 2.4 2.6 3.8 2.6 5 a2.6 2.6 0 0 1-5.2 0 c0-1.2 1-2.6 2.6-5Z" fill="#7ec8f0"/>`;
+  return open;
+}
+function petMouth(kind){
+  const ink='#c2696f';
+  if(kind==='o')     return `<ellipse cx="60" cy="74" rx="3.2" ry="3.8" fill="${ink}"/>`;
+  if(kind==='small') return `<path d="M58.4 74.4 h3.2" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`;
+  if(kind==='wave')  return `<path d="M56 75.5 C58 72.5 60 77 62 74" stroke="${ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  return `<path d="M55.6 71.6 C58 75 62 75 64.4 71.6" stroke="${ink}" stroke-width="1.9" fill="none" stroke-linecap="round"/>`;
+}
+function petFx(kind){
+  if(kind==='star')  return `<g fill="#ffd76e"><path d="M96 34 l2 4.6 5 .4-3.8 3.3 1.1 5-4.3-2.6-4.3 2.6 1.1-5-3.8-3.3 5-.4Z"/><path d="M18 46 l1.4 3.3 3.6.3-2.7 2.3.8 3.6-3.1-1.9-3.1 1.9.8-3.6-2.7-2.3 3.6-.3Z" opacity=".8"/></g>`;
+  if(kind==='spark') return `<g fill="#ffe9a8"><circle cx="98" cy="40" r="2.4"/><circle cx="92" cy="30" r="1.5"/><circle cx="22" cy="50" r="2"/><circle cx="28" cy="42" r="1.3"/></g>`;
+  if(kind==='note')  return `<g fill="#8fbf90" font-family="serif"><text x="92" y="38" font-size="13">&#9834;</text><text x="20" y="52" font-size="10">&#9835;</text></g>`;
+  if(kind==='think') return `<g><ellipse cx="95" cy="34" rx="9" ry="6.5" fill="#fff" opacity=".9"/><circle cx="88" cy="42" r="2" fill="#fff" opacity=".8"/><circle cx="84" cy="47" r="1.3" fill="#fff" opacity=".65"/></g>`;
+  if(kind==='sweat') return `<path d="M94 30 c2.6 4 4 6 4 8 a4 4 0 0 1-8 0 c0-2 1.4-4 4-8Z" fill="#8fd0f0"/>`;
+  if(kind==='zzz')   return `<g fill="#8ea8c9" font-family="serif" font-style="italic"><text x="88" y="34" font-size="12">z</text><text x="96" y="26" font-size="9">z</text><text x="102" y="20" font-size="7">z</text></g>`;
+  if(kind==='heart') return `<path d="M95 40 c-3-3.4-8-1.4-8 2.6 0 3.6 5 6.4 8 9 3-2.6 8-5.4 8-9 0-4-5-6-8-2.6Z" fill="#ff9db0"/>`;
+  return '';
+}
+function nahidaSVG(mood){
+  const f = PET_FACE[mood] || PET_FACE.happy;
+  const blush = f.blush
+    ? `<ellipse cx="42" cy="69" rx="5.4" ry="3.2" fill="#ff9db0" opacity=".5"/><ellipse cx="78" cy="69" rx="5.4" ry="3.2" fill="#ff9db0" opacity=".5"/>`
+    : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e7f7e0"/><stop offset=".55" stop-color="#a9dba6"/><stop offset="1" stop-color="#7cc08a"/></linearGradient>
+    <linearGradient id="dg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/><stop offset="1" stop-color="#f0ead9"/></linearGradient>
+    <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff1e2"/><stop offset="1" stop-color="#ffdfc8"/></linearGradient>
+  </defs>
+  <path d="M22 62 C22 26 38 12 60 12 C82 12 98 26 98 62 C98 78 94 92 90 102 C88 86 84 72 78 66 L42 66 C36 72 32 86 30 102 C26 92 22 78 22 62Z" fill="url(#hg)"/>
+  <path d="M28 58 C22 78 20 98 25 116 C31 106 35 94 38 84 Z" fill="url(#hg)"/>
+  <path d="M92 58 C98 78 100 98 95 116 C89 106 85 94 82 84 Z" fill="url(#hg)"/>
+  <path d="M60 80 C47 80 41 89 39 101 C35 113 33 126 31 134 L89 134 C87 126 85 113 81 101 C79 89 73 80 60 80Z" fill="url(#dg)"/>
+  <path d="M46 84 C52 97 68 97 74 84 C70 79 50 79 46 84Z" fill="#fffdf8"/>
+  <path d="M50.5 83 L60 93 L69.5 83" stroke="#e8c46a" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="60" cy="97" r="2.6" fill="#e8c46a"/>
+  <rect x="35" y="92" width="8.5" height="27" rx="4.2" fill="url(#sk)"/>
+  <rect x="76.5" y="92" width="8.5" height="27" rx="4.2" fill="url(#sk)"/>
+  <rect x="51" y="130" width="7" height="16" rx="3.5" fill="url(#sk)"/>
+  <rect x="62" y="130" width="7" height="16" rx="3.5" fill="url(#sk)"/>
+  <ellipse cx="60" cy="58" rx="30" ry="29" fill="url(#sk)"/>
+  <path d="M30 52 C30 28 42 18 60 18 C78 18 90 28 90 52 C84 40 76 34 66 33 C58 38 46 40 38 44 C34 47 31 49 30 52Z" fill="url(#hg)"/>
+  <path d="M60 18 C62 8 70 5 76 9 C69 10 64 13 62 19Z" fill="url(#hg)"/>
+  <path d="M31 46 C26 56 25 70 27 82 C31 70 33 58 36 50Z" fill="url(#hg)"/>
+  <path d="M89 46 C94 56 95 70 93 82 C89 70 87 58 84 50Z" fill="url(#hg)"/>
+  ${blush}
+  ${petEye(f.eye,48)}${petEye(f.eye,72)}
+  ${petMouth(f.mouth)}
+  <path d="M60 24 C66 15 77 15 81 22 C74 28 64 30 60 24Z" fill="#7cc47f"/>
+  <circle cx="76" cy="21" r="2.2" fill="#e8c46a"/>
+  ${petFx(f.fx)}
+</svg>`;
+}
+const PET_ART = {};   // 情绪 → dataURI 缓存（同一情绪只生成一次）
+function petArtURI(mood){
+  if(!PET_ART[mood]) PET_ART[mood] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(nahidaSVG(mood));
+  return PET_ART[mood];
+}
+// 皮肤映射层：换形象只改这里，桌宠引擎与 CSS 动画完全不动
+function applyPetArt(mood){
+  const img = document.getElementById('pet-img'); if(!img) return;
+  if(STATE.petSkin === 'official'){ img.src = 'assets/nahida-icon.webp'; return; }
+  img.src = petArtURI(mood || STATE.petMood || 'happy');
+}
 let petTimer=null, idleTimer=null, sleepTimer=null, nudgeTimer=null;
 function setMood(mood, autoRevertMs){
   const pet = $('#pet'); if(!pet) return;
   Array.from(pet.classList).forEach(c=>{ if(c.startsWith('mood-')) pet.classList.remove(c); });
   pet.classList.add('mood-' + mood);
+  applyPetArt(mood);
   say(pickLine(mood));
   STATE.petMood = mood; save();
   clearTimeout(petTimer);
@@ -648,13 +762,70 @@ function renderTraining(body){
     if(done) html+=`<button class="ex-do" id="day-undo" style="background:var(--glass);color:var(--faint);margin-top:8px">撤销今日打卡</button>`;
     html+=`<p style="font-size:10.5px;color:var(--faint);margin-top:10px;line-height:1.6">${TIMESTAMP_NOTE}</p>`;
   }
+  // —— v7.8 自定义动作：任何日期都能练（含休息日），组数/次数/休息/部位随你定 ——
+  const myEx=(Array.isArray(STATE.myEx) ? STATE.myEx : []).filter(x=>x && typeof x.id==='string');
+  const myDone=STATE.checkins[sel]?.ex || {};
+  let myHtml=`<div class="card"><h4>我的动作 <span class="tag">${myEx.length} 个</span><span class="tag" style="background:rgba(126,177,232,.18);color:#4a7fae">自定义</span></h4>`;
+  if(!myEx.length) myHtml+=`<p style="font-size:12px;color:var(--faint)">还没有自定义动作。把想练的动作加进来，组数、次数、休息时间都由你定。</p>`;
+  myEx.forEach(x=>{
+    const fin=!!myDone['c'+x.id];
+    myHtml+=`<div class="ex myex"><div class="ex-top"><span class="ex-no">✦</span><span class="ex-name">${esc(x.name)}</span>
+      <span class="ex-sets">${x.sets}×${esc(x.reps)} · 休${x.rest}s</span></div>
+      ${x.part?`<div class="ex-kv"><span class="k">部位</span><span class="v ok">${esc(x.part)}</span></div>`:''}
+      ${x.note?`<div class="ex-kv"><span class="k">要点</span><span class="v warn">${esc(x.note)}</span></div>`:''}
+      <div class="ex-weight">重量 <input type="number" inputmode="decimal" value="${STATE.weights[sel]?.['c'+x.id] ?? ''}" placeholder="kg" data-mw="${esc(x.id)}"> kg</div>
+      <div class="row-btns"><button class="ex-do myex-do ${fin?'done':''}" data-mex="${esc(x.id)}">${fin?'已完成 ✓':'完成这组'}</button>
+      <button class="ex-do myex-del ghost-btn" data-mdel="${esc(x.id)}">删除</button></div></div>`;
+  });
+  if(STATE.showExForm){
+    myHtml+=`<div class="myex-form">
+      <label>动作名<input id="mx-name" type="text" maxlength="16" placeholder="如：哑铃侧平举"></label>
+      <div class="mx-grid">
+        <label>部位<select id="mx-part">${['肩','胸','背','腿','臀','手臂','核心','全身'].map(p=>`<option>${p}</option>`).join('')}</select></label>
+        <label>组数<input id="mx-sets" type="number" min="1" max="10" value="3"></label>
+        <label>次数<input id="mx-reps" type="text" maxlength="8" value="12" placeholder="12 或 8-12"></label>
+        <label>休息秒<input id="mx-rest" type="number" min="10" max="300" value="60"></label>
+      </div>
+      <label>要点备注（选填）<input id="mx-note" type="text" maxlength="40" placeholder="如：肘微屈、顶峰停顿 1 秒"></label>
+      <div class="row-btns"><button class="btn-grad" id="mx-save">保存动作</button><button class="ex-do ghost-btn" id="mx-cancel">取消</button></div></div>`;
+  } else {
+    myHtml+=`<button class="btn-grad ghost-btn" id="mx-add" style="margin-top:8px">＋ 添加自定义动作</button>`;
+  }
+  myHtml+=`</div>`;
+  html+=myHtml;
   body.innerHTML=html;
   // 绑定
   $$('#mod-body .wday').forEach(b=>b.onclick=()=>{ STATE.selDate=b.dataset.day; save(); renderTraining(body); });
   $$('#mod-body .ex-video').forEach(v=>v.onclick=()=>window.open(v.dataset.v,'_blank'));
-  $$('#mod-body .ex-do').forEach(b=>b.onclick=()=>{ const i=+b.dataset.ex; STATE.checkins[sel]=STATE.checkins[sel]||{ex:{}}; const now=!STATE.checkins[sel].ex[i]; STATE.checkins[sel].ex[i]=now; save(); renderTraining(body);
+  $$('#mod-body .ex-do:not(.myex-do):not(.myex-del)').forEach(b=>b.onclick=()=>{ const i=+b.dataset.ex; STATE.checkins[sel]=STATE.checkins[sel]||{ex:{}}; const now=!STATE.checkins[sel].ex[i]; STATE.checkins[sel].ex[i]=now; save(); renderTraining(body);
     if(now){ setMood('cheer',1500); toast('动作完成 +1 (｡･ω･｡)'); startRest((PLANS[t] && PLANS[t].ex[i] && PLANS[t].ex[i].rest) || 60); } else stopRest(); });
-  $$('#mod-body .ex-weight input').forEach(inp=>inp.onchange=()=>{ const i=+inp.dataset.w; STATE.weights[sel]=STATE.weights[sel]||{}; STATE.weights[sel][i]=inp.value; save(); });
+  $$('#mod-body .ex-weight input[data-w]').forEach(inp=>inp.onchange=()=>{ const i=+inp.dataset.w; STATE.weights[sel]=STATE.weights[sel]||{}; STATE.weights[sel][i]=inp.value; save(); });
+  // —— 自定义动作绑定（新增 / 完成 / 删除 / 重量）——
+  const mxAdd=$('#mx-add'); if(mxAdd) mxAdd.onclick=()=>{ STATE.showExForm=true; renderTraining(body); };
+  const mxCancel=$('#mx-cancel'); if(mxCancel) mxCancel.onclick=()=>{ STATE.showExForm=false; renderTraining(body); };
+  const mxSave=$('#mx-save'); if(mxSave) mxSave.onclick=()=>{
+    const name=($('#mx-name').value||'').trim().slice(0,16);
+    if(!name){ toast('先给动作起个名字吧'); return; }
+    const sets=Math.max(1, Math.min(10, Math.round(+$('#mx-sets').value||3)));
+    const rest=Math.max(10, Math.min(300, Math.round(+$('#mx-rest').value||60)));
+    const reps=($('#mx-reps').value||'').trim().slice(0,8) || '12';
+    const part=($('#mx-part').value||'').slice(0,6);
+    const note=($('#mx-note').value||'').trim().slice(0,40);
+    if(!Array.isArray(STATE.myEx)) STATE.myEx=[];
+    if(STATE.myEx.length>=20){ toast('最多 20 个自定义动作哦'); return; }
+    STATE.myEx.push({ id:'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), name, part, sets, reps, rest, note });
+    STATE.showExForm=false; save(); renderTraining(body); setMood('happy',1500); toast(`已添加「${name}」`);
+  };
+  $$('#mod-body [data-mex]').forEach(b=>b.onclick=()=>{ const id=b.dataset.mex;
+    STATE.checkins[sel]=STATE.checkins[sel]||{ex:{}};
+    const now=!STATE.checkins[sel].ex['c'+id];
+    STATE.checkins[sel].ex['c'+id]=now; save(); renderTraining(body);
+    if(now){ setMood('cheer',1500); toast('自定义动作完成 +1 (｡･ω･｡)'); } });
+  $$('#mod-body [data-mdel]').forEach(b=>b.onclick=()=>{ const id=b.dataset.mdel;
+    if(!confirm('删除这个自定义动作？')) return;
+    STATE.myEx=STATE.myEx.filter(x=>x.id!==id); save(); renderTraining(body); toast('已删除动作'); });
+  $$('#mod-body [data-mw]').forEach(inp=>inp.onchange=()=>{ const id=inp.dataset.mw;
+    STATE.weights[sel]=STATE.weights[sel]||{}; STATE.weights[sel]['c'+id]=inp.value; save(); });
   const fin=$('#day-finish'); if(fin) fin.onclick=()=>finishDay(sel,t);
   const und=$('#day-undo'); if(und) und.onclick=()=>{ if(!confirm('撤销今天的打卡记录？动作勾选会保留。')) return;
     delete STATE.checkins[sel]; save(); renderTraining(body); renderHome(); toast('已撤销今日打卡'); };
@@ -698,10 +869,13 @@ function finishDay(sel,t){
   setTimeout(()=>toast('到「数据」页给今天的训练打个分吧 (｡･ω･｡)'), 1200);
 }
 
-/* ---------- 饮食（v7.5：饮水按 ml · 拍照记录 + 常见食物库估算 + 手动校正） ---------- */
+/* ---------- 饮食（v7.7：Keep 风格记录流 · 拍照/相册分离 · 置信度识别结果页） ---------- */
 // 兼容旧数据：早期记录没有 q 字段，按 1 份计
 const mealQty = f => (f && typeof f === 'object' && +f.q > 0) ? +f.q : 1;
 const foodKcal = f => (+f.kcalFix > 0) ? Math.round(+f.kcalFix * mealQty(f)) : Math.round((f.p*4 + f.c*4 + f.f*9) * mealQty(f));
+function bar2(pct, cls){
+  return `<div class="bar2 ${cls||''}"><i style="width:${Math.max(0,Math.min(100,+pct||0))}%"></i></div>`;
+}
 function renderDiet(body){
   const key=todayKey();
   const meals=STATE.meals[key]||{};
@@ -709,7 +883,17 @@ function renderDiet(body){
   const goal=dailyGoal();
   const wPct=Math.min(100, Math.round(water/goal.water*100));
   let pTot=0,cTot=0,fTot=0,kcalTot=0;
-  let html=`<div class="card"><h4>今日饮水 <span class="tag">${water} / ${goal.water} ml</span></h4>
+  MEAL_NAMES.forEach((mn,mi)=>{ (meals[mi]||[]).forEach(f=>{ const q=mealQty(f);
+    pTot+=f.p*q; cTot+=f.c*q; fTot+=f.f*q; kcalTot+=foodKcal(f); }); });
+  const kPct=Math.min(100, Math.round(kcalTot/goal.kcal*100));
+  const pPct=Math.min(100, Math.round(pTot/goal.protein*100));
+  // 顶部汇总卡（Keep 风：大数字 + 可视化进度）
+  let html=`<div class="card diet-sum"><h4>今日热量 <span class="tag">${kPct}%</span></h4>
+    <div class="sum-big"><b>${kcalTot}</b><span>/ ${goal.kcal} kcal</span></div>
+    ${bar2(kPct,'k')}<div class="sum-row"><span>蛋白质</span><b>${Math.round(pTot)} / ${goal.protein} g</b></div>
+    ${bar2(pPct,'p')}
+    <div class="sum-row"><span>碳水</span><b>${Math.round(cTot)} g</b><span style="margin-left:14px">脂肪</span><b>${Math.round(fTot)} g</b></div></div>`;
+  html+=`<div class="card"><h4>今日饮水 <span class="tag">${water} / ${goal.water} ml</span></h4>
     <div class="water-bar"><i style="width:${wPct}%"></i></div>
     <div class="row-btns"><button class="btn-grad" id="water-100" style="padding:9px">+100ml</button>
     <button class="btn-grad" id="water-250" style="padding:9px">+250ml</button>
@@ -717,30 +901,29 @@ function renderDiet(body){
   MEAL_NAMES.forEach((mn,mi)=>{
     const list=meals[mi]||[]; let mp=0,mc=0,mf=0,mk=0;
     list.forEach(f=>{ const q=mealQty(f); mp+=f.p*q; mc+=f.c*q; mf+=f.f*q; mk+=foodKcal(f); });
-    pTot+=mp; cTot+=mc; fTot+=mf; kcalTot+=mk;
-    html+=`<div class="card"><h4>${mn} <span class="tag">蛋白 ${Math.round(mp)}g</span><span class="tag" style="background:rgba(126,177,232,.18);color:#4a7fae">${mk} kcal</span></h4>`;
+    html+=`<div class="card meal-card"><h4>${mn} <span class="tag">蛋白 ${Math.round(mp)}g</span><span class="tag" style="background:rgba(126,177,232,.18);color:#4a7fae">${mk} kcal</span></h4>`;
     if(list.length){
       list.forEach((f,i)=>{ const q=mealQty(f);
         const thumb = f.photo ? `<img class="fd-ph" src="${f.photo}" alt="">` : '🍽️';
-        html+=`<div class="list-row"><span class="lr-ic">${thumb}</span><span class="fd-n">${esc(f.n)}</span>
+        const lowConf = (+f.cf > 0 && +f.cf < 0.6) ? '<span class="fd-cf" title="低置信度，建议校正">⚠</span>' : '';
+        html+=`<div class="list-row"><span class="lr-ic">${thumb}</span><span class="fd-n">${esc(f.n)}${lowConf}</span>
           <span class="fd-q">${q}份 · ${foodKcal(f)} kcal</span>
           <span class="fd-x" data-dec="${mi}:${i}">−</span><span class="fd-x" data-inc="${mi}:${i}">+</span>
           <span class="lr-ar fd-del" data-del="${mi}:${i}">✕</span></div>`; });
     } else html+=`<p style="font-size:12px;color:var(--faint)">还没记录</p>`;
-    html+=`<div class="row-btns" style="margin-top:8px">
-      <button class="ex-do" data-photo="${mi}">📷 拍照记录</button>
-      <button class="ex-do ghost-btn" data-add="${mi}">✍ 手动选</button></div></div>`;
+    html+=`<div class="row-btns" style="margin-top:10px">
+      <button class="btn-grad" data-photo="${mi}">📷 拍下这一餐</button>
+      <button class="ex-do" data-album="${mi}">🖼 相册</button>
+      <button class="ex-do ghost-btn" data-add="${mi}">✍ 手动</button></div></div>`;
   });
   html+=`<div class="card"><h4>今日总计 <span class="tag">${kcalTot} / ${goal.kcal} kcal</span></h4>
-    <div class="row"><span>蛋白质</span><b>${Math.round(pTot)} / ${goal.protein} g</b></div>
-    <div class="row"><span>碳水</span><b>${Math.round(cTot)} g</b></div>
-    <div class="row"><span>脂肪</span><b>${Math.round(fTot)} g</b></div>
-    <p style="font-size:11px;color:var(--faint);padding-top:4px">目标随档案体重实时计算（蛋白 1.8g/kg · 热量 ≈33kcal/kg）</p></div>`;
+    <p style="font-size:11px;color:var(--faint);padding-top:4px">目标随档案体重实时计算（蛋白 1.8g/kg · 热量 ≈33kcal/kg）· ⚠ 标记为低置信度条目，建议核对名称与份量</p></div>`;
   body.innerHTML=html;
   $('#water-100').onclick=()=>addWater(100,body);
   $('#water-250').onclick=()=>addWater(250,body);
   $('#water-sub').onclick=()=>addWater(-100,body);
-  $$('#mod-body [data-photo]').forEach(b=>b.onclick=()=>openPhotoIntake(+b.dataset.photo,body));
+  $$('#mod-body [data-photo]').forEach(b=>b.onclick=()=>openPhotoIntake(+b.dataset.photo,body,true));
+  $$('#mod-body [data-album]').forEach(b=>b.onclick=()=>openPhotoIntake(+b.dataset.album,body,false));
   $$('#mod-body [data-add]').forEach(b=>b.onclick=()=>openFoodSheet(+b.dataset.add,body,null));
   // 改：± 份数
   $$('#mod-body [data-inc]').forEach(x=>x.onclick=()=>{ const [mi,i]=x.dataset.inc.split(':').map(Number); changeQty(mi,i,+0.5,body); });
@@ -761,56 +944,266 @@ function changeQty(mi,i,d,body){
   const q=Math.max(0.5, +(mealQty(arr[i])+d).toFixed(1));
   arr[i].q=q; save(); renderDiet(body);
 }
-/* ---------- 拍照记录：拍照 → 压缩缩略图 → 校正面板 ---------- */
+/* ============================================================
+   拍照识别 v7.7：拍照/相册 → 异步压缩 → 三级匹配识别（置信度）→ 结果页校正 → 确认添加
+   诚实边界：纯前端无后端，不做虚假「AI 图像识别」；识别 = 条码(BarcodeDetector→OpenFoodFacts)
+   / 在线库 / 你的历史记录 / 本地库 四级来源，每级给出明确置信度与依据，低置信度强制提示校正
+   ============================================================ */
+/* ---------- 图片压缩（异步优先：createImageBitmap + OffscreenCanvas，主线程不被大图解码卡住） ---------- */
 function compressImage(file, maxPx, cb){
-  const img=new Image();
-  const url=URL.createObjectURL(file);
-  img.onload=()=>{
-    const sc=Math.min(1, maxPx/Math.max(img.width, img.height));
-    const cv=document.createElement('canvas');
-    cv.width=Math.max(1, Math.round(img.width*sc)); cv.height=Math.max(1, Math.round(img.height*sc));
-    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-    URL.revokeObjectURL(url);
-    cb(cv.toDataURL('image/jpeg', 0.72));
+  let settled=false;
+  const fin=v=>{ if(!settled){ settled=true; try{ cb(v||null); }catch(_){} } };
+  if(!file || !/^image\//.test(file.type||'')){ fin(null); return; }        // 输入校验：非图片直接失败
+  // 兜底路径：Image + objectURL（老浏览器）
+  const legacy=()=>{
+    try{
+      const img=new Image(); const url=URL.createObjectURL(file);
+      img.onload=()=>{ try{
+          const sc=Math.min(1, maxPx/Math.max(img.width, img.height));
+          const wv=Math.max(1, Math.round(img.width*sc)), hv=Math.max(1, Math.round(img.height*sc));
+          const cv=document.createElement('canvas'); cv.width=wv; cv.height=hv;
+          cv.getContext('2d').drawImage(img, 0, 0, wv, hv);
+          URL.revokeObjectURL(url); fin(cv.toDataURL('image/jpeg', 0.72));
+        }catch(_){ URL.revokeObjectURL(url); fin(null); } };
+      img.onerror=()=>{ URL.revokeObjectURL(url); fin(null); };
+      img.src=url;
+    }catch(_){ fin(null); }
   };
-  img.onerror=()=>{ URL.revokeObjectURL(url); cb(null); };
-  img.src=url;
+  if(typeof createImageBitmap!=='function'){ legacy(); return; }
+  try{
+    createImageBitmap(file).then(bmp=>{
+      try{
+        const sc=Math.min(1, maxPx/Math.max(bmp.width, bmp.height));
+        const wv=Math.max(1, Math.round(bmp.width*sc)), hv=Math.max(1, Math.round(bmp.height*sc));
+        let cv;
+        if(typeof OffscreenCanvas==='function') cv=new OffscreenCanvas(wv, hv);
+        else { cv=document.createElement('canvas'); cv.width=wv; cv.height=hv; }
+        cv.getContext('2d').drawImage(bmp, 0, 0, wv, hv);
+        const done=du=>{ try{ bmp.close && bmp.close(); }catch(_){} fin(du); };
+        if(cv.convertToBlob){
+          cv.convertToBlob({ type:'image/jpeg', quality:0.72 }).then(b=>{
+            try{ const r=new FileReader(); r.onload=()=>done(r.result); r.onerror=()=>done(null); r.readAsDataURL(b); }
+            catch(_){ done(null); }
+          }).catch(()=>done(null));
+        } else { try{ done(cv.toDataURL('image/jpeg',0.72)); }catch(_){ done(null); } }
+      }catch(_){ fin(null); }
+    }).catch(()=>legacy());
+  }catch(_){ legacy(); }
 }
-function openPhotoIntake(mi, body){
+/* ============================================================
+   v7.8 AI 图像识别（真·识别，可插拔）
+   架构：前端拍照 → 512px 压缩 → 识别服务（自建代理 或 OpenAI 兼容直连）→ 视觉大模型
+        → 结构化 JSON → 二次校验 → 结果页（标注 AI 来源与置信度）→ 用户确认
+   诚实边界：①需要视觉大模型 API（默认关闭，未配置时明确降级为本地匹配，不做假识别）；
+            ②Key 只存在你本机 localStorage，不上传我们的仓库；推荐走自建代理，避免 Key 暴露在前端；
+            ③模型估算仍有误差（±15~30%），结果页强制可校正，绝不盲信。
+   ============================================================ */
+const VISION_PROMPT =
+  '你是营养估算助手。识别图中的食物，估算这一份可食部分的重量与营养。' +
+  '只输出一行 JSON，不要解释、不要 Markdown 代码块：' +
+  '{"name":"中文名20字内","grams":数字,"kcal":数字,"protein":蛋白克,"carb":碳水克,"fat":脂肪克,"confidence":0到1,"uncertain":false}\n' +
+  '规则：数值都是这一份的总量（不是每100g）；图中不是食物或看不清时 uncertain=true 且 confidence<=0.3。';
+const VISION_TIMEOUT = 18000, VISION_RETRY = 1;
+// 二次校验：模型可能返回离谱值 / 前后矛盾的宏量与热量，一律夹取 + 交叉验证
+function sanitizeVision(o){
+  if(!o || typeof o !== 'object') return null;
+  const num = v => { const n = +v; return isFinite(n) ? n : 0; };
+  let name = String(o.name == null ? '' : o.name).replace(/<[^>]*>/g, '').replace(/[\r\n]/g, ' ').trim().slice(0, 24) || '识别结果';
+  let grams = clamp(Math.round(num(o.grams)) || 150, 10, 2000);
+  let kcal  = clamp(Math.round(num(o.kcal)), 0, 5000);
+  let p = clamp(num(o.protein), 0, 200), c = clamp(num(o.carb), 0, 300), f = clamp(num(o.fat), 0, 200);
+  let conf = clamp(num(o.confidence) || 0.6, 0, 1);
+  const uncertain = !!o.uncertain || conf < 0.35;
+  let adjusted = false;
+  // 互校：让「热量」与「宏量」自洽，用户改克数时才会线性缩放
+  const calc = p*4 + c*4 + f*9;
+  if(kcal > 0 && calc > 0){
+    const k = kcal / calc;
+    if(k < 0.65 || k > 1.35){ kcal = Math.round(calc); conf = Math.min(conf, 0.7); adjusted = true; }
+    else { p *= k; c *= k; f *= k; }              // 以热量为准缩放宏量（偏差 ≤35% 时）
+  } else if(kcal > 0 && calc <= 0){                // 模型只给了热量：按 20/50/30 拆分宏量
+    p = kcal*0.20/4; c = kcal*0.50/4; f = kcal*0.30/9; adjusted = true;
+  } else { kcal = Math.round(calc) || 150; }        // 只给了宏量：反算热量
+  p = +p.toFixed(1); c = +c.toFixed(1); f = +f.toFixed(1);
+  kcal = clamp(Math.round(kcal), 0, 5000);
+  if(uncertain) conf = Math.min(conf, 0.35);
+  return { name, grams, kcal, p, c, f, conf, uncertain, adjusted, source:'ai' };
+}
+function extractJSON(text){
+  const s = String(text == null ? '' : text).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '');
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if(a < 0 || b <= a) return null;
+  try { return JSON.parse(s.slice(a, b + 1)); } catch(_){ return null; }
+}
+async function postJSON(url, headers, body, timeoutMs){
+  const ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+  const t = setTimeout(() => { try { ctl && ctl.abort(); } catch(_){} }, timeoutMs);
+  try{
+    const r = await fetch(url, { method:'POST', headers, body:JSON.stringify(body), signal: ctl ? ctl.signal : undefined });
+    const txt = await r.text();
+    if(!r.ok) return { ok:false, error:'HTTP ' + r.status, retryable: r.status >= 500 };
+    let j = null; try { j = JSON.parse(txt); } catch(_){ j = null; }
+    return { ok:true, json:j };
+  }catch(e){
+    const aborted = e && (e.name === 'AbortError' || e.name === 'AbortError');
+    return { ok:false, error: aborted ? '请求超时' : '网络错误', retryable:true };
+  }finally{ clearTimeout(t); }
+}
+// 统一识别入口：返回 { ok, data|error }
+async function visionRecognize(base64){
+  const cfg = STATE.vision || {};
+  if(cfg.mode !== 'proxy' && cfg.mode !== 'direct') return { ok:false, error:'AI 识别未开启' };
+  if(!/^https?:\/\//i.test(cfg.endpoint || '')) return { ok:false, error:'识别服务地址无效' };
+  if(!cfg.token) return { ok:false, error:'缺少访问凭据' };
+  if(!base64 || base64.length < 200) return { ok:false, error:'图片数据异常' };
+  const model = (cfg.model || 'glm-4v-flash').trim();
+  let req, url = cfg.endpoint, headers = { 'Content-Type':'application/json' };
+  if(cfg.mode === 'proxy'){
+    req = { token: cfg.token, image: base64, model };
+  } else {
+    headers['Authorization'] = 'Bearer ' + cfg.token;
+    req = { model, temperature: 0.2, messages: [{ role:'user', content: [
+      { type:'image_url', image_url:{ url: 'data:image/jpeg;base64,' + base64 } },
+      { type:'text', text: VISION_PROMPT } ] }] };
+  }
+  let last = { ok:false, error:'未知错误' };
+  for(let i = 0; i <= VISION_RETRY; i++){
+    const r = await postJSON(url, headers, req, VISION_TIMEOUT);
+    if(!r.ok){ last = { ok:false, error:r.error }; if(!r.retryable) break; continue; }
+    let raw = null;
+    if(cfg.mode === 'proxy'){
+      const j = r.json || {};
+      if(j.ok === false) return { ok:false, error: String(j.error || '识别服务返回失败') };
+      raw = j.data || j.result || j;
+    } else {
+      const content = r.json && r.json.choices && r.json.choices[0] && r.json.choices[0].message && r.json.choices[0].message.content;
+      const parsed = extractJSON(typeof content === 'string' ? content : (Array.isArray(content) ? content.map(x=>x.text||'').join('') : ''));
+      if(!parsed) return { ok:false, error:'模型返回无法解析' };
+      raw = parsed;
+    }
+    const data = sanitizeVision(raw);
+    if(!data) return { ok:false, error:'识别结果为空' };
+    return { ok:true, data };
+  }
+  return last;
+}
+/* ---------- 拍照 / 相册两个独立入口（修复：旧版写死 capture 导致相册入口不可用） ---------- */
+let _fsPhotoFile=null;   // 当前照片原文件（供条码检测用高清图；仅在面板存续期内持有）
+function openPhotoIntake(mi, body, camera){
   const inp=document.createElement('input');
   inp.type='file'; inp.accept='image/*';
-  try { inp.setAttribute('capture','environment'); } catch(_){}
+  if(camera){ try { inp.setAttribute('capture','environment'); } catch(_){} }
   inp.onchange=()=>{ const f=inp.files && inp.files[0]; if(!f) return;
+    if(!/^image\//.test(f.type||'')){ toast('请选择图片文件（拍照或相册）'); return; }
+    _fsPhotoFile = (f.size <= 30*1024*1024) ? f : null;      // 超大文件不参与条码检测
     compressImage(f, 160, du=>{
       if(!du) toast('照片读取失败，可直接手动校正');
-      openFoodSheet(mi, body, du);       // 识别失败也进入校正面板（无缩略图）
+      openFoodSheet(mi, body, du);       // 压缩失败也进入识别结果页（无缩略图）
     });
   };
   inp.click();
 }
-/* ---------- 校正面板：本地库估算 + OpenFoodFacts 在线查询 + 全字段手动校正 ---------- */
+/* ---------- 置信度分级（诚实标注：来源 + 档位） ---------- */
+const CONF_TABLE = { barcode:0.95, ai:0.88, off:0.8, history:0.75, lib:0.7, fuzzy:0.45 };
+function foodConfidence(src){ const c=CONF_TABLE[src]; return (typeof c==='number') ? c : 0; }
+function confLabel(c){
+  if(c>=0.85) return ['高','cf-hi'];
+  if(c>=0.6) return ['中','cf-mid'];
+  if(c>0)    return ['低','cf-lo'];
+  return ['无','cf-no'];
+}
+const CONF_SRC_TXT = { barcode:'条码识别', ai:'AI 视觉识别', off:'在线食物库', history:'你的历史记录', lib:'本地食物库', fuzzy:'模糊匹配' };
+// 历史高频食物（真实来自已存记录；本地库同名优先以获得宏量基准）
+function favFoods(){
+  const stat={};
+  try{
+    const days=STATE.meals||{};
+    Object.keys(days).forEach(k=>{
+      const day=days[k]; if(!day || typeof day!=='object') return;
+      MEAL_NAMES.forEach((_,m)=>{ const arr=day[m]; if(!Array.isArray(arr)) return;
+        arr.forEach(f=>{ if(!f || !f.n) return;
+          const nm=String(f.n).trim(); if(!nm) return;
+          const cur=stat[nm] || (stat[nm]={cnt:0, rec:null});
+          cur.cnt++;
+          if(!cur.rec) cur.rec={ n:nm, p:+f.p||0, c:+f.c||0, f:+f.f||0,
+            q:Math.max(0.5, +mealQty(f)||1), kcalFix:(+f.kcalFix>0)?+f.kcalFix:undefined };
+        });
+      });
+    });
+  }catch(_){}
+  return Object.keys(stat)
+    .map(nm=>Object.assign({ src:'history', conf:foodConfidence('history') }, stat[nm].rec, { cnt:stat[nm].cnt }))
+    .sort((a,b)=>b.cnt-a.cnt).slice(0,6);
+}
+/* ---------- 条码识别（设备支持 BarcodeDetector 才出现入口；失败静默回落手动） ---------- */
+function detectBarcodePhoto(dataURL, cb){
+  try{
+    if(typeof BarcodeDetector!=='function'){ cb(new Error('此浏览器不支持条码识别'), null); return; }
+    const parts=String(dataURL||'').split(',');
+    if(!parts[1]){ cb(new Error('照片数据无效'), null); return; }
+    const bin=atob(parts[1]);
+    const u8=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    const blob=new Blob([u8], { type:'image/jpeg' });
+    const go=bmp=>{ try{
+        new BarcodeDetector().detect(bmp)
+          .then(cs=>cb(null, (cs && cs[0] && cs[0].rawValue) || null))
+          .catch(e=>cb(e, null));
+      }catch(e){ cb(e, null); } };
+    if(typeof createImageBitmap==='function') createImageBitmap(blob).then(go).catch(()=>cb(new Error('照片解码失败'), null));
+    else { const img=new Image(); img.onload=()=>go(img); img.onerror=()=>cb(new Error('照片解码失败'), null); img.src=dataURL; }
+  }catch(e){ cb(e, null); }
+}
+/* ---------- OpenFoodFacts：名称查询（弱网自动重试 1 次）+ 条码精确查询 ---------- */
 const OFF_API='https://world.openfoodfacts.org/cgi/search.pl?search_terms=';
-let _fsSel=null;   // { n,p,c,f,q } 或 { n,p,c,f,per100:true,grams } + 可选 kcalFix（用户手动覆盖这份总热量）
-// OpenFoodFacts 公开 API（无需密钥）：按名称查包装食品每 100g 营养；7s 超时、失败回落本地库
+let _fsSel=null;   // { n,p,c,f,q } 或 { n,p,c,f,per100:true,grams } + 可选 kcalFix + conf/src
+function parseOFFList(d){
+  return (d && Array.isArray(d.products) ? d.products : []).map(function(x){
+    const nu=x.nutriments||{};
+    const kcal100 = +(nu['energy-kcal_100g'] != null ? nu['energy-kcal_100g']
+                      : (nu['energy_100g'] ? Math.round(nu['energy_100g']/4.184) : 0)) || 0;
+    return { n:((x.product_name||'').trim() || '未命名商品') + (x.brands ? ' · ' + x.brands : ''),
+             p:+(nu.proteins_100g)||0, c:+(nu.carbohydrates_100g)||0, f:+(nu.fat_100g)||0,
+             kcal100:kcal100, per100:true, grams:100, q:1 };
+  }).filter(function(x){ return x.kcal100 || x.p || x.c || x.f; }).slice(0,5);
+}
 function queryOFF(q, cb){
   if(typeof fetch!=='function'){ cb(new Error('当前环境不支持联网查询'), null); return; }
   const url=OFF_API + encodeURIComponent(q) + '&search_simple=1&action=process&json=1&page_size=5&fields=product_name,brands,nutriments';
+  let tries=2, timer=null;                       // 首次 + 弱网自动重试 1 次
+  const run=()=>{
+    tries--;
+    let ctl=null;
+    try{
+      ctl=(typeof AbortController==='function')?new AbortController():null;
+      timer=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} }, 7000);
+      fetch(url, ctl?{ signal: ctl.signal }:undefined)
+        .then(function(r){ if(!r || !r.ok) throw new Error('HTTP ' + (r && r.status)); return r.json(); })
+        .then(function(d){ clearTimeout(timer); cb(null, parseOFFList(d)); })
+        .catch(function(e){ clearTimeout(timer); if(tries>0){ setTimeout(run, 900); } else { cb(e, null); } });
+    }catch(e){ clearTimeout(timer); if(tries>0){ setTimeout(run, 900); } else { cb(e, null); } }
+  };
+  run();
+}
+function fetchOFFBarcode(code, cb){
+  if(typeof fetch!=='function'){ cb(new Error('当前环境不支持联网查询'), null); return; }
+  const url='https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(String(code).trim())+'.json?fields=product_name,brands,nutriments';
   let ctl=null, timer=null;
   try{
-    ctl = (typeof AbortController==='function') ? new AbortController() : null;
-    timer = setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} }, 7000);
-    fetch(url, ctl ? { signal: ctl.signal } : undefined)
+    ctl=(typeof AbortController==='function')?new AbortController():null;
+    timer=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} }, 7000);
+    fetch(url, ctl?{ signal: ctl.signal }:undefined)
       .then(function(r){ if(!r || !r.ok) throw new Error('HTTP ' + (r && r.status)); return r.json(); })
       .then(function(d){
-        const list=(d && Array.isArray(d.products) ? d.products : []).map(function(x){
-          const nu=x.nutriments||{};
-          const kcal100 = +(nu['energy-kcal_100g'] != null ? nu['energy-kcal_100g']
-                            : (nu['energy_100g'] ? Math.round(nu['energy_100g']/4.184) : 0)) || 0;
-          return { n:((x.product_name||'').trim() || '未命名商品') + (x.brands ? ' · ' + x.brands : ''),
+        const p=(d && d.status===1 && d.product) ? d.product : null;
+        if(!p){ cb(null, null); return; }
+        const nu=p.nutriments||{};
+        const kcal100 = +(nu['energy-kcal_100g'] != null ? nu['energy-kcal_100g']
+                          : (nu['energy_100g'] ? Math.round(nu['energy_100g']/4.184) : 0)) || 0;
+        cb(null, { n:((p.product_name||'').trim() || '未命名商品') + (p.brands ? ' · ' + p.brands : ''),
                    p:+(nu.proteins_100g)||0, c:+(nu.carbohydrates_100g)||0, f:+(nu.fat_100g)||0,
-                   kcal100:kcal100, per100:true, grams:100, q:1 };
-        }).filter(function(x){ return x.kcal100 || x.p || x.c || x.f; }).slice(0,5);
-        cb(null, list);
+                   kcal100:kcal100, per100:true, grams:100, q:1,
+                   src:'barcode', conf:foodConfidence('barcode') });
       })
       .catch(function(e){ cb(e, null); })
       .finally(function(){ if(timer) clearTimeout(timer); });
@@ -820,102 +1213,314 @@ const selFactor = s => s.per100 ? (Math.max(1, +s.grams||100))/100 : Math.max(0.
 function selKcal(s){
   if(!s) return 0;
   if(+s.kcalFix > 0) return Math.round(+s.kcalFix);          // 用户手动覆盖优先
-  return Math.round((s.p*4 + s.c*4 + s.f*9) * selFactor(s));
+  const v=(s.p*4 + s.c*4 + s.f*9) * selFactor(s);
+  return isFinite(v) ? Math.round(v) : 0;
 }
 function selName(s){ return s.per100 ? s.n + ' ' + (s.grams||100) + 'g' : s.n; }
+/* ---------- 识别结果页（Keep 风：照片 → 匹配来源 → 结果卡含置信度 → 主行动按钮） ---------- */
 function openFoodSheet(mi, body, photo){
   _fsSel=null;
+  if(!photo) _fsPhotoFile=null;   // 无照片路径不残留上次的原文件引用
   const list=$('#food-list');
+  const canBarcode = (typeof BarcodeDetector==='function') && !!photo;
   const photoHtml = photo
-    ? `<div class="fs-photo"><img src="${photo}" alt=""><span>📷 已拍摄留档 · 请在下方搜索/选择食物并校正份量（离线用本地库，联网可查在线库）</span></div>`
+    ? `<div class="fs-hero"><img src="${photo}" alt="">
+        <div class="fs-hero-tip">📷 已拍摄留档 · 下方按 条码 / 历史 / 本地库 匹配并标注置信度，份量热量都可校正</div></div>`
     : `<div class="fs-photo no"><span>未带照片 · 从常见食物中选取，份量与热量都可改</span></div>`;
   list.innerHTML=`<input id="food-search" type="text" placeholder="搜索食物，如：鸡胸、米饭、饺子…" maxlength="30">
-    ${photoHtml}<div id="off-hits"></div><div id="food-hits"></div><div id="food-editor"></div>`;
-  const renderHits=kw=>{
-    const q=(kw||'').trim().toLowerCase();
-    const hits=EST_LIB.filter(f=>!q || f.n.toLowerCase().indexOf(q)>=0).slice(0,10);
-    const hitsEl=list.querySelector('#food-hits');
-    hitsEl.innerHTML = hits.map(f=>{ const idx=EST_LIB.indexOf(f);
-      return `<div class="food-row" data-hit="${idx}"><div class="fr-m"><b>${f.n}</b>
-        <span>蛋白 ${f.p}g · 碳水 ${f.c}g · 脂肪 ${f.f}g · 约 ${Math.round(f.p*4+f.c*4+f.f*9)} kcal/份</span></div>
-        <span class="lr-ar">选 ›</span></div>`; }).join('')
-      || `<p class="fs-none">本地库没有匹配项，可点「在线查询」试试，或选相近食物后改名字</p>`;
-    hitsEl.querySelectorAll('[data-hit]').forEach(r=>r.onclick=()=>{
-      _fsSel=Object.assign({}, EST_LIB[+r.dataset.hit], { q:1 });
-      renderEditor();
-    });
-  };
+    ${photoHtml}
+    <div id="fs-result"></div>
+    <div id="fav-hits"></div>
+    <div id="food-hits"></div>
+    <div id="off-hits"></div>
+    <div id="food-editor"></div>`;
+  // —— 结果卡（选中候选后出现）：名称 / 份量 / 宏量 / 置信度徽章 / 主行动按钮 ——
   const renderEditor=()=>{
     const ed=list.querySelector('#food-editor'); if(!ed) return;
-    if(!_fsSel){ ed.innerHTML=`<p class="fs-none">先在上面选一个食物，再校正名称 / 份量 / 热量</p>`; return; }
+    if(!_fsSel){ ed.innerHTML=`<p class="fs-none">在上面选一个食物（或等条码/在线结果），再校正名称 / 份量 / 热量</p>`; return; }
     const per100=!!_fsSel.per100, unit=per100?'克':'份', amt=per100?(_fsSel.grams||100):_fsSel.q;
+    const conf=Math.max(0, Math.min(1, +_fsSel.conf||0));
+    const [cl, cc]=confLabel(conf);
+    const srcTxt=CONF_SRC_TXT[_fsSel.src] || '手动选择';
+    const hint = conf>=0.9 ? '' : conf>=0.6
+      ? `<div class="fs-warn">匹配依据：${srcTxt}。请核对份量后再确认。</div>`
+      : `<div class="fs-warn warn-lo">匹配度较低（依据：${srcTxt}）。请务必核对名称与份量，或直接覆盖热量。</div>`;
     ed.innerHTML=`<div class="fs-edit">
+      <div class="fs-conf"><span class="cf-badge ${cc}">${cl} ${Math.round(conf*100)}%</span><span class="cf-src">依据：${esc(srcTxt)}</span></div>
+      ${hint}
       <label>食物名（可改）<input id="fe-name" type="text" maxlength="40" value="${esc(_fsSel.n)}"></label>
       <div class="fs-qrow">${unit}数
         <button id="fe-dec" type="button">−</button>
         <input id="fe-q" type="number" inputmode="decimal" min="${per100?'1':'0.5'}" step="${per100?'10':'0.5'}" value="${amt}">
         <button id="fe-inc" type="button">＋</button>
         <span id="fe-kcal">约 <b>${selKcal(_fsSel)}</b> kcal</span></div>
-      <div class="fs-qrow">手动覆盖热量<input id="fe-kfix" type="number" inputmode="numeric" min="0" step="10" placeholder="选填：这份实际 kcal" value="${_fsSel.kcalFix||''}"></div>
+      <div class="fs-qrow">手动覆盖热量<input id="fe-kfix" type="number" inputmode="numeric" min="0" max="5000" step="10" placeholder="选填：这份实际 kcal" value="${_fsSel.kcalFix||''}"></div>
       <button class="btn-grad ghost-btn" id="fe-off" type="button" style="margin-bottom:8px">🌐 在线查询「${esc((_fsSel.n||'').slice(0,10))}」</button>
-      <button class="btn-grad" id="fe-add" type="button">添加到${MEAL_NAMES[mi]}</button></div>`;
+      <button class="btn-grad fs-cta" id="fe-add" type="button">✓ 确认添加到${MEAL_NAMES[mi]}</button></div>`;
     const syncKcal=()=>{ const k=$('#fe-kcal'); if(k) k.innerHTML=`约 <b>${selKcal(_fsSel)}</b> kcal`; };
     $('#fe-name').oninput=e=>{ _fsSel.n=e.target.value; };
     const curAmt=()=> _fsSel.per100 ? _fsSel.grams : _fsSel.q;
-    const setAmt=v=>{ if(_fsSel.per100) _fsSel.grams=Math.max(1, Math.round(+v||100)); else _fsSel.q=Math.max(0.5, +(+v).toFixed(1)||1); delete _fsSel.kcalFix; syncKcal(); };
+    // 输入夹取（二次校验）：克 1–2000、份 0.5–50，非法输入回写规范化值
+    const setAmt=v=>{ if(_fsSel.per100) _fsSel.grams=Math.max(1, Math.min(2000, Math.round(+v||100)));
+      else _fsSel.q=Math.max(0.5, Math.min(50, +(+v).toFixed(1)||1)); delete _fsSel.kcalFix; syncKcal(); };
     $('#fe-q').oninput=e=>setAmt(e.target.value);
     $('#fe-q').onchange=e=>{ setAmt(e.target.value); $('#fe-q').value=curAmt(); };
     $('#fe-dec').onclick=()=>{ setAmt(curAmt() - (_fsSel.per100?50:0.5)); $('#fe-q').value=curAmt(); };
     $('#fe-inc').onclick=()=>{ setAmt(curAmt() + (_fsSel.per100?50:0.5)); $('#fe-q').value=curAmt(); };
-    $('#fe-kfix').oninput=e=>{ const v=+e.target.value; if(v>0){ _fsSel.kcalFix=v; } else delete _fsSel.kcalFix; syncKcal(); };
+    $('#fe-kfix').oninput=e=>{ let v=+e.target.value;
+      if(v>5000){ v=5000; e.target.value=5000; toast('热量覆盖值上限 5000 kcal，已为你夹取'); }
+      if(v>0){ _fsSel.kcalFix=v; } else delete _fsSel.kcalFix; syncKcal(); };
     $('#fe-off').onclick=()=>{
       const kw=(_fsSel.n||'').replace(/[（(].*?[)）]/g,'').trim() || '';
       if(!kw){ toast('先填个食物名再查询'); return; }
       const offEl=list.querySelector('#off-hits');
-      offEl.innerHTML=`<p class="fs-none">正在查询在线食物库…</p>`;
+      offEl.innerHTML=`<div class="fs-off-t">在线结果（每 100g）</div><div class="fs-skel"><i></i><i></i><i></i></div>`;
       queryOFF(kw, (err, rows)=>{
         if(err || !rows || !rows.length){
-          offEl.innerHTML=`<p class="fs-none">在线库没查到（离线或该食物未收录）· 用上面本地库估算即可，数值可手动改</p>`;
+          const why = err && /HTTP 4|HTTP 5/.test(String(err.message||err)) ? '在线库暂时不可用'
+                    : err ? '网络不佳（已自动重试过 1 次）' : '该食物未被在线库收录';
+          offEl.innerHTML=`<p class="fs-none">在线库没查到（${why}）· 用本地库估算即可，数值可手动改</p>`;
           return;
         }
-        offEl.innerHTML=`<div class="fs-off-t">在线结果（每 100g）</div>` + rows.map((f,i)=>
-          `<div class="food-row" data-off="${i}"><div class="fr-m"><b>${esc(f.n.slice(0,28))}</b>
+        offEl.innerHTML=`<div class="fs-off-t">在线结果（每 100g）</div>` + rows.map((f,i)=>{
+          const it=Object.assign({}, f, { src:'off', conf:foodConfidence('off') });
+          return `<div class="food-row" data-off="${i}" data-conf="${it.conf}"><div class="fr-m"><b>${esc(f.n.slice(0,28))}</b>
             <span>${Math.round(f.kcal100)} kcal · 蛋白 ${f.p}g · 碳水 ${f.c}g · 脂肪 ${f.f}g /100g</span></div>
-            <span class="lr-ar">选 ›</span></div>`).join('');
+            <span class="lr-ar">选 ›</span></div>`; }).join('');
         offEl.querySelectorAll('[data-off]').forEach(r=>r.onclick=()=>{
-          _fsSel=Object.assign({}, rows[+r.dataset.off]);
+          _fsSel=Object.assign({}, rows[+r.dataset.off], { src:'off', conf:foodConfidence('off') });
           renderEditor(); toast('已载入在线数据，默认按 100g 计');
         });
       });
     };
     $('#fe-add').onclick=()=>{
       const s=_fsSel; if(!s) return;
+      // 结果二次校验：单份热量异常高时拒绝写入，提示核对
+      const kcal=selKcal(s);
+      if(!(kcal>0) || kcal>4000){ toast('这份热量异常（' + kcal + ' kcal），请核对份量或手动覆盖热量'); return; }
       const per100=!!s.per100;
       const factor=per100 ? selFactor(s) : 1;      // 在线条目按克数折算；本地库保留“每份”基准
       const amount=per100 ? 1 : selFactor(s);      // 本地库：份数即数量，后续还能 ±0.5 调整
-      const kcal=selKcal(s);
       const name=(s.n||'').trim() || '未知食物';
-      const rec={ n:selName(s), p:+(s.p*factor).toFixed(1), c:+(s.c*factor).toFixed(1), f:+(s.f*factor).toFixed(1), q:amount, photo:photo||null };
+      const rec={ n:selName(s), p:+(s.p*factor).toFixed(1), c:+(s.c*factor).toFixed(1), f:+(s.f*factor).toFixed(1),
+                  q:amount, photo:photo||null, cf:Math.max(0, Math.min(1, +s.conf||0)) };
       if(+s.kcalFix>0) rec.kcalFix=Math.round((+s.kcalFix) / (per100 ? 1 : amount));   // 覆盖值按“每份”存，±份数时同步缩放
       if(!(rec.p||rec.c||rec.f) && !rec.kcalFix) rec.kcalFix=kcal;
       const key=todayKey();
       STATE.meals[key]=STATE.meals[key]||{};
       STATE.meals[key][mi]=STATE.meals[key][mi]||[];
       STATE.meals[key][mi].push(rec);
-      save(); navUIClose('food-sheet'); _fsSel=null;
+      save(); navUIClose('food-sheet'); _fsSel=null; _fsPhotoFile=null;
       toast(`已记录 ${name} · ${kcal} kcal`);
       if($('#module').classList.contains('open')) renderDiet(body);
     };
   };
+  // —— 本地库搜索（精确=中置信度，模糊=低置信度） ——
+  const renderHits=kw=>{
+    const q=(kw||'').trim().toLowerCase();
+    const hits=EST_LIB.filter(f=>!q || f.n.toLowerCase().indexOf(q)>=0).slice(0,10);
+    const hitsEl=list.querySelector('#food-hits');
+    hitsEl.innerHTML = (q ? `<div class="fs-off-t">本地食物库</div>` : '') + hits.map(f=>{ const idx=EST_LIB.indexOf(f);
+      const exact = q ? f.n.toLowerCase()===q : true;   // 默认列表=用户主动浏览选择，按本地库匹配计
+      return `<div class="food-row" data-hit="${idx}" data-conf="${foodConfidence(exact?'lib':'fuzzy')}"><div class="fr-m"><b>${f.n}</b>
+        <span>蛋白 ${f.p}g · 碳水 ${f.c}g · 脂肪 ${f.f}g · 约 ${Math.round(f.p*4+f.c*4+f.f*9)} kcal/份</span></div>
+        <span class="lr-ar">选 ›</span></div>`; }).join('')
+      || (q ? `<p class="fs-none warn-lo">本地库没有匹配项，可点「在线查询」试试，或选相近食物后改名字</p>` : '');
+    hitsEl.querySelectorAll('[data-hit]').forEach(r=>r.onclick=()=>{
+      _fsSel=Object.assign({}, EST_LIB[+r.dataset.hit], { q:1, src:r.dataset.conf>=0.7?'lib':'fuzzy', conf:+r.dataset.conf });
+      renderEditor();
+    });
+  };
+  // —— 历史高频（置信度依据：你的历史记录） ——
+  const favs=favFoods();
+  const favEl=list.querySelector('#fav-hits');
+  if(favs.length){
+    favEl.innerHTML=`<div class="fs-off-t">常吃的（依据你的历史记录）</div>` + favs.map((f,i)=>
+      `<div class="food-row" data-fav="${i}" data-conf="${f.conf}"><div class="fr-m"><b>${esc(f.n)}</b>
+        <span>吃过 ${f.cnt} 次 · 蛋白 ${f.p}g · 碳水 ${f.c}g · 脂肪 ${f.f}g · 约 ${Math.round(f.p*4+f.c*4+f.f*9)} kcal/份</span></div>
+        <span class="lr-ar">选 ›</span></div>`).join('');
+    favEl.querySelectorAll('[data-fav]').forEach(r=>r.onclick=()=>{
+      _fsSel=Object.assign({}, favs[+r.dataset.fav]); delete _fsSel.cnt; renderEditor();
+    });
+  } else favEl.innerHTML='';
+  // —— 条码识别入口（设备支持才显示；识别失败有明确提示） ——
+  if(canBarcode){
+    const act=document.createElement('div');
+    act.className='fs-actions';
+    act.innerHTML=`<button class="btn-grad ghost-btn" id="fs-bc" type="button">🔖 识别条码（对准包装条形码拍照效果最好）</button>`;
+    list.insertBefore(act, list.querySelector('#fav-hits'));
+    act.querySelector('#fs-bc').onclick=()=>{
+      const src=_fsPhotoFile || photo;
+      const btn=act.querySelector('#fs-bc'); btn.disabled=true; btn.textContent='正在识别条码…';
+      const after=(du)=>{
+        if(!du){ bcFail('照片处理失败'); return; }
+        detectBarcodePhoto(du, (err, code)=>{
+          if(err || !code){ bcFail(err ? '条码识别不可用' : '照片里没找到条码'); return; }
+          fetchOFFBarcode(code, (e2, item)=>{
+            if(e2){ bcFail('条码已识别，但在线库查询失败'); return; }
+            if(!item){ bcFail('在线库没有这个条码的商品'); return; }
+            _fsSel=Object.assign({}, item);
+            renderEditor();
+            act.remove();
+            toast('条码识别成功：' + (item.n||'').slice(0,16));
+          });
+        });
+      };
+      function bcFail(msg){ btn.disabled=false; btn.textContent='🔖 识别条码（对准包装条形码拍照效果最好）'; toast(msg + '，可手动选择食物'); }
+      if(src && src.type && /^image\//.test(src.type)){
+        compressImage(src, 640, du=>after(du));      // 条码检测用更高分辨率
+      } else if(typeof src==='string'){ after(src); }
+      else bcFail('照片处理失败');
+    };
+  }
+  // —— AI 视觉识别（v7.8：仅在用户配置了识别服务时启用；失败一律明确降级，不假装识别过） ——
+  const vcfg=STATE.vision||{};
+  if(photo && (vcfg.mode==='proxy' || vcfg.mode==='direct') && _fsPhotoFile){
+    const resEl=list.querySelector('#fs-result');
+    const aiBox=document.createElement('div');
+    aiBox.className='fs-ai';
+    aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 视觉识别中…</div>
+      <div class="sk-row"><i></i><i></i><i></i></div>
+      <p class="fs-none">正在调用视觉大模型（约 3–15 秒）。失败会自动降级为本地匹配，不会卡住。</p>`;
+    resEl.appendChild(aiBox);
+    const aiFail=msg=>{ aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 识别未成功</div>
+      <p class="fs-none warn-lo">${esc(msg)} · 已降级为下方本地库/历史匹配，可手动选择并校正。</p>`; };
+    (async ()=>{
+      const du=await new Promise(r=>{ try{ compressImage(_fsPhotoFile, 512, r); }catch(_){ r(null); } });
+      const b64=(typeof du==='string' && du.indexOf(',')>0) ? du.slice(du.indexOf(',')+1) : '';
+      if(!b64){ aiFail('图片处理失败'); return; }
+      let r=null;
+      try{ r=await visionRecognize(b64); }catch(_){ r={ ok:false, error:'识别请求异常' }; }
+      if(!r || !r.ok){ aiFail((r && r.error) || '识别失败'); return; }
+      const d=r.data, g=Math.max(10, d.grams);
+      const [cl, cc]=confLabel(d.conf);
+      aiBox.innerHTML=`<div class="fs-ai-title">🤖 AI 识别结果 <span class="cf-badge ${cc}">${cl} ${Math.round(d.conf*100)}%</span></div>
+        <div class="food-row ai" data-ai="1"><div class="fr-m"><b>${esc(d.name)}</b>
+          <span>${d.grams}g · 蛋白 ${d.p}g · 碳水 ${d.c}g · 脂肪 ${d.f}g · 约 ${d.kcal} kcal</span></div>
+          <span class="lr-ar">用这个 ›</span></div>
+        ${d.uncertain ? `<p class="fs-none warn-lo">模型不太确定这是食物（或画面不清）。建议换角度重拍，或手动选择相近食物。</p>`
+          : `<p class="fs-none">估算存在 ±15~30% 误差，点上方结果后可改克数与热量。</p>`}`;
+      const row=aiBox.querySelector('[data-ai]');
+      if(row) row.onclick=()=>{
+        _fsSel={ n:d.name, p:+(d.p*100/g).toFixed(1), c:+(d.c*100/g).toFixed(1), f:+(d.f*100/g).toFixed(1),
+                 kcal100:Math.round(d.kcal*100/g), per100:true, grams:g, q:1, src:'ai', conf:d.conf };
+        renderEditor(); toast('已采用 AI 结果，请核对克数');
+      };
+    })();
+  }
   const searchEl=list.querySelector('#food-search');
   searchEl.oninput=e=>renderHits(e.target.value);
   searchEl.onkeydown=e=>{ if(e.key==='Enter'){ const first=list.querySelector('#food-hits [data-hit]'); if(first) first.click(); } };
   renderHits('');
   renderEditor();
-  $('#food-close').onclick=()=>navUIClose('food-sheet');
+  $('#food-close').onclick=()=>{ navUIClose('food-sheet'); _fsPhotoFile=null; };
   $('#food-sheet').classList.add('show');
   $('#food-sheet').setAttribute('aria-hidden','false');
   navOpen('food-sheet');
+}
+
+/* ============================================================
+   v7.8 体重曲线：手写 SVG，零第三方库
+   设计：粉→青渐变面积 + 平滑曲线（Catmull-Rom 转贝塞尔）+ 高光圆点 +
+        起始虚线基准 + 极值星标。空数据 / 单点 / 脏数据都有明确兜底。
+   ============================================================ */
+function dateVal(s){ const p=String(s||'').split('-').map(Number); return (p[0]||0)*10000 + (p[1]||0)*100 + (p[2]||0); }
+// 记录当日体重（同日覆盖；脏数据直接丢弃，不进曲线）
+function logWeight(w){
+  const v=+w; if(!isFinite(v) || v<30 || v>200) return false;
+  if(!Array.isArray(STATE.bodyWeights)) STATE.bodyWeights=[];
+  const k=todayKey(), arr=STATE.bodyWeights;
+  const i=arr.findIndex(x=>x && x.d===k);
+  const rec={ d:k, w:+v.toFixed(1) };
+  if(i>=0){ if(arr[i].w===rec.w) return false; arr[i]=rec; } else arr.push(rec);
+  arr.sort((a,b)=>dateVal(a.d)-dateVal(b.d));
+  if(arr.length>365) arr.splice(0, arr.length-365);      // 上限保护：只留最近一年
+  save(); return true;
+}
+function cleanWeights(){
+  return (Array.isArray(STATE.bodyWeights) ? STATE.bodyWeights : [])
+    .filter(x=>x && typeof x.d==='string' && isFinite(+x.w) && +x.w>=30 && +x.w<=200)
+    .sort((a,b)=>dateVal(a.d)-dateVal(b.d));
+}
+// Catmull-Rom → 三次贝塞尔，得到自然平滑的曲线（不是生硬折线）
+function smoothPath(pts){
+  if(!pts || pts.length<2) return '';
+  const f=n=>Math.round(n*10)/10;
+  let d='M'+f(pts[0].x)+' '+f(pts[0].y);
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    d+=' C'+f(p1.x+(p2.x-p0.x)/6)+' '+f(p1.y+(p2.y-p0.y)/6)
+      +' '+f(p2.x-(p3.x-p1.x)/6)+' '+f(p2.y-(p3.y-p1.y)/6)
+      +' '+f(p2.x)+' '+f(p2.y);
+  }
+  return d;
+}
+function weightChartSVG(list){
+  const W=300, H=132, L=34, R=14, T=16, B=24;
+  if(!list.length){
+    return `<svg viewBox="0 0 ${W} ${H}" class="wt-svg" role="img" aria-label="暂无体重记录">
+      <text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#b8a7c9" font-size="12">还没有体重记录，在下面记一笔吧~</text></svg>`;
+  }
+  const vals=list.map(x=>+x.w);
+  let mn=Math.min(...vals), mx=Math.max(...vals);
+  if(mx-mn<1){ const c=(mx+mn)/2; mn=c-0.8; mx=c+0.8; }        // 单点/极平数据：给一个可视区间
+  const pad=(mx-mn)*0.18; mn-=pad; mx+=pad;
+  const n=list.length;
+  const X=i=> n===1 ? (L+(W-L-R)/2) : L+(W-L-R)*i/(n-1);
+  const Y=v=> T+(H-T-B)*(1-(v-mn)/(mx-mn));
+  const pts=list.map((x,i)=>({ x:X(i), y:Y(+x.w) }));
+  const line=smoothPath(pts);
+  const area=line ? line+` L${pts[pts.length-1].x} ${H-B} L${pts[0].x} ${H-B} Z` : '';
+  const grid=[0,0.5,1].map(t=>{ const y=T+(H-T-B)*t;
+    return `<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#e9e2f2" stroke-width="1" stroke-dasharray="3 4"/>`; }).join('');
+  // 起始基准线（第一次记录的体重）
+  let baseLine='';
+  if(n>1){ const y0=Y(vals[0]);
+    baseLine=`<line x1="${L}" y1="${y0}" x2="${W-R}" y2="${y0}" stroke="#ffb3c8" stroke-width="1.2" stroke-dasharray="5 5" opacity=".75"/>
+      <text x="${W-R}" y="${y0-4}" text-anchor="end" fill="#e58aa6" font-size="9">起始 ${vals[0]}</text>`; }
+  // 最低点星标（个人最好成绩）
+  const minIdx=vals.indexOf(Math.min(...vals));
+  const star = (n>2 && minIdx!==n-1)
+    ? `<text x="${pts[minIdx].x}" y="${pts[minIdx].y-11}" text-anchor="middle" font-size="11" fill="#ffcf5c">★</text>` : '';
+  const dots=pts.map((p,i)=>{
+    const last=i===n-1;
+    return `<circle cx="${p.x}" cy="${p.y}" r="${last?5:3.6}" fill="#fff" stroke="${last?'#63c7b2':'#b9e3d8'}" stroke-width="${last?3:2}"/>
+      ${last?`<circle cx="${p.x}" cy="${p.y}" r="9" fill="#63c7b2" opacity=".16"/>`:''}`; }).join('');
+  const lastLabel=`<text x="${Math.min(W-R-2, Math.max(L+16, pts[n-1].x))}" y="${Math.max(T-4, pts[n-1].y-12)}" text-anchor="middle" font-size="11" font-weight="700" fill="#4a8f80">${vals[n-1]} kg</text>`;
+  const axis=`<text x="2" y="${T+4}" font-size="9" fill="#b8a7c9">${mx.toFixed(1)}</text>
+    <text x="2" y="${H-B+2}" font-size="9" fill="#b8a7c9">${mn.toFixed(1)}</text>
+    <text x="${L}" y="${H-6}" font-size="9" fill="#b8a7c9">${list[0].d}</text>
+    <text x="${W-R}" y="${H-6}" text-anchor="end" font-size="9" fill="#b8a7c9">${list[n-1].d}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="wt-svg" role="img" aria-label="体重变化曲线">
+    <defs><linearGradient id="wtg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd8c4" stop-opacity=".38"/><stop offset="1" stop-color="#ffc9dc" stop-opacity=".05"/></linearGradient>
+      <linearGradient id="wtl" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#63c7b2"/><stop offset="1" stop-color="#ff9db8"/></linearGradient></defs>
+    ${grid}${baseLine}
+    ${area?`<path d="${area}" fill="url(#wtg)"/>`:''}
+    ${line?`<path d="${line}" fill="none" stroke="url(#wtl)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`:''}
+    ${star}${dots}${lastLabel}${axis}
+  </svg>`;
+}
+function weightCardHtml(){
+  const list=cleanWeights();
+  const cur=list.length?list[list.length-1].w:null;
+  const first=list.length?list[0].w:null;
+  const diff=(cur!=null&&first!=null&&list.length>1)?+(cur-first).toFixed(1):null;
+  const diffTxt = diff==null ? '—'
+    : (diff<0 ? `<b style="color:#3fa893">↓ ${Math.abs(diff)} kg</b>` : diff>0 ? `<b style="color:#e58aa6">↑ ${diff} kg</b>` : '<b>持平</b>');
+  return `<div class="card"><h4>体重曲线 <span class="tag">${list.length} 条记录</span></h4>
+    ${weightChartSVG(list.slice(-12))}
+    <div class="wt-stats">
+      <div><b>${cur!=null?cur+' kg':'—'}</b><span>当前</span></div>
+      <div><b>${first!=null?first+' kg':'—'}</b><span>起始</span></div>
+      <div>${diffTxt}<span>累计变化</span></div>
+    </div>
+    <div class="wt-log">
+      <input id="wt-in" type="number" inputmode="decimal" step="0.1" min="30" max="200" placeholder="今日体重 kg">
+      <button class="btn-grad" id="wt-add" type="button">记录</button>
+    </div>
+    <p style="font-size:10.5px;color:var(--faint);margin-top:6px">建议固定早晨空腹、如厕后称重；在“我的”页改体重也会自动记一笔。</p></div>`;
 }
 
 /* ---------- 数据（v7.5：番茄ToDo 式统计格 + 月历视图 + 每日训练评分） ---------- */
@@ -980,7 +1585,7 @@ function renderData(body){
   keys.forEach(k=>{ const n=Object.values(STATE.checkins[k].ex||{}).filter(Boolean).length; const dt=new Date(k); const h=Math.round(n/maxv*100);
     bars+=`<div class="bar" style="height:${h}px"><span>${dt.getDate()}</span></div>`; });
   body.innerHTML+=`<div class="card"><h4>近 7 日动作数</h4><div class="chart">${bars}</div></div>
-    <div class="card"><h4>体重趋势</h4><p style="font-size:13px;color:var(--ink2)">当前 ${STATE.profile?STATE.profile.weight+' kg':'未设置'}，可在“我的”页实时修改。</p></div>
+    ${weightCardHtml()}
     <div class="card"><h4>知识库</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">纳西妲内置 <b style="color:var(--pink)">${KB.length}</b> 条带证据等级的训练/营养问答（A=系统综述 · B=权威机构 · C=专家共识）。点“聊天”随时问。</p></div>`;
   // 绑定：月历翻页 / 选日 / 评分
   const pm=body.querySelector('[data-pm]'); if(pm) pm.onclick=()=>{ dataMonth.m--; if(dataMonth.m<0){ dataMonth.m=11; dataMonth.y--; } renderData(body); };
@@ -1004,6 +1609,16 @@ function renderData(body){
     save(); setMood('happy',1800); toast('已保存训练评分，纳西妲看到你的感受啦'); renderData(body);
   };
   const dl=$('#score-del'); if(dl) dl.onclick=()=>{ delete STATE.scores[dataScoreDay]; _scoreDraft={}; save(); renderData(body); toast('已清除该日评分'); };
+  // 体重记录（夹取 30–200kg；非法输入不写入，只提示）
+  const wtAdd=$('#wt-add');
+  if(wtAdd) wtAdd.onclick=()=>{
+    const v=+$('#wt-in').value;
+    if(!isFinite(v) || v<30 || v>200){ toast('请输入 30–200 之间的体重'); return; }
+    const ok=logWeight(v);
+    if(STATE.profile && isFinite(v)) { STATE.profile.weight=+v.toFixed(1); }
+    save(); renderData(body);
+    setMood('happy',1500); toast(ok?'已记录今日体重 ✨':'今日体重已更新');
+  };
 }
 
 /* ---------- 我的（v7.5：自定义昵称 + 头像上传 + 档案实时编辑，改完立即生效） ---------- */
@@ -1027,7 +1642,25 @@ function renderProfile(body){
       <div class="list-row"><span class="lr-ic">💧</span>今日饮水<b style="margin-left:auto">${STATE.waterMl||0} ml / ${g.water} ml</b></div>
       <div class="list-row"><span class="lr-ic">🎯</span>今日目标<b style="margin-left:auto">${g.protein}g 蛋白 · ${g.kcal} kcal</b></div>
       <div class="list-row"><span class="lr-ic">📚</span>知识库<b style="margin-left:auto">${KB.length} 条</b></div>
-      <div class="list-row"><span class="lr-ic">🎨</span>角色出处<b style="margin-left:auto">纳西妲·原神</b></div>
+      <div class="list-row" id="skin-row"><span class="lr-ic">🎨</span>桌宠形象<b style="margin-left:auto">${STATE.petSkin==='official'?'官方素材':'自绘 SVG'}<span class="lr-ar">›</span></b></div>
+      <p style="font-size:10.5px;color:var(--faint);padding:2px 0 8px">默认使用分层 SVG 自绘形象（零版权风险、可演进为捏脸），可随时切换。</p>
+    </div>
+    <div class="card" style="padding:6px 14px">
+      <h4 style="margin:8px 0 2px">AI 食物识别 <span class="tag" id="vs-state">${(STATE.vision&&STATE.vision.mode&&STATE.vision.mode!=='off')?'已开启':'未开启'}</span></h4>
+      <p style="font-size:11px;color:var(--faint);line-height:1.6">开启后拍照会调用视觉大模型做真识别。关闭时拍照仍可用（条码/在线库/历史/本地匹配）。<b>凭据只存在你本机，不会进仓库</b>；建议用「自建代理」模式，避免 Key 暴露。</p>
+      <div class="pf-edit">
+        <label>模式<select id="vs-mode">
+          <option value="off">关闭（本地匹配）</option>
+          <option value="proxy">自建代理（推荐）</option>
+          <option value="direct">直连 OpenAI 兼容接口</option></select></label>
+        <label>服务地址<input id="vs-ep" type="text" maxlength="120" placeholder="https://xxx.workers.dev/recognize"></label>
+        <label>访问凭据<input id="vs-tk" type="password" maxlength="200" placeholder="代理口令 或 API Key" autocomplete="off"></label>
+        <label>模型<input id="vs-md" type="text" maxlength="40" placeholder="glm-4v-flash"></label>
+      </div>
+      <div class="row-btns" style="margin-top:8px">
+        <button class="btn-grad" id="vs-save" style="padding:9px">保存并测试</button>
+        <button class="ex-do ghost-btn" id="vs-off">停用</button></div>
+      <p id="vs-tip" style="font-size:11px;color:var(--faint);padding-top:6px;line-height:1.6"></p>
     </div>
     <div class="card" style="padding:6px 14px">
       <h4 style="margin:8px 0 2px">数据管理</h4>
@@ -1059,10 +1692,47 @@ function renderProfile(body){
     if(w>=30 && w<=200) STATE.profile.weight=w;
     if(d>0 && d<=100) STATE.profile.dumbbell=d;
     STATE.profile.name=name;
+    if(w>=30 && w<=200) logWeight(w);      // v7.8：改体重自动记一笔到曲线（同日覆盖）
     save();
     $('#pf-name').textContent=name;
   };
   ['pe-name','pe-h','pe-w','pe-d'].forEach(id=>{ const n=$('#'+id); if(n) n.oninput=applyLive; });
+  // v7.8 桌宠形象切换（自绘 SVG ⇄ 官方素材）
+  const skinRow=$('#skin-row');
+  if(skinRow) skinRow.onclick=()=>{
+    STATE.petSkin = (STATE.petSkin==='official') ? 'svg' : 'official';
+    save(); applyPetArt(STATE.petMood||'happy'); renderProfile(body);
+    toast(STATE.petSkin==='official' ? '已切换为官方素材' : '已切换为自绘 SVG 形象');
+  };
+  // v7.8 AI 识别设置：保存 + 真实连通性测试（不伪造结果）
+  const vs=$('#vs-mode'), vep=$('#vs-ep'), vtk=$('#vs-tk'), vmd=$('#vs-md'), vtip=$('#vs-tip');
+  if(vs){
+    const cfg=STATE.vision||{};
+    vs.value=(cfg.mode==='proxy'||cfg.mode==='direct')?cfg.mode:'off';
+    if(vep) vep.value=cfg.endpoint||'';
+    if(vtk) vtk.value=cfg.token||'';
+    if(vmd) vmd.value=cfg.model||'glm-4v-flash';
+  }
+  const vsSave=$('#vs-save');
+  if(vsSave) vsSave.onclick=async ()=>{
+    const mode=vs.value, ep=(vep.value||'').trim(), tk=(vtk.value||'').trim(), md=(vmd.value||'').trim()||'glm-4v-flash';
+    if(mode==='off'){ STATE.vision={mode:'off',endpoint:'',token:'',model:md}; save(); renderProfile(body); return; }
+    if(!/^https:\/\//i.test(ep)){ vtip.innerHTML='<b style="color:#e58aa6">地址必须是 https:// 开头</b>（浏览器不允许混合内容）'; return; }
+    if(!tk){ vtip.innerHTML='<b style="color:#e58aa6">请填写访问凭据</b>'; return; }
+    STATE.vision={ mode, endpoint:ep, token:tk, model:md }; save();
+    vtip.textContent='正在测试连通性…（会发一张极小的测试图）';
+    // 1×1 像素 JPEG：只验证链路通不通，不产生有意义的识别结果
+    const testImg='/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNCwsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPDs0NDT/wAALCAABAAEBAREA/8QAFAABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AmAA//9k=';
+    const t0=Date.now();
+    let r=null;
+    try{ r=await visionRecognize(testImg); }catch(_){ r={ ok:false, error:'请求异常' }; }
+    const ms=Date.now()-t0;
+    vtip.innerHTML = (r && r.ok)
+      ? `<b style="color:#3fa893">✅ 服务可用（${ms} ms）</b> · 拍照时会自动调用 AI 识别；结果仍可在结果页校正。`
+      : `<b style="color:#e58aa6">❌ 未通过：${esc((r&&r.error)||'未知错误')}</b> · 已保存配置，拍照失败会自动降级为本地匹配。`;
+  };
+  const vsOff=$('#vs-off');
+  if(vsOff) vsOff.onclick=()=>{ STATE.vision={ mode:'off', endpoint:'', token:'', model:(STATE.vision&&STATE.vision.model)||'glm-4v-flash' }; save(); renderProfile(body); toast('已停用 AI 识别'); };
   $('#reset-pet').onclick=()=>{ STATE.petDock={edge:'right', off:0.62}; delete STATE.petPos; delete STATE.selDate; save(); applyDock(); toast('桌宠位置已重置'); };
   $('#reset-all').onclick=()=>{ if(confirm('确定清空所有本地数据？')){ localStorage.removeItem(KEY); location.reload(); } };
   $('#exp-json') && ($('#exp-json').onclick=exportJSON);

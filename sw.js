@@ -1,6 +1,6 @@
 // 薄肌日记 v7.6 · Service Worker
 // 离线缓存 app shell，让“桌面常驻桌宠”在断网/二次打开时也能秒开
-const CACHE = 'boji-v7-6-20260927';
+const CACHE = 'boji-v7-8-20260927';
 const ASSETS = [
   './',
   './index.html',
