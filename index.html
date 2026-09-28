@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <!--
-  薄肌日记 v8.1 · 桌宠常驻「居家哑铃」健身 App
-  桌宠「小蛛」= 视频同款风格自绘分层 SVG（v7.10 默认，可切换纳西妲/官方素材）
-  教练名字与头像、桌面背景均可更换（我的 → 教练与外观）
-  纯前端单页 · localStorage 持久化 · 无构建步骤
+  训练日记 · 居家哑铃训练记录 App（纯前端单页，数据只存本机）
+  桌宠形象、教练名字与头像、桌面背景均可更换（我的 → 教练与外观 / 桌宠形象）
 -->
 <html lang="zh-CN">
 <head>
@@ -12,7 +10,7 @@
 <meta name="theme-color" content="#F3F0FB">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icon.svg">
-<title>薄肌日记 · 居家哑铃健身桌宠</title>
+<title>训练日记 · 居家哑铃训练记录</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -23,7 +21,7 @@
       <div class="notch"><span class="cam"></span></div>
       <div class="screen" id="screen">
 
-        <!-- 桌面壁纸（纳西妲官方卡，模糊作底） -->
+        <!-- 桌面壁纸（可更换：5 种预设 + 自定义上传） -->
         <div class="wallpaper" id="wallpaper"></div>
         <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
 
@@ -46,10 +44,10 @@
           <div class="pet" id="pet" role="button" aria-label="桌宠" tabindex="0">
             <div class="pet-bubble" id="pet-bubble"></div>
             <div class="pet-body">
-              <img class="pet-img" id="pet-img" src="assets/nahida-icon.webp" alt="纳西妲">
+              <img class="pet-img" id="pet-img" src="assets/icon.svg" alt="桌宠">
               <div class="pet-ring"></div>
               <div class="pet-mood" id="pet-mood">✦</div>
-              <!-- 招牌发饰宝珠（纳西妲标志）+ 草元素粒子：让桌宠“活起来”（轻量 Live2D 等效） -->
+              <!-- 招牌发饰宝珠（小练标志）+ 草元素粒子：让桌宠“活起来”（轻量 Live2D 等效） -->
               <span class="pet-akuma a1"></span>
               <span class="pet-akuma a2"></span>
             </div>
@@ -70,14 +68,14 @@
         <!-- 助手对话面板（点宠物或聊天展开） -->
         <section class="panel assistant" id="assistant" aria-hidden="true">
           <header class="panel-head">
-            <img class="ph-av" src="assets/nahida-icon.webp" alt="">
-            <div class="ph-meta"><b>纳西妲</b><span id="ph-status">在线 · 你的增肌教练</span></div>
+            <img class="ph-av" src="assets/icon.svg" alt="">
+            <div class="ph-meta"><b>小练</b><span id="ph-status">在线 · 你的增肌教练</span></div>
             <button class="ph-close" data-close="assistant">✕</button>
           </header>
           <div class="chat" id="chat"></div>
           <div class="quick" id="quick"></div>
           <div class="chat-input">
-            <input id="chat-text" type="text" placeholder="问纳西妲任何训练/营养问题…" maxlength="80">
+            <input id="chat-text" type="text" placeholder="问小练任何训练/营养问题…" maxlength="80">
             <button id="chat-send">发送</button>
           </div>
         </section>
@@ -102,12 +100,12 @@
 <div class="modal-mask" id="onboard" aria-hidden="true">
   <div class="modal">
     <h3>先认识一下你(｡･ω･｡)ﾉ</h3>
-    <p class="sub">我是纳西妲，你的<b>居家哑铃</b>增肌教练，以后常驻你手机桌面陪你练啦~</p>
+    <p class="sub">我是小练，你的<b>居家哑铃</b>增肌教练，以后常驻你手机桌面陪你练啦~</p>
     <label>身高 (cm)<input id="ob-h" type="number" inputmode="decimal" placeholder="170"></label>
     <label>体重 (kg)<input id="ob-w" type="number" inputmode="decimal" placeholder="65"></label>
     <label>单哑铃最大重量 (kg)<input id="ob-d" type="number" inputmode="decimal" placeholder="10"></label>
     <p class="sub" style="text-align:left;font-size:11.5px;line-height:1.65;margin:2px 0 0">关于拍照记饮食：拍照 = <b>留档 + 估算</b>。未开启 AI 识别时走条码 / 在线库 / 历史 / 本地库匹配，开启后才会调用云端视觉模型；不管走哪条路径，<b>热量都要你确认后才写入</b>，估算存在 ±15~35% 误差。</p>
-    <button class="btn-grad" id="ob-save">开始和纳西妲一起练</button>
+    <button class="btn-grad" id="ob-save">开始和小练一起练</button>
   </div>
 </div>
 
@@ -122,7 +120,7 @@
   </div>
 </div>
 
-<!-- 食物记录面板（v7.8 识别结果页：拍照/相册 → 条码/历史/本地库匹配 + 置信度 → 校正 → 确认） -->
+<!-- 食物记录面板（识别结果页：拍照/相册 → 条码/历史/本地库匹配 + 置信度 → 校正 → 确认） -->
 <div class="modal-mask sheet" id="food-sheet" aria-hidden="true">
   <div class="modal">
     <h3>记录食物</h3>

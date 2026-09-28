@@ -1,4 +1,4 @@
-/* 薄肌日记 · GitHub 推送脚本
+/* 训练日记 · GitHub 推送脚本
    为什么不用 git：本机 github.com:443 被网络策略阻断，git 协议不可用；
    api.github.com 可达，因此走 Git Data API（blobs → tree → commit → PATCH ref）做一次原子提交。
    用法：GH_TOKEN=<PAT> node tools/push.js "提交说明"            */

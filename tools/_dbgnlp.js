@@ -1,0 +1,12 @@
+const fs = require('fs'), path = require('path');
+const { JSDOM } = require('jsdom');
+const PROJ = path.join(__dirname, '..');
+const html = fs.readFileSync(path.join(PROJ, 'index.html'), 'utf8').replace('<script src="app.js"></script>', '');
+const appJs = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+const dom = new JSDOM(html, { url: 'http://localhost/', runScripts: 'dangerously', pretendToBeVisual: true });
+const w = dom.window;
+const sc = w.document.createElement('script'); sc.textContent = appJs; w.document.body.appendChild(sc);
+w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+w.eval('nlpKbScore')('深撑');
+console.log('KB_ERR:', w.__kbErr || '(none)');
+process.exit(0);

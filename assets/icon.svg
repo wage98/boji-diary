@@ -11,30 +11,23 @@
     </radialGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <circle cx="256" cy="200" r="150" fill="url(#glow)"/>
-  <!-- 桌宠头像（圆脸 + 双丸子头 + 草元素点缀，呼应纳西妲） -->
-  <g>
-    <circle cx="256" cy="232" r="118" fill="#FFF7FB"/>
-    <!-- 发饰宝珠（招牌） -->
-    <circle cx="150" cy="150" r="22" fill="#7FC4B8"/>
-    <circle cx="362" cy="150" r="22" fill="#F3C3D4"/>
-    <!-- 眼睛 -->
-    <circle cx="212" cy="226" r="15" fill="#36324C"/>
-    <circle cx="300" cy="226" r="15" fill="#36324C"/>
-    <circle cx="217" cy="221" r="5" fill="#fff"/>
-    <circle cx="305" cy="221" r="5" fill="#fff"/>
-    <!-- 腮红 -->
-    <circle cx="186" cy="262" r="13" fill="#F3A9BE" opacity="0.7"/>
-    <circle cx="326" cy="262" r="13" fill="#F3A9BE" opacity="0.7"/>
-    <!-- 微笑 -->
-    <path d="M226 272 Q256 300 286 272" stroke="#36324C" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <circle cx="256" cy="210" r="160" fill="url(#glow)"/>
+  <!-- 黑衣教练头像（连帽衫小狗 dog2 自绘 SVG，缩放至 512 画布） -->
+  <g transform="translate(40,-17.5) scale(9)" stroke-linejoin="round">
+    <path d="M7 48 C7 36.5 14 30.5 24 30.5 C34 30.5 41 36.5 41 48Z" fill="#2e2e33" stroke="#2b2320" stroke-width="1.6"/>
+    <text x="24" y="42.5" font-size="5.4" fill="#fff" text-anchor="middle" font-weight="bold" font-family="Arial,sans-serif">Lanny</text>
+    <path d="M11.5 31.5 C14 26 34 26 36.5 31.5 C32 34.5 16 34.5 11.5 31.5Z" fill="#2e2e33" stroke="#2b2320" stroke-width="1.4"/>
+    <ellipse cx="11.5" cy="15" rx="4.6" ry="7.4" transform="rotate(-16 11.5 15)" fill="#c98a3e" stroke="#2b2320" stroke-width="1.4"/>
+    <ellipse cx="36.5" cy="15" rx="4.6" ry="7.4" transform="rotate(16 36.5 15)" fill="#c98a3e" stroke="#2b2320" stroke-width="1.4"/>
+    <circle cx="24" cy="19.5" r="12.6" fill="#f0b060" stroke="#2b2320" stroke-width="1.6"/>
+    <path d="M13 12.5 A12.4 12.4 0 0 1 35 12.5 L36 14 L12 14Z" fill="#f08c3e" stroke="#2b2320" stroke-width="1.4"/>
+    <rect x="20" y="4.6" width="8" height="3.4" rx="1.7" fill="#f08c3e" stroke="#2b2320" stroke-width="1.2"/>
+    <circle cx="19.2" cy="19.5" r="1.7" fill="#2b2320"/>
+    <circle cx="28.8" cy="19.5" r="1.7" fill="#2b2320"/>
+    <circle cx="18.5" cy="18.8" r=".55" fill="#fff"/>
+    <circle cx="28.1" cy="18.8" r=".55" fill="#fff"/>
+    <ellipse cx="24" cy="24" rx="2" ry="1.5" fill="#2b2320"/>
+    <path d="M24 25.5 L24 27 M24 27 C22.6 28.6 20.8 28 20.4 26.8 M24 27 C25.4 28.6 27.2 28 27.6 26.8" stroke="#2b2320" stroke-width="1.1" fill="none" stroke-linecap="round"/>
   </g>
-  <!-- 草元素粒子 -->
-  <g fill="#7FC4B8" opacity="0.9">
-    <circle cx="96" cy="330" r="9"/>
-    <circle cx="416" cy="340" r="9"/>
-    <circle cx="140" cy="408" r="7"/>
-    <circle cx="372" cy="410" r="7"/>
-  </g>
-  <text x="256" y="466" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="46" font-weight="700" fill="#2c5044">薄肌日记</text>
+  <text x="256" y="478" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="44" font-weight="700" fill="#2c5044">训练日记</text>
 </svg>

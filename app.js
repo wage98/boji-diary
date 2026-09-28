@@ -1,51 +1,25 @@
 /* ============================================================
-   薄肌日记 v8.1 · app.js
-   手机桌面常驻二次元桌宠健身 App —— 居家哑铃方案
-   - 常驻浮层桌宠：情绪状态机 + 待机循环 + 左右缘直立探头吸附 + 点击对话 + 事件反应
-   - 桌宠=桌面主屏，dock 展开 训练/饮食/聊天/数据/我的
-   - v7.3：真实 PWA（manifest + SW 离线）、计划可编辑 + 哑铃渐进超负荷
-   - v7.4：P0 返回键层栈；P0 修复饮食页 ReferenceError；P1 移动端整屏适配；
-          P2 数据导出（JSON/CSV）与导入、撤销打卡
-   - v7.5：①档案实时编辑（身高/体重/哑铃/昵称/头像上传，即时影响建议重量与热量目标）
-          ②明确“居家哑铃”场景文案 ③饮水改为 ml 计量（旧“杯”自动迁移 ×250ml）
-          ④饮食主入口=拍照记录 + 常见食物库快速估算 + 名称/份量/热量全字段手动校正
-          ⑤数据页恢复月历视图（每日完成状态）与每日训练评分（感受/体力/满意度）
-          ⑥番茄ToDo 式统计：统计格 + 连续天数激励 + 月历可视化
-   - v7.6：仓库治理（死代码接线/清理）+ 拍照识别攻坚（81 项本地库 + OpenFoodFacts 在线查询
-            + 热量手动覆盖 + 失败兜底）+ 智能助手（42 条知识库 + 多轮上下文 + 结合本机数据）
-   - v7.7：识别流程重做（拍照/相册分离 → 三级匹配识别 + 置信度徽章 → 结果页校正 → 确认添加）
-           + OpenFoodFacts 条码识别（BarcodeDetector，探测到才显示）+ 弱网自动重试 + 加载骨架
-   - v7.8：①AI 视觉识别（可插拔：自建代理 / OpenAI 兼容直连，含二次校验与失败降级，默认关闭）
-           ②自定义动作（任何日期可练，含休息日）③体重曲线（手写 SVG，零依赖）
-           ④桌宠换肤：方案 A 分层 SVG 自绘形象（10 情绪 = 图层参数组合）
-           + 图片压缩异步化（createImageBitmap/OffscreenCanvas 优先，主线程不卡）+ 输入夹取二次校验
-           + Keep 风格记录流（热量/蛋白可视化 + 卡片化 + 主行动按钮）
-   - v7.9：①桌宠形象重制为精致 Q 版（渐变虹膜/睫毛/发丝线/腮红；PET_THEME 主题化为「捏桌宠」铺路）
-           ②眨眼动画（保留嘴型只换眼型）+ 连点彩蛋 ③AI 识别：prompt 升级（中餐份量锚点+宏量自洽）
-           + 同图缓存省额度 + 失败可重试 + 错误分类提示 ④知识库 42→62 条 + 问句归一化匹配
-           + 数据化回答新增（体重趋势/本周统计/吃什么建议）⑤饮食「一键复制上一餐」（去照片防膨胀）
-   - v7.10：①桌宠「小蛛」视频同款风格自绘皮肤（大头白色大眼罩+蛛网纹，参考用户提供的 Q 版
-           桌宠视频与参考图，自绘矢量实现）+ 视频同款行为（拖到顶边悬挂摆动 / 连点翻跟头
-           冒爱心 / 回来自动 hi）②教练名字与头像可更换（三只连帽衫小狗预设 + 自定义上传）
-           ③桌面背景可更换（5 预设 + 自定义上传）④AI 识别真实饮食图测试集评测（tools/vision-eval.js）
-   - v8.0：①小蛛按参考视频逐帧解析重制（v3 视频同款：实测取色 #C92848/#344383/#241018、
-           放射蛛网 6 主干、蜘蛛胸标、身形比 1.00、水滴形眼罩、无地面阴影；v1/v2 保留可切换）
-           ②7 项视频动作（待机呼吸/挥手 hi/圆形气泡/蜷缩/瞬移残影/挥手 bye/离场），
-           明确不实现行走与跳跃（逐帧已否证）③修复助手三处缺陷（证据正文被正则吞掉、
-           教练头像 SVG 当 img src 导致破图、数据类回答不进上下文窗口）④修复 AI 识别假识别
-           （空响应兜底成 150kcal / 代理空 data 当结果 / 失败结果被缓存致重试无效）
-           ⑤save() 加异常保护（localStorage 写满不再中断整条调用链）
-   - 复用 v6 已验证资产：训练计划(4训练日23动作 + B站章节时间戳) / 知识库 / 打卡 / 数据
-   纯前端 · localStorage 持久化 · 无构建
+   训练日记 · app.js
+   居家哑铃训练记录 App：常驻浮层桌宠 + 训练 / 饮食 / 数据 / 助手四个模块。
+
+   设计约束（改动前请先读）：
+   - 纯前端单页，无构建、无框架、无后端；数据只存本机 localStorage（键 boji_v7）。
+   - 桌宠形象、教练身份、桌面背景全部可更换，切换只换渲染数据源，不动用户数据。
+   - 训练计划分 A / B 两套（有 / 无卧推椅），两套数据各自完整、互不交叉引用。
+   - 所有写入走 save()：存储不可用时返回 false 并提示，绝不静默丢数据。
+   - 识别能力：未配置 AI 时明确降级为条码 / 在线库 / 历史 / 本地匹配，不返回编造结果。
+
+   历史版本流水见 docs/轮次总结.md，此处不再罗列。
    ============================================================ */
 'use strict';
+const APP_VERSION = '1.0.0';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const el = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
-// v8.0：加 String() 兜底——旧版传入非字符串（null/undefined/对象）会抛 s.replace is not a function
+// 加 String() 兜底——旧版传入非字符串（null/undefined/对象）会抛 s.replace is not a function
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-const DEFAULT_COACH = '纳西妲';
-// v7.10 教练身份：名字与头像可更换（预设三只连帽衫小狗形象 + 自定义上传），全局生效
+const DEFAULT_COACH = '小练';
+// 教练身份：名字与头像可更换（预设三只连帽衫小狗形象 + 自定义上传），全局生效
 function coachName(){
   const s = STATE && STATE.settings;
   const n = s && typeof s.coachName === 'string' ? s.coachName.trim() : '';
@@ -54,9 +28,9 @@ function coachName(){
 function coachAvatarSrc(){
   const a = STATE && STATE.settings && STATE.settings.coachAvatar;
   if(a && a.slice(0, 5) === 'data:') return a;
-  // v8.0 修复：COACH_AV_SVG 里存的是 SVG 标记字符串，旧版直接塞进 <img src> 必然渲染成破图
+  // 修复：COACH_AV_SVG 里存的是 SVG 标记字符串，旧版直接塞进 <img src> 必然渲染成破图
   if(a && COACH_AV_SVG[a]) return svgURI(COACH_AV_SVG[a]);
-  return 'assets/nahida-icon.webp';
+  return svgURI(COACH_AV_SVG.dog2);
 }
 const svgURI = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(String(s == null ? '' : s));
 
@@ -106,7 +80,7 @@ const PLAN_SETS = {
         { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:bsearch('仰卧哑铃臂屈伸'),
           standard:'仰卧在椅上，上臂保持垂直于地面，仅小臂做屈伸。',
           note:'肘别外撇，动作放慢，别用手腕甩。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:vid(560,'俯身侧平举'),
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:bsearch('俯身侧平举'),
           standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
           note:'脖子放松别耸肩，重量轻一点更找得到后束。' },
       ]},
@@ -136,7 +110,7 @@ const PLAN_SETS = {
           note:'膝盖跟脚尖同向，别内扣。' },
         { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
           standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
-          note:'靠腘绳拉伸感控制下放，别圆背。' },
+          note:'靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。' },
         { name:'保加利亚分腿蹲（后脚搭椅）', muscle:'股四头肌 · 臀大肌', sets:3, reps:'10-12/腿', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:bsearch('保加利亚分腿蹲'),
           standard:'后脚背搭在椅面上，前腿下蹲至约 90°，躯干略前倾。',
           note:'合集未收录，已给站内搜索兜底；核心收紧别晃。' },
@@ -192,10 +166,10 @@ const PLAN_SETS = {
         { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿。',
           note:'别甩重量，用肩中束发力。' },
-        { name:'单臂过顶臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:bsearch('单臂过顶臂屈伸'),
-          standard:'站姿或坐姿，单手持哑铃过头顶，上臂贴耳固定，仅小臂屈伸。',
-          note:'合集未收录，已给站内搜索兜底；肘别外撇，动作放慢。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:vid(560,'俯身侧平举'),
+        { name:'哑铃俯身臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:bsearch('哑铃俯身臂屈伸'),
+          standard:'俯身约 45°，上臂贴紧身体并垂直地面，仅小臂向后伸直再收回，肘为固定支点。',
+          note:'不甩重量；肘部固定不晃，重量宁轻勿重，避免用手腕带。居家无椅也能做，对肩关节压力小。' },
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:bsearch('俯身侧平举'),
           standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
           note:'脖子放松别耸肩。' },
       ]},
@@ -225,7 +199,7 @@ const PLAN_SETS = {
           note:'膝盖跟脚尖同向，别内扣。' },
         { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
           standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
-          note:'靠腘绳拉伸感控制下放，别圆背。' },
+          note:'靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。' },
         { name:'哑铃相扑深蹲', muscle:'股四头肌内侧 · 臀大肌 · 大腿内收肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.7, video:bsearch('相扑深蹲'),
           standard:'宽站距、脚尖外展，哑铃垂于身前，髋膝同步下蹲。',
           note:'合集未收录，已给站内搜索兜底；膝盖始终跟脚尖同向。' },
@@ -265,14 +239,14 @@ const PLAN_SETS = {
 /* 当前生效的训练日数据（切换方案时整体替换，见 applyPlanSet） */
 let PLANS = PLAN_SETS.A.days;
 // 7 天类型：周日休，其余按 推/拉/腿/核心/推/拉 循环
-// v8.1：第 5 天键名由 pump（泵感日·手臂胸）改为 core（核心日·腰腹），与「推/拉/腿/核心」的肌群划分保持一致；
+// 第 5 天键名由 pump（泵感日·手臂胸）改为 core（核心日·腰腹），与「推/拉/腿/核心」的肌群划分保持一致；
 //       老数据里 planEdits / exLast 的 pump 键会在下方迁移段自动改名，已编辑的组数与上次重量不丢。
 const DAY_TYPES = ['rest','push','pull','legs','core','push','pull'];
 const WEEKDAY = ['周日','周一','周二','周三','周四','周五','周六'];
 const getDayType = w => (Number.isInteger(+w) && w >= 0 && w <= 6) ? DAY_TYPES[w] : 'rest';
 const dayTypeLabel = t => t === 'rest' ? '休息日' : PLANS[t].name;
 
-/* ---------- 知识库（v7.6：38 条，覆盖训练 / 营养 / 计划 / 恢复与常见问答，带证据等级 + 追问补充） ---------- */
+/* ---------- 知识库 ---------- */
 const KB = [
   // ——— 训练·动作与强度 ———
   { q:'卧推肩疼怎么办', a:'先降重量，检查肩胛是否后缩下沉、小臂是否垂直。肩疼多因耸肩或重量过大。\n*[B] 证据：NSCA 建议肩胛稳定是卧推安全前提*', k:['卧推','肩','疼','胸'],
@@ -336,7 +310,7 @@ const KB = [
   { q:'练后要拉伸多久', a:'训练后 5–10 分钟静态拉伸，每个部位 15–30 秒。\n*[C] 证据：柔韧性与恢复*', k:['拉伸','放松','柔韧'] },
   { q:'多久能看到效果', a:'力量 2–4 周提升，体型 8–12 周可见变化，别天天称体重。\n*[B] 证据：训练适应时间进程*', k:['多久','效果','变化','没效果'] },
   { q:'早上练还是晚上练', a:'以能长期坚持的时间为准，规律性比时段更重要。\n*[C] 证据：训练时间与依从性*', k:['早上','晚上','时间','几点'] },
-  // ——— v7.9 增补：训练进阶 ———
+  // ——— 增补：训练进阶 ———
   { q:'卧推没感觉胸没充血', a:'多为肩代偿。肩胛后收下沉、哑铃下放到乳线略下、顶峰挤压 1 秒；先做 2 组轻重量飞鸟找发力感。\n*[C] 证据：念动一致与孤立预热*', k:['卧推','没感觉','胸','充血','发力'],
     more:'三步找回发力感：①空手做卧推姿势，想象“把两肘往中间夹”；②用 50% 重量做 12 次哑铃飞鸟预热；③正式组降到能完美控制再上量。胸肌发达者常犯的错是“用手推”，想着“肘推”而不是“手推”。' },
   { q:'俯卧撑做不了几个', a:'降阶：跪姿或手撑 elevated（桌上）俯卧撑，节奏放慢 2-1-2，每周 2 次每次 3 组到接近力竭。\n*[C] 证据：渐进降阶训练*', k:['俯卧撑','做不了','撑'] },
@@ -348,24 +322,24 @@ const KB = [
   { q:'硬拉怎么做', a:'居家可用哑铃罗马尼亚硬拉练臀腿后链：髋向后坐、膝微弯、腰背平直，感受大腿后侧拉紧再站直。\n*[B] 证据：髋铰链模式*', k:['硬拉','罗马尼亚','臀','后链'],
     more:'自检：①起始时杠/哑铃贴腿；②下放过程想着“把臀部往后推”，不是“往下蹲”；③全程腰背平直，若腰弯了立刻减重。每周 2 次每组 8–10 次。' },
   { q:'肩弹响还能推吗', a:'疼就停。推类换上斜或减少幅度（推到肘与肩平），加弹力带外旋强化肩袖，2 周不缓解就医。\n*[B] 证据：肩袖与康复性训练*', k:['弹响','肩袖','肩疼','肩膀疼'] },
-  // ——— v7.9 增补：营养实战 ———
+  // ——— 增补：营养实战 ———
   { q:'食堂怎么吃增肌', a:'一荤一素一半主食打底；多选蒸煮炖，少选油炸/糖醋/红烧；蛋白不够可用鸡蛋/牛奶/豆制品补。\n*[C] 证据：外食选择策略*', k:['食堂','上班','外食','公司'] },
   { q:'夜宵吃不吃', a:'饿了就吃蛋白类：鸡蛋、无糖酸奶、牛奶、豆腐干；避开油炸高糖。总量计入当日热量即可，不必有负罪感。\n*[C] 证据：进食时间与总量*', k:['夜宵','晚上吃','饿了','睡前吃'] },
   { q:'咖啡能喝吗', a:'训练前 30–60 分钟一杯黑咖啡可提升表现与专注；下午 3 点后别喝，避免影响睡眠。\n*[B] 证据：咖啡因与运动表现*', k:['咖啡','咖啡因','提神'] },
   { q:'奶茶零食怎么处理', a:'液态热量不顶饱、最易超标——一周 1–2 次解馋可以，喝了就记进当日热量，其他餐清淡对冲。\n*[C] 证据：液态热量与饱腹感*', k:['奶茶','零食','甜','饮料'] },
   { q:'蛋白吃不够怎么办', a:'加餐补：酸奶+坚果、水煮蛋、豆腐干、豆浆。效率手段才是蛋白粉（1 勺≈24g）。\n*[B] 证据：蛋白分摊吸收*', k:['吃不够','补蛋白','加餐'] },
-  // ——— v7.9 增补：计划与瓶颈 ———
+  // ——— 增补：计划与瓶颈 ———
   { q:'哑铃太轻怎么办', a:'四招提高难度：慢速离心 4 秒、单侧训练（单臂推/单腿蹲）、缩短组间休息、把次数加到 20+。长期建议入手可调哑铃。\n*[B] 证据：轻负荷训练技术*', k:['太轻','重量不够','哑铃轻','最大重量'] },
   { q:'每组做多少次', a:'增肌 8–12 次/组，力量 4–6 次，耐力 15+ 次；居家轻重量往 12–20 次靠，最后一两次接近力竭。\n*[A] 证据：重复区间与肌肥大*', k:['几次','每组','次数','做多少'] },
-  // ——— v7.9 增补：恢复与身体信号 ———
+  // ——— 增补：恢复与身体信号 ———
   { q:'抽筋怎么办', a:'立即反向拉伸（小腿抽筋勾脚尖）至缓解；平时保证水+电解质（出汗多可补淡盐水）、热身充分。\n*[C] 证据：电解质与肌肉痉挛*', k:['抽筋','痉挛','腿抽'] },
   { q:'训练头晕', a:'立刻停下坐下，别硬撑。常见原因：空腹低血糖、憋气、起身太快。吃点东西休息，若反复出现请就医。\n*[B] 证据：运动性低血压与低血糖*', k:['头晕','眼花','低血糖','恶心'] },
   { q:'泡沫轴有用吗', a:'有。训练后每个部位滚压 30–60 秒、酸痛点停留 20 秒，可短期缓解酸痛与改善柔韧。\n*[B] 证据：SMR 与恢复*', k:['泡沫轴','滚','放松','按摩'] },
-  // ——— v7.9 增补：身体数据与特殊时期 ———
+  // ——— 增补：身体数据与特殊时期 ———
   { q:'体脂怎么看', a:'家用体脂秤误差 ±3–5%，看趋势别纠结绝对值；腰围更直观——腰围下降+力量保持=在掉脂不掉肌。\n*[B] 证据：BIA 体脂测量误差*', k:['体脂','bmi','体脂率','腰围'] },
   { q:'经期能练吗', a:'多数可以低中强度训练（有研究显示不适期中低强度运动反而缓解症状），避免大重量与倒立类；量多/痛得厉害就休息。\n*[B] 证据：运动与月经周期*', k:['经期','生理期','大姨妈','月经'] },
   { q:'体重不涨怎么办', a:'先记录 3 天饮食算均值——多数人是“以为吃多了”。热量每天再加 200–300 kcal（≈1 碗饭+1 勺蛋白粉），称重固定早晨空腹。\n*[C] 证据：能量平衡核查法*', k:['不涨','体重不增','瘦','吃不胖'] },
-  // ——— 日常闲聊 / 情绪陪伴（v7.11：人格一致性=同一套口吻，先接住情绪再给建议，不做无依据承诺）———
+  // ——— 日常闲聊 / 情绪陪伴———
   { q:"夸夸我", a:"当然要夸！你愿意开始记录，就已经超过只想不做的大多数了(｡･ω･｡)ﾉ\n我不空夸，只夸你真做到的事——翻开数据页，那些打勾的日子都是证据。", k:["夸夸", "夸我", "表扬", "鼓励"],
     more:"想听具体的？告诉我你最近一次训练或记录，我按事实夸，夸到点上。" },
   { q:"今天好累不想动", a:"那就先把“练”降级成“动”：拉伸 5 分钟、散步 10 分钟都算数。\n真累到精神差就休息，恢复也是训练的一部分——但我明天还会来提醒你๐·°(৹˃̵﹏˂̵৹)°·๐", k:["不想动", "好累", "太累了", "没力气", "疲惫"],
@@ -391,7 +365,7 @@ const KB = [
 
 /* ---------- 多轮对话上下文（记住上一话题，支持追问与“结合我的数据”回答） ---------- */
 const CTX = { lastItem:null, lastQ:'', turns:0, greet:false, hist:[] };   // hist: 最近上下文窗口
-const CTX_WIN = 5;   // v7.11：上下文范围 = 最近 5 轮对话（超出自动淘汰最早一轮）
+const CTX_WIN = 5;   // 上下文范围 = 最近 5 轮对话（超出自动淘汰最早一轮）
 function ctxPush(q, a){
   try{
     CTX.hist.push({ q:String(q||'').slice(0,120), a:String(a||'').slice(0,300), t:Date.now() });
@@ -410,6 +384,147 @@ function ctxResolveTopic(q){
 }
 const FOLLOW_RE = /再(说|讲|详细|展开)(一点|些|点)?|详细(一点|些|说)|还有呢|然后呢|为什么|具体(怎么做|如何|点)|那(该|要)?怎么办|它呢|这个呢|继续|接着说/;
 // 结合本机数据的个性化回答（今天练什么 / 蛋白够吗 / 连打几天 / 上次重量 …）
+/* ===== 自然语言处理层 (NLP) =====
+ * 设计对齐成熟开源实践：
+ *  - Rasa (RasaHQ/rasa)：NLU pipeline = Tokenizer→Featurizer→IntentClassifier→EntitySynonymMapper→ResponseSelector；
+ *    每层 Component 接口统一（train/process/persist），intent 带 confidence 与 intent_ranking，组件可插拔、按 config 组合，且有完整单测。
+ *  - jpetrides/workout-tracker：vanilla JS PWA，动作库带 alias 匹配（"curls"→"Bicep Curls"），单例管理器分层。
+ *  - GuilleHoardings/WorkoutTrackr：MODULAR_ARCHITECTURE.md + tests/ 单测，关注点分离。
+ * 本层适配（保持单文件 vanilla 约定，零依赖）：
+ *  - 分层：normalize（归一化）→ expand（同义词扩展）→ intent（意图识别，带 score）→ kbScore（知识库模糊匹配）
+ *  - 接口：均为纯函数，输入容错（null/非字符串/超长/控制字符均不抛）；dialogue policy 仍由 nahidaReply 承担（对齐 Rasa Core）
+ *  - 错误处理：每层 try/catch，失败返回安全空值；绝不向 UI 抛异常（错误降级见 nlpKbScore/nlpReply 兜底）
+ *  - 可测：见 tools/selfcheck-functional.js（归一化/同义/意图/匹配 各阶段独立单测）
+ */
+const NLP_MAX_LEN = 200;                                   // 输入上限，防异常/超长输入
+const NLP_FILLERS = /[\s?？!！。，,\.、～~的啊呢吧嘛哦哟呀呗哎额哈哼哟]/g;
+function nlpNormalize(s){
+  try{
+    if(s==null) return '';
+    let t = String(s);
+    // 全角→半角（ASCII 全角区段 U+FF01–U+FF5E）
+    t = t.replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)).replace(/　/g, ' ');
+    t = t.toLowerCase();
+    // 去除控制字符
+    t = t.replace(/[\u0000-\u001f]/g, ' ');
+    // 去标点 / 语气词（直接删除）；CJK 无需空格，连写亦不影响关键词命中
+    t = t.replace(NLP_FILLERS, '');
+    // 去任何残留非字母数字字符（含全角标点如 ｡（）等）
+    t = t.replace(/[^\p{L}\p{N}]+/gu, '');
+    return t.slice(0, NLP_MAX_LEN).trim();
+  }catch(_){ return ''; }
+}
+
+// 同义词 / 别名表：用户说法 → 规范关键词（对齐 Rasa EntitySynonymMapper + workout-tracker 的 alias 匹配）
+const NLP_SYNONYMS = {
+  '增肌':'增肌','长肌肉':'增肌','长肌':'增肌','练大':'增肌','变壮':'增肌','肌肥大':'增肌','练壮':'增肌',
+  '减脂':'减脂','减肥':'减脂','掉秤':'减脂','瘦身':'减脂','瘦下来':'减脂','刷脂':'减脂','减体重':'减脂',
+  '蛋白质':'蛋白','蛋白粉':'蛋白','吃肉':'蛋白','吃蛋':'蛋白',
+  '碳水':'碳水','主食':'碳水','米饭':'碳水','面':'碳水','糖':'碳水',
+  '胸':'卧推','练胸':'卧推','胸肌':'卧推','胸肌训练':'卧推',
+  '肩':'肩','肩膀':'肩','肩部':'肩','肩关节':'肩',
+  '背':'背','背部':'背','背阔肌':'背','背肌':'背',
+  '腿':'腿','腿部':'腿','下肢':'腿',
+  '蹲':'深蹲','下蹲':'深蹲','深蹲':'深蹲','箭步蹲':'深蹲',
+  '硬拉':'硬拉','罗马尼亚':'硬拉','臀':'硬拉','后链':'硬拉',
+  '手臂':'手臂','胳膊':'手臂','二头':'手臂','三头':'手臂','手臂训练':'手臂',
+  '腹肌':'腹肌','马甲线':'腹肌','马甲':'腹肌','六块':'腹肌',
+  '热身':'热身','拉伸':'拉伸','柔韧':'拉伸','放松':'拉伸',
+  '有氧':'有氧','心肺':'有氧','跑步':'有氧','快走':'有氧',' cardio':'有氧',
+  '睡眠':'睡眠','睡':'睡眠','休息':'休息日','恢复':'休息日',
+  '体重':'体重','斤':'体重','公斤':'体重','kg':'体重',
+  '体脂':'体脂','bmi':'体脂','体脂率':'体脂','腰围':'体脂',
+  '水':'喝水','喝水':'喝水','饮水':'喝水','补水':'喝水',
+  '抽筋':'抽筋','痉挛':'抽筋','腿抽':'抽筋',
+  '头晕':'头晕','低血糖':'头晕','眼花':'头晕','恶心':'头晕',
+};
+function nlpExpand(s){
+  try{
+    const base = nlpNormalize(s);
+    if(!base) return [];
+    const out = new Set([base]);
+    for(const key in NLP_SYNONYMS){
+      if(base.indexOf(key) >= 0){ out.add(base.replace(key, NLP_SYNONYMS[key])); out.add(NLP_SYNONYMS[key]); }
+    }
+    // 子串切分：把「练胸」「深蹲」之类整体也作为候选，提升关键词命中召回
+    base.split(' ').forEach(tok => { if(tok) out.add(tok); });
+    return Array.from(out).filter(Boolean).slice(0, 16);
+  }catch(_){ return []; }
+}
+
+// 轻量编辑距离，用于单字错别字模糊匹配（仅短串，复杂度可控）
+function levenshtein(a, b){
+  const m = a.length, n = b.length;
+  if(!m) return n; if(!n) return m;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for(let j = 0; j <= n; j++) dp[0][j] = j;
+  for(let i = 1; i <= m; i++)
+    for(let j = 1; j <= n; j++)
+      dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return dp[m][n];
+}
+
+// 意图识别（对齐 Rasa Intent Classifier：规则打分 + 取最高分意图，带 score 作为置信度代理）
+// 返回 { intent, score, entities:[] } 或 null
+const NLP_INTENTS = [
+  { intent:'today_plan',  re:/今天练|练什么|今日计划|今天计划|练啥|今天练啥/ },
+  { intent:'protein',     re:/蛋白|吃了多少蛋白/ },
+  { intent:'kcal',        re:/热量|卡路里|kcal|今天吃了/ },
+  { intent:'streak',      re:/连续|打卡几天|坚持了|几天了/ },
+  { intent:'weight_trend',re:/趋势|变化|曲线|瘦了|胖了|轻了|重了/ },
+  { intent:'weight',      re:/体重|多重|多少斤|目标/ },
+  { intent:'this_week',   re:/本周|这周|一周.*(练|打)|连打|坚持|练了.*几次/ },
+  { intent:'food_advice', re:/吃什么|吃啥|推荐.*吃|饮食建议|三餐/ },
+  { intent:'last_weight', re:/上次(重量|练)|加重|加重量|超负荷/ },
+  { intent:'water',       re:/喝水|饮水|水/ },
+  { intent:'greeting',    re:/你好|hi|hello|在吗|在呢|嗨|早|晚安|下午好/ },
+  { intent:'chitchat',    re:/谢谢|感谢|陪我|聊|笑话|夸|你是谁|生气|心情|累|放弃|下雨|叫什么|谁/ },
+];
+function nlpIntent(q){
+  try{
+    const nq = nlpNormalize(q);
+    if(!nq) return null;
+    let best = null, bs = 0;
+    for(const it of NLP_INTENTS){
+      const m = nq.match(it.re);
+      if(m){ const sc = m[0].length; if(sc > bs){ bs = sc; best = it.intent; } }
+    }
+    return best ? { intent: best, score: bs, entities: [] } : null;
+  }catch(_){ return null; }
+}
+
+// 知识库匹配：归一化 + 同义扩展后的查询对 KB 关键词/整句计分（含单字错别字模糊容错）
+function nlpKbScore(q){
+  try{
+    const cands = nlpExpand(q);
+    if(!cands.length) return { item:null, score:0 };
+    let best = null, bs = 0, matched = '';
+    for(const item of KB){
+      const kws = (item.k || []).map(k => String(k || '').toLowerCase()).filter(Boolean);
+      const whole = nlpNormalize(item.q);
+      let s = 0, hit = '';
+      for(const c of cands){
+        for(const k of kws){
+          if(k.length === 1){
+            if(c.indexOf(k) >= 0 || k.indexOf(c) >= 0) s += 1;            // 单字关键词：低权重弱信号，避免「撑」误强命中「深撑」
+          } else if(c.indexOf(k) >= 0 || k.indexOf(c) >= 0){
+            s += 2 + Math.min(k.length, 4) * 0.5; if(!hit) hit = k;       // 多字关键词：越长越具体权重越高
+          } else if(c.length >= 2 && k.length >= 2 && levenshtein(c, k) <= 1){
+            s += 1.5; if(!hit) hit = k + '~';                              // 单字错别字容错（高于单字关键词、低于多字命中）
+          }
+        }
+        if(whole && whole.indexOf(c) >= 0){ s += 6; if(!hit) hit = c; }
+      }
+      if(s > bs){ bs = s; best = item; matched = hit; }
+    }
+    return { item:best, score:bs, matched };
+  }catch(_){ return { item:null, score:0 }; }
+}
+
+// 统一命名空间，便于单测与未来替换实现（接口抽象：NLU 各阶段经 NLP.* 暴露）
+const NLP = { normalize:nlpNormalize, expand:nlpExpand, intent:nlpIntent, kbScore:nlpKbScore,
+  SYNONYMS:NLP_SYNONYMS, INTENTS:NLP_INTENTS, MAX_LEN:NLP_MAX_LEN };
+
 function dataReply(q){
   const t=getDayType(wd()), g=dailyGoal();
   if(/今天练|练什么|今日计划|今天计划|练啥/.test(q)){
@@ -422,7 +537,7 @@ function dataReply(q){
     const key=todayKey(), meals=STATE.meals[key]||{}; let pTot=0;
     Object.keys(meals).forEach(mi=>(meals[mi]||[]).forEach(f=>{ pTot += (f.p||0) * mealQty(f); }));
     const pct = g.protein ? Math.round(pTot/g.protein*100) : 0;
-    return `今天已记录蛋白 ${Math.round(pTot)}g / 目标 ${g.protein}g（${pct}%）\n${pTot>=g.protein?'达标啦，纳西妲很高兴(★ω★)':'还差 '+Math.round(g.protein-pTot)+'g，建议：鸡胸 150g≈35g 或 蛋白粉 1 勺≈24g。'}`;
+    return `今天已记录蛋白 ${Math.round(pTot)}g / 目标 ${g.protein}g（${pct}%）\n${pTot>=g.protein?'达标啦，小练很高兴(★ω★)':'还差 '+Math.round(g.protein-pTot)+'g，建议：鸡胸 150g≈35g 或 蛋白粉 1 勺≈24g。'}`;
   }
   if(/热量|卡路里|kcal|今天吃了/.test(q)){
     const key=todayKey(), meals=STATE.meals[key]||{}; let kc=0;
@@ -430,7 +545,7 @@ function dataReply(q){
     return `今天已记录 ${Math.round(kc)} kcal / 目标约 ${g.kcal} kcal。\n${kc? '数据来自你手动/拍照记录，估算误差通常在 ±20%。':'还没记录饮食哦，拍照记一笔更准~'}`;
   }
   if(/连续|打卡几天|坚持了|几天了|streak/.test(q)){
-    return `你已经连续打卡 ${streak()} 天，累计 ${Object.keys(STATE.checkins).length} 天 (｡･ω･｡)ﾉ\n${streak()>=7?'一周以上啦，保持节奏！':'先定个小目标：连打 7 天。'}`;
+    return `你已经连续打卡 ${streak()} 天，累计 ${dayCompleteCount()} 天 (｡･ω･｡)ﾉ\n${streak()>=7?'一周以上啦，保持节奏！':'先定个小目标：连打 7 天。'}`;
   }
   if(/体重.*(趋势|变化|曲线)|最近.*(瘦|胖|轻|重)|(瘦|胖|轻|重)了/.test(q)){
     const arr=cleanWeights();
@@ -488,25 +603,16 @@ function nahidaReply(text){
     const ans = it.more
       ? `接着【${it.q}】展开说：\n${it.more}`
       : `接着【${it.q}】给你 3 步可执行：\n1. ${it.a.split('\n')[0]}\n2. 只改一个变量（重量 / 次数 / 频率），观察 1–2 周。\n3. 把结果记在数据页，下次我按你的记录帮你判断。`;
-    ctxPush(raw, ans);   // v8.0：追问也要进上下文，否则下一轮指代消解会指向更早的旧话题
+    ctxPush(raw, ans);   // 追问也要进上下文，否则下一轮指代消解会指向更早的旧话题
     return ans;
   }
-  // 2) 结合本机数据的个性化回答
-  const dr=dataReply(q);
-  if(dr){ CTX.turns++; ctxPush(raw, dr); return dr; }   // v8.0：数据类回答同样要入上下文窗口
-  // 3) 知识库匹配（问句归一化 + 关键词命中计分）
-  const nq=String(effQ).replace(/[\s?？!！。，,\.、～~的啊呢吧嘛]/g,'');
-  let best=null,bs=0;
-  for(const item of KB){
-    let s=0;
-    for(const k of item.k){ const kk=String(k||'').toLowerCase();
-      if(kk && nq.indexOf(kk)>=0) s += 2 + Math.min(kk.length, 4) * 0.5; }   // 更长的关键词 = 更具体，权重更高
-    const qq=String(item.q||'').replace(/[\s?？!！。，,\.、～~的啊呢吧嘛]/g,'');
-    if(qq && nq.indexOf(qq)>=0) s += 6;                                      // 整句命中权重最高
-    if(s>bs){bs=s;best=item;}
-  }
-  if(bs>0){ const ans=best.a + (best.more ? '\n（回我“再详细点”，我展开讲）' : '');
-    CTX.lastItem=best; CTX.lastQ=raw; CTX.turns++; ctxPush(raw, ans); return ans; }
+  // 2) 结合本机数据的个性化回答（指代消解后的 effQ 入参，提升“它呢/这个呢”类追问命中）
+  const dr=dataReply(effQ);
+  if(dr){ CTX.turns++; ctxPush(raw, dr); return dr; }   // 数据类回答同样要入上下文窗口
+  // 3) 知识库匹配（归一化 + 同义词扩展 + 模糊容错，对齐 Rasa SynonymMapper / ResponseSelector）
+  const m=nlpKbScore(effQ);
+  if(m.item && m.score>0){ const ans=m.item.a + (m.item.more ? '\n（回我“再详细点”，我展开讲）' : '');
+    CTX.lastItem=m.item; CTX.lastQ=raw; CTX.turns++; ctxPush(raw, ans); return ans; }
   // 4) 寒暄
   if(/你好|hi|在吗|在呢|嗨/.test(q)){ const a=`你好呀，我是${coachName()}，你的居家哑铃增肌教练(｡･ω･｡)ﾉ\n训练、营养、恢复都可以问我——我只回答有出处的，没把握的会直说。`; ctxPush(raw,a); return a; }
   // 5) 兜底：不装懂
@@ -517,7 +623,7 @@ function nahidaReply(text){
   ctxPush(raw, fb); return fb;
 }
 
-/* ---------- 食物库（v7.5：常见食物估算库，拍照记录后在此快速选取并校正） ---------- */
+/* ---------- 食物库 ---------- */
 // p/c/f 为“每 1 份”的宏量（克），热量 = p*4 + c*4 + f*9；份量可在校正面板再调
 const EST_LIB = [
   // —— 蛋白类（每 1 份）
@@ -570,7 +676,7 @@ const EST_LIB = [
   { n:'饼干(3片)', p:2, c:20, f:8 },
 ];
 const MEAL_NAMES = ['早餐','午餐','晚餐','加餐'];
-// v7.5：每日目标不再写死，随档案（体重等）实时计算
+// 每日目标不再写死，随档案（体重等）实时计算
 // 蛋白 1.8g/kg（ISSN 1.6–2.2 区间中值）· 热量 ≈ 33 kcal/kg（轻活动量估）· 饮水 ≈ 35 ml/kg（30–40 区间中值）
 function dailyGoal(){
   const p = STATE.profile;
@@ -587,7 +693,7 @@ function dailyGoal(){
 /* ---------- 状态持久化 ---------- */
 const KEY = 'boji_v7';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
-/* v8.0 修复：旧版 save() 没有任何异常保护。localStorage 写满 / 隐私模式 / 浏览器禁用存储时
+/* 修复：旧版 save() 没有任何异常保护。localStorage 写满 / 隐私模式 / 浏览器禁用存储时
    会直接抛 QuotaExceededError，中断整条调用链——表现就是「点了打卡没反应、记录丢失、设置不生效」。
    现在统一吞掉异常并返回布尔值，同时首次失败给用户明确提示（不静默丢数据）。 */
 let _saveWarned = false;
@@ -603,35 +709,35 @@ const save = () => {
 let STATE = Object.assign({
   profile:null, isFirstLaunch:true,
   checkins:{}, weights:{}, meals:{}, water:0, waterMl:null,
-  scores:{},                                 // v7.5：每日训练评分 { feel, energy, sat, at }
+  scores:{},                                 // 每日训练评分 { feel, energy, sat, at }
   petPos:null, petDock:null, petMood:'happy', lastPetTouch:Date.now(),
-  planEdits:{}, exLast:{}, editPlan:false,   // v7.3：计划可编辑 + 渐进超负荷记忆
-  petSkin:'spiderV3',                        // v8.0：桌宠皮肤 nahida/spiderV1/spiderV2/spiderV3/official（统一切换）
-  myEx:[],                                   // v7.8：自定义动作 [{id,name,part,sets,reps,rest,note}]
-  bodyWeights:[],                            // v7.8：体重曲线 [{d:'Y-M-D', w:70.5}]
-  vision:{ mode:'off', endpoint:'', token:'', model:'glm-4v-flash' },  // v7.8：AI 图像识别
-  planSet:'A',                               // v8.1：训练方案 A=有卧推椅 / B=无卧推椅
+  planEdits:{}, exLast:{}, editPlan:false,   // 计划可编辑 + 渐进超负荷记忆
+  petSkin:'spiderV3',                        // 桌宠皮肤 nahida / spiderV1 / spiderV2 / spiderV3（统一切换）
+  myEx:[],                                   // 自定义动作 [{id,name,part,sets,reps,rest,note}]
+  bodyWeights:[],                            // 体重曲线 [{d:'Y-M-D', w:70.5}]
+  vision:{ mode:'off', endpoint:'', token:'', model:'glm-4v-flash' },  // AI 图像识别
+  planSet:'A',                               // 训练方案 A=有卧推椅 / B=无卧推椅
 }, load());
-// v7.5 数据迁移：旧版饮水按“杯”（1杯≈250ml），一次性换算为 ml
+// 数据迁移：旧版饮水按“杯”（1杯≈250ml），一次性换算为 ml
 if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
 if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
-// v7.8 迁移：新增字段容错（脏数据不至于让整页白屏）
+// 迁移：新增字段容错（脏数据不至于让整页白屏）
 if(!Array.isArray(STATE.myEx)) STATE.myEx = [];
 if(!Array.isArray(STATE.bodyWeights)) STATE.bodyWeights = STATE.bodyWeights && typeof STATE.bodyWeights === 'object' ? [] : [];
 if(!STATE.vision || typeof STATE.vision !== 'object') STATE.vision = { mode:'off', endpoint:'', token:'', model:'glm-4v-flash' };
-/* v7.11 / v8.0 皮肤迁移（可逆：任何脏值/旧值都能落到合法皮肤，不会丢用户数据）
-   v8.0：v2（去红蓝化版）升级为 v3（视频同款）——用户要的正是撤销 v2 那四项改动；
+/* 皮肤迁移（可逆：任何脏值/旧值都能落到合法皮肤，不会丢用户数据）
+   ：v2（去红蓝化版）升级为 v3（视频同款）——用户要的正是撤销 v2 那四项改动；
    v2 仍保留在注册表里，可随时在「我的 → 桌宠形象」切回，切换不丢状态。 */
-const _PET_KEYS = ['nahida','spiderV1','spiderV2','spiderV3','official'];
+const _PET_KEYS = ['nahida','spiderV1','spiderV2','spiderV3'];
 const _PET_MAP  = { spider:'spiderV3', svg:'nahida', spiderV2:'spiderV3' };
 if(STATE.petSkin in _PET_MAP) STATE.petSkin = _PET_MAP[STATE.petSkin];
 if(_PET_KEYS.indexOf(STATE.petSkin) < 0) STATE.petSkin = 'spiderV3';
-// v7.10：外观与教练设置（背景 / 教练名 / 教练头像），逐字段容错防脏数据
+// 外观与教练设置（背景 / 教练名 / 教练头像），逐字段容错防脏数据
 if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:'', coachName:'', coachAvatar:'' };
 if(typeof STATE.settings.bg !== 'string') STATE.settings.bg = '';
 if(typeof STATE.settings.coachName !== 'string') STATE.settings.coachName = '';
 if(typeof STATE.settings.coachAvatar !== 'string') STATE.settings.coachAvatar = '';
-/* v8.1 训练方案迁移（可逆：脏值一律落到 A 套，不丢任何训练数据）
+/* 训练方案迁移（可逆：脏值一律落到 A 套，不丢任何训练数据）
    ① 方案键：'A' / 'B'，其他值（含旧版本没有此字段）统一为 'A'。
    ② 训练日键重命名：老版本的 pump（泵感日·手臂胸）→ core（核心日·腰腹），
       把 planEdits / exLast 里的同名键搬过去，用户改过的组数与记录过的重量不丢。 */
@@ -650,8 +756,12 @@ const wd = () => new Date().getDay();
 const selKey = () => STATE.selDate || todayKey();
 const estMin = plan => plan.ex.reduce((s,e)=>s + e.sets*((e.rest||60)/60) + e.sets*1.2, 0) | 0;
 const suggKg = e => STATE.profile ? Math.max(1, Math.round((STATE.profile.dumbbell||10) * (e.base||0.4))) : null;
-const streak = () => { let n=0; const d=new Date(); for(;;){ const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; if(STATE.checkins[k]){n++; d.setDate(d.getDate()-1);} else break; } return n; };
-// v7.3 渐进超负荷：重量按 0.5kg 取整（哑铃片最小刻度）
+// 打卡“完成”判定：必须走完 finishDay（写入 at 时间戳）才算当日打卡成功；
+// 仅勾选部分动作（STATE.checkins[k].ex 有 true 但无 at）不算完成，不计入连续/累计打卡。
+const isDayComplete = k => !!(STATE.checkins[k] && STATE.checkins[k].at);
+const dayCompleteCount = () => Object.keys(STATE.checkins).filter(isDayComplete).length;
+const streak = () => { let n=0; const d=new Date(); for(;;){ const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; if(isDayComplete(k)){n++; d.setDate(d.getDate()-1);} else break; } return n; };
+// 渐进超负荷：重量按 0.5kg 取整（哑铃片最小刻度）
 const roundHalf = x => Math.round((+x) * 2) / 2;
 // 计算某动作的上次重量与“建议下一级重量”（达标后 +2.5kg）
 function overloadSuggestion(t, i){
@@ -668,7 +778,7 @@ function overloadSuggestion(t, i){
 // 打字机气泡语速配置（可按需调慢/调快）
 const TYPE = { charMs:42, startDelay:140, dwellPerChar:52, minDwell:2600, maxDwell:6200 };
 
-// 台词池：随机抽取、不连续重复；语气活泼可爱（沿用纳西妲，不瞎编知识）
+// 台词池：随机抽取、不连续重复；语气活泼可爱（沿用小练，不瞎编知识）
 const LINES = {
   happy:['今天也要元气满满哦~','陪你一起变强(｡･ω･｡)ﾉ','要不要先喝口水呀','今天也要好好吃饭才行~'],
   expect:['该动一动啦，别瘫着~','今天的训练在等你哦','来，和我一起练嘛(｡•ᴗ•｡)','热身做好了没？'],
@@ -689,7 +799,7 @@ const _lastIdx = {};
 function pickLine(pool){ const arr = LINES[pool] || LINES.happy; if(arr.length===1) return arr[0];
   let i; do { i = Math.floor(Math.random()*arr.length); } while(i === _lastIdx[pool]); _lastIdx[pool] = i;
   return arr[i].replace('{c}', coachName()); }
-/* ---------- 桌宠形象 v7.9：方案 A「分层 SVG」· 精致 Q 版自绘皮肤 ----------
+/* ---------- 桌宠形象 ：方案 A「分层 SVG」· 精致 Q 版自绘皮肤 ----------
    设计要点：
    ① 一种情绪 = 一组图层参数（眼型/嘴型/腮红/特效），不是 N 张独立图 → 几 KB、零依赖。
    ② 图层顺序：后发 → 身体（腿/裙/袖/臂） → 脸 → 刘海与鬓发 → 腮红 → 眉 → 眼 → 嘴 → 头饰 → 特效。
@@ -900,13 +1010,13 @@ ${petMouth(f.mouth)}
 ${petFx(f.fx)}
 </svg>`;
 }
-/* ---------- 桌宠形象 v7.10：「小蛛」视频同款风格自绘皮肤 ----------
+/* ---------- 桌宠形象 ：「小蛛」视频同款风格自绘皮肤 ----------
    参考用户提供的 Q 版桌宠视频（抖音@ggbone）与三张参考图；自绘矢量实现（非搬运素材文件）：
    ① 头身比约 1.5:1 的大头 Q 版；② 白色大「眼罩」+ 粗黑描边（贴纸感）；③ 蛛网纹红蓝战衣；
-   ④ 表情 = 眼罩形态（睁/眯/弯月/星星/爱心/泪/闭眼）+ 小嘴 + 特效，复用与纳西妲同一套
+   ④ 表情 = 眼罩形态（睁/眯/弯月/星星/爱心/泪/闭眼）+ 小嘴 + 特效，复用与小练同一套
    PET_FACE 情绪参数与情绪状态机——换形象零成本接入现有眨眼/彩蛋/台词体系。 */
-/* v7.11 小蛛版本主题：早期版(v1)=初始灵感稿；现版(v2)=完成差异化的正式版。
-   v8.0 新增 v3=「视频同款」重制版（按 docs/小蛛桌宠·按视频款式重制规格书.md 落地）：
+/* 小蛛版本主题：早期版(v1)=初始灵感稿；现版(v2)=完成差异化的正式版。
+   新增 v3=「视频同款」重制版（按 docs/小蛛桌宠·按视频款式重制规格书.md 落地）：
    配色取视频实测值（主红 #C92848 / 藏蓝 #344383 / 描边 #241018），纹样回到中心放射蛛网，
    胸标回到蜘蛛徽记，身形比回到 1.00 —— 即撤销 v2 的「去红蓝化」四项改动。
    差异与版权护栏见 docs/小蛛形象差异说明.md。 */
@@ -949,7 +1059,7 @@ const SPIDER_LENS = {
 };
 function spLensPath(){ return (_SP.eyeShape === 'video') ? SPIDER_LENS.video : SPIDER_LENS.classic; }
 /* 头部蛛网纹：从头顶中心放射 + 三圈同心弧（裁剪在头圆内）
-   v8.0：v3 用 6 条主干（差异化护栏：不做高密度全覆盖），线宽/不透明度按主题可调 */
+   ：v3 用 6 条主干（差异化护栏：不做高密度全覆盖），线宽/不透明度按主题可调 */
 const SPIDER_RAYS = {
   6: [[106.4,24.4],[93.9,45.9],[72.4,58.4],[47.6,58.4],[26.1,45.9],[13.6,24.4]],
   7: [[101,12],[95.5,32.5],[80.5,47.5],[60,53],[39.5,47.5],[24.5,32.5],[19,12]]
@@ -1012,7 +1122,7 @@ function spEmblem(){
 function spEye(kind){
   const ink = _SP.ink;
   const video = (_SP.eyeShape === 'video');
-  // v8.0：视频同款(v3)只保留「大镜片」这一种眼型——不再出现星星眼/爱心眼/泪眼/大瞳孔等装饰
+  // 视频同款(v3)只保留「大镜片」这一种眼型——不再出现星星眼/爱心眼/泪眼/大瞳孔等装饰
   if(video && kind !== 'closed' && kind !== 'smile') kind = 'open';
   const lens = `<path d="${spLensPath()}" fill="${_SP.lens}" stroke="${ink}" stroke-width="${video?3.4:3}" stroke-linejoin="round"/>`;
   const lid  = y => `<g clip-path="url(#spLc)"><path d="M14 ${y} Q40 ${y+9} 66 ${y} L66 96 L14 96Z" fill="${_SP.red}"/><path d="M14 ${y} Q40 ${y+9} 66 ${y}" stroke="${ink}" stroke-width="2" fill="none"/></g>`;
@@ -1035,7 +1145,7 @@ function spMouth(kind){
   if(kind==='smile') return `<path d="M56 84.5 Q60 88 64 84.5" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
   return '';
 }
-/* 组装：小蛛（与纳西妲同一情绪参数表 PET_FACE） */
+/* 组装：小蛛（与小练同一情绪参数表 PET_FACE） */
 function spiderSVG(mood, variant){
   _SP = spTheme(variant);
   const f = (mood && typeof mood==='object') ? mood : (PET_FACE[mood] || PET_FACE.happy);
@@ -1062,23 +1172,22 @@ ${spMouth(f.mouth)}
 ${fx ? petFx(fx) : ''}
 </svg>`;
 }
-/* v7.11 皮肤注册表：统一入口，四选一（切换只换渲染器，桌宠状态/配置/动画完全不受影响）
-   nahida  = 审验桌宠（v7.9 自绘 Q 版纳西妲）
+/* 皮肤注册表：统一入口，四种自绘形象（切换只换渲染器，桌宠状态/配置/动画完全不受影响）
+   nahida  = 自绘桌宠（小练）
    spiderV1= 小蛛·早期版（初始灵感稿：红蓝高对比 + 放射蛛网 + 蜘蛛胸标 + 略修长）
    spiderV2= 小蛛·现版（差异化正式版：珊瑚红/松绿 + 斜向网格 + 哑铃胸标 + 更圆更矮）
-   official= 官方素材（assets/nahida-icon.webp，溯源见 assets/CREDITS.md） */
+   spiderV3= 小蛛·视频同款（默认，按参考视频重制） */
 const PET_SKINS = [
-  { key:'nahida',   name:'审验桌宠 · 纳西妲', render: m => nahidaSVG(m) },
+  { key:'nahida',   name:'自绘桌宠', render: m => nahidaSVG(m) },
   { key:'spiderV1', name:'小蛛 · 早期版',    render: m => spiderSVG(m, 'v1') },
   { key:'spiderV2', name:'小蛛 · 现版',      render: m => spiderSVG(m, 'v2') },
-  { key:'spiderV3', name:'小蛛 · 视频同款',  render: m => spiderSVG(m, 'v3') },
-  { key:'official', name:'官方素材 · 纳西妲', render: m => nahidaSVG(m), asset:'assets/nahida-icon.webp' }
+  { key:'spiderV3', name:'小蛛 · 视频同款',  render: m => spiderSVG(m, 'v3') }
 ];
 function skinBy(key){ for(let i=0;i<PET_SKINS.length;i++) if(PET_SKINS[i].key===key) return PET_SKINS[i]; return PET_SKINS[0]; }
 /* 皮肤调度层（旧接口保留，行为不变，便于回退） */
 function petSVG(mood){
   const sk = skinBy(STATE.petSkin);
-  if(sk.key === 'nahida' || sk.key === 'official') return nahidaSVG(mood);
+  if(sk.key === 'nahida') return nahidaSVG(mood);
   if(sk.key === 'spiderV1') return spiderSVG(mood, 'v1');
   if(sk.key === 'spiderV2') return spiderSVG(mood, 'v2');
   return spiderSVG(mood, 'v3');
@@ -1093,7 +1202,7 @@ function petArtURI(mood){
 function applyPetArt(mood){
   const img = document.getElementById('pet-img'); if(!img) return;
   const sk = skinBy(STATE.petSkin);
-  // v8.0：视频款(v3)为悬浮角色，隐藏地面阴影（视频实测无地面阴影）
+  // 视频款(v3)为悬浮角色，隐藏地面阴影（视频实测无地面阴影）
   const pet = document.getElementById('pet');
   if(pet) pet.classList.toggle('pet-video', sk.key === 'spiderV3');
   if(sk.asset){ img.src = sk.asset; return; }
@@ -1106,7 +1215,7 @@ function scheduleBlink(){
   blinkTimer = setTimeout(()=>{
     const mood = STATE.petMood || 'happy';
     const f = PET_FACE[mood];
-    if(f && (f.eye==='open' || f.eye==='star') && STATE.petSkin!=='official' && !document.hidden){   // 官方素材为位图，不做眨眼帧
+    if(f && (f.eye==='open' || f.eye==='star') && !document.hidden){   // 自绘 SVG 皮肤均做眨眼帧
       const img = document.getElementById('pet-img');
       if(img){
         img.src = petArtURI({ eye:'closed', mouth:f.mouth, blush:f.blush, brow:f.brow, fx:'' });
@@ -1146,7 +1255,7 @@ function petIdle(){
   clearTimeout(idleTimer);
   idleTimer = setTimeout(()=>{
     const r = Math.random();
-    if(r<0.10) petFlip();                                    // v7.10：随机翻个跟头（视频同款小把戏）
+    if(r<0.10) petFlip();                                    // 随机翻个跟头（视频同款小把戏）
     else if(r<0.20) petAct('crouch');                        // ④ 蜷缩：视觉高度腰斩（视频 5.5–7.1s）
     else if(r<0.25) petDashGhost();                          // ⑤ 瞬移残影（视频 10.8–11.3s）
     else if(r<0.45) setMood('think', 2600);
@@ -1170,7 +1279,7 @@ function petWake(){
   // 长时间空闲（>28s 未互动）给一句轻柔提醒，不进睡眠
   nudgeTimer = setTimeout(()=>{ if(Date.now()-STATE.lastPetTouch > 28000 && !$('#pet').classList.contains('mood-sleep')) say(pickLine('idleLong')); }, 28000);
 }
-// v7.10 顶边悬挂（视频同款）：拖到屏幕上缘松手 → 倒挂摆动；否则吸附左右缘
+// 顶边悬挂（视频同款）：拖到屏幕上缘松手 → 倒挂摆动；否则吸附左右缘
 const PEEK = 0.56;   // 探头比例：贴边时约 56% 身体在屏内、44% 被屏幕边缘裁切
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 function applyDock(){
@@ -1207,7 +1316,7 @@ function dockToNearest(){
   const off = clamp(cy/sr.height, 0.1, 0.9);
   STATE.petDock = { edge, off }; save(); applyDock(); petDashGhost();
 }
-/* v7.10 视频同款小把戏：翻跟头 + 冒爱心 */
+/* 视频同款小把戏：翻跟头 + 冒爱心 */
 function petFlip(){
   const pet = $('#pet'); if(!pet || pet.classList.contains('flip')) return;
   pet.classList.add('flip'); setTimeout(()=>pet.classList.remove('flip'), 780);
@@ -1223,7 +1332,7 @@ function petHearts(n){
   }
 }
 /* ============================================================
-   v8.0 按参考视频重制的动作序列（7 项）
+   按参考视频重制的动作序列（7 项）
    依据规格书逐帧结论：视频里只有「离散跳变」的坐标变化，腿部始终并拢，
    因此不存在行走 / 跳跃 / 任何连续位移动画 —— 这三类一律不实现。
    ① idle 待机呼吸 ② wave_hi 挥手 ③ bubble_hi 圆形气泡"hi"
@@ -1395,7 +1504,7 @@ function navExitAttempt(){
     return;
   }
   NAV.lastExit = now;
-  toast('再按一次退出薄肌日记 (｡･ω･｡)');
+  toast('再按一次退出训练日记 (｡･ω･｡)');
   navPush('shield');                      // 补一层哨兵，防止下一次直接离开
 }
 
@@ -1422,7 +1531,7 @@ function renderHome(){
   $('#sb-time').textContent = $('#c-time').textContent;
   $('#c-date').textContent = `${WEEKDAY[now.getDay()]} · ${now.getMonth()+1}月${now.getDate()}日`;
   const t=getDayType(now.getDay());
-  const done = !!STATE.checkins[todayKey()];
+  const done = isDayComplete(todayKey());
   $('#home-stats').innerHTML = `
     <div class="hs-pill">🏠 居家哑铃</div>
     <div class="hs-pill">今天<b> ${dayTypeLabel(t)}</b></div>
@@ -1444,9 +1553,9 @@ function renderHome(){
 }
 
 /* ============================================================
-   助手对话（纳西妲）
+   助手对话（小练）
    ============================================================ */
-/* v8.0 修复：旧正则把「证据标记 + 正文」整段一起替换掉，
+/* 修复：旧正则把「证据标记 + 正文」整段一起替换掉，
    导致知识库里的「星级证据：NSCA 建议…」只剩一个「证据等级 B」徽章、正文消失（用户看到的是残缺回答）。
    改成只替换标记本身，正文原样保留。 */
 function md(s){
@@ -1490,7 +1599,7 @@ function renderTraining(body){
   const d=new Date(Y,M-1,D); const w=d.getDay(); const t=getDayType(w);
   const planSafe = PLANS[t] ? t : 'rest';
   const isToday = sel===todayKey();
-  const done = !!STATE.checkins[sel];
+  const done = isDayComplete(sel);
   let html = `<div class="card"><h4>本周安排 <span class="tag">${isToday?'今天':WEEKDAY[w]}</span></h4><div class="week">`;
   for(let i=0;i<7;i++){ const dd=new Date(); dd.setDate(dd.getDate()-dd.getDay()+i);
     const k=`${dd.getFullYear()}-${dd.getMonth()+1}-${dd.getDate()}`; const tw=dd.getDay(); const tt=getDayType(tw);
@@ -1528,7 +1637,7 @@ function renderTraining(body){
     if(done) html+=`<button class="ex-do" id="day-undo" style="background:var(--glass);color:var(--faint);margin-top:8px">撤销今日打卡</button>`;
     html+=`<p style="font-size:10.5px;color:var(--faint);margin-top:10px;line-height:1.6">${TIMESTAMP_NOTE}</p>`;
   }
-  // —— v7.8 自定义动作：任何日期都能练（含休息日），组数/次数/休息/部位随你定 ——
+  // —— 自定义动作：任何日期都能练（含休息日），组数/次数/休息/部位随你定 ——
   const myEx=(Array.isArray(STATE.myEx) ? STATE.myEx : []).filter(x=>x && typeof x.id==='string');
   const myDone=STATE.checkins[sel]?.ex || {};
   let myHtml=`<div class="card"><h4>我的动作 <span class="tag">${myEx.length} 个</span><span class="tag" style="background:rgba(126,177,232,.18);color:#4a7fae">自定义</span></h4>`;
@@ -1599,10 +1708,10 @@ function renderTraining(body){
   $$('#mod-body [data-ps]').forEach(inp=>inp.onchange=()=>{ const i=+inp.dataset.ps; STATE.planEdits[t]=STATE.planEdits[t]||{}; STATE.planEdits[t][i]=Object.assign({}, STATE.planEdits[t][i], { sets:+inp.value||3 }); save(); });
   $$('#mod-body [data-pr]').forEach(inp=>inp.onchange=()=>{ const i=+inp.dataset.pr; STATE.planEdits[t]=STATE.planEdits[t]||{}; STATE.planEdits[t][i]=Object.assign({}, STATE.planEdits[t][i], { reps:inp.value }); save(); });
   $$('#mod-body [data-apply]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.apply; const w=STATE.exLast?.[t]?.[i]; if(w==null) return; const inp=body.querySelector(`.ex-weight input[data-w="${i}"]`); if(inp){ inp.value=roundHalf((+w)+2.5); STATE.weights[sel]=STATE.weights[sel]||{}; STATE.weights[sel][i]=inp.value; save(); toast('已应用渐进超负荷建议 +2.5kg'); } });
-  // v7.5 治理：把原本写好却没接线的组间休息计时器接上（点“完成这组”后自动倒计时）
+  // 治理：把原本写好却没接线的组间休息计时器接上（点“完成这组”后自动倒计时）
   $('#rt-skip') && ($('#rt-skip').onclick=stopRest);
 }
-/* ---------- 组间休息计时器（v7.5 治理：把已有 UI 接线，去掉死代码） ---------- */
+/* ---------- 组间休息计时器 ---------- */
 let restId=null;
 function startRest(sec){
   const box=$('#rest-timer'); if(!box) return;
@@ -1620,14 +1729,14 @@ function stopRest(){ clearInterval(restId); restId=null; const b=$('#rest-timer'
 function finishDay(sel,t){
   const plan=PLANS[t]; const exDone=STATE.checkins[sel]?.ex||{};
   const total=plan.ex.length; const done=Object.values(exDone).filter(Boolean).length;
-  // v7.3：记录每个动作“上次用重量”（来自 STATE.weights 的实时保存），供渐进超负荷建议使用
+  // 记录每个动作“上次用重量”（来自 STATE.weights 的实时保存），供渐进超负荷建议使用
   STATE.exLast[t]=STATE.exLast[t]||{};
   plan.ex.forEach((e,i)=>{ const w=STATE.weights[sel]?.[i]; if(w!=null && w!=='') STATE.exLast[t][i]=w; });
   if(done<total){ toast(`还有 ${total-done} 个动作没完成哦`); setMood('sad',2000); return; }
   STATE.checkins[sel]={ex:exDone, at:Date.now()}; save();
   setMood('cheer',3500); setTimeout(()=>setMood('proud',3000),3600);
   $('#done-emoji').textContent='🎉'; $('#done-title').textContent='今日训练完成！';
-  $('#done-sub').textContent=`${plan.name} · 全部 ${total} 个动作达成，纳西妲为你骄傲(★ω★)`;
+  $('#done-sub').textContent=`${plan.name} · 全部 ${total} 个动作达成，小练为你骄傲(★ω★)`;
   $('#done-stats').innerHTML=`<div class="ds"><b>${total}</b><span>动作</span></div><div class="ds"><b>${estMin(plan)}</b><span>分钟</span></div><div class="ds"><b>${streak()}</b><span>连续天</span></div>`;
   $('#done-modal').classList.add('show');
   navOpen('done-modal');          // 入栈：返回键先关弹窗，不退出 App
@@ -1635,7 +1744,7 @@ function finishDay(sel,t){
   setTimeout(()=>toast('到「数据」页给今天的训练打个分吧 (｡･ω･｡)'), 1200);
 }
 
-/* ---------- 饮食（v7.7：Keep 风格记录流 · 拍照/相册分离 · 置信度识别结果页） ---------- */
+/* ---------- 饮食 ---------- */
 // 兼容旧数据：早期记录没有 q 字段，按 1 份计
 const mealQty = f => (f && typeof f === 'object' && +f.q > 0) ? +f.q : 1;
 const foodKcal = f => (+f.kcalFix > 0) ? Math.round(+f.kcalFix * mealQty(f)) : Math.round((f.p*4 + f.c*4 + f.f*9) * mealQty(f));
@@ -1734,7 +1843,7 @@ function addWater(ml,body){
   STATE.waterMl=Math.max(0, before+ml);
   const goal=dailyGoal().water;
   save(); renderDiet(body);
-  if(before<goal && STATE.waterMl>=goal) toast('今日饮水目标达成 💧 纳西妲给你点赞！');
+  if(before<goal && STATE.waterMl>=goal) toast('今日饮水目标达成 💧 小练给你点赞！');
 }
 function changeQty(mi,i,d,body){
   const arr=STATE.meals[todayKey()]?.[mi]; if(!arr || !arr[i]) return;
@@ -1742,7 +1851,7 @@ function changeQty(mi,i,d,body){
   arr[i].q=q; save(); renderDiet(body);
 }
 /* ============================================================
-   拍照识别 v7.7：拍照/相册 → 异步压缩 → 三级匹配识别（置信度）→ 结果页校正 → 确认添加
+   拍照识别 ：拍照/相册 → 异步压缩 → 三级匹配识别（置信度）→ 结果页校正 → 确认添加
    诚实边界：纯前端无后端，不做虚假「AI 图像识别」；识别 = 条码(BarcodeDetector→OpenFoodFacts)
    / 在线库 / 你的历史记录 / 本地库 四级来源，每级给出明确置信度与依据，低置信度强制提示校正
    ============================================================ */
@@ -1788,7 +1897,7 @@ function compressImage(file, maxPx, cb){
   }catch(_){ legacy(); }
 }
 /* ============================================================
-   v7.8 AI 图像识别（真·识别，可插拔）
+   AI 图像识别（真·识别，可插拔）
    架构：前端拍照 → 512px 压缩 → 识别服务（自建代理 或 OpenAI 兼容直连）→ 视觉大模型
         → 结构化 JSON → 二次校验 → 结果页（标注 AI 来源与置信度）→ 用户确认
    诚实边界：①需要视觉大模型 API（默认关闭，未配置时明确降级为本地匹配，不做假识别）；
@@ -1820,7 +1929,7 @@ function sanitizeVision(o){
   let adjusted = false;
   // 互校：让「热量」与「宏量」自洽，用户改克数时才会线性缩放
   const calc = p*4 + c*4 + f*9;
-  // v8.0：模型既没给热量也没给宏量 → 判定为无效结果，直接拒绝。
+  // 模型既没给热量也没给宏量 → 判定为无效结果，直接拒绝。
   // 旧版会兜底成「150 kcal / 置信度 60%」并当成正常结果显示，属于典型的假识别。
   if(kcal <= 0 && calc <= 0) return null;
   if(kcal > 0 && calc > 0){
@@ -1851,7 +1960,7 @@ async function postJSON(url, headers, body, timeoutMs){
     let j = null; try { j = JSON.parse(txt); } catch(_){ j = null; }
     return { ok:true, json:j };
   }catch(e){
-    // v8.0 修复：旧版两个判断条件完全相同（笔误），超时会被误报成「网络错误」
+    // 修复：旧版两个判断条件完全相同（笔误），超时会被误报成「网络错误」
     const aborted = e && (e.name === 'AbortError' || e.code === 20 || String(e && e.message || '').toLowerCase().indexOf('abort') >= 0);
     return { ok:false, error: aborted ? '请求超时' : '网络错误', retryable:true };
   }finally{ clearTimeout(t); }
@@ -1881,7 +1990,7 @@ async function visionRecognize(base64){
     if(cfg.mode === 'proxy'){
       const j = r.json || {};
       if(j.ok === false) return { ok:false, error: String(j.error || '识别服务返回失败') };
-      // v8.0：旧版 raw = j.data || j.result || j —— 代理只回 {ok:true} 时把整个响应当成识别结果，
+      // 旧版 raw = j.data || j.result || j —— 代理只回 {ok:true} 时把整个响应当成识别结果，
       // 于是 sanitizeVision 拿 {ok:true} 造出一个「识别结果 150kcal」的假答案。现在严格取字段，取不到就报错。
       raw = (j.data && typeof j.data === 'object') ? j.data
           : (j.result && typeof j.result === 'object') ? j.result
@@ -2187,7 +2296,7 @@ function openFoodSheet(mi, body, photo){
       else bcFail('照片处理失败');
     };
   }
-  // —— AI 视觉识别（v7.9：同图缓存省额度 + 失败可重试 + 错误分类提示；未配置时完全不出现） ——
+  // —— AI 视觉识别 ——
   const vcfg=STATE.vision||{};
   if(photo && (vcfg.mode==='proxy' || vcfg.mode==='direct') && _fsPhotoFile){
     const resEl=list.querySelector('#fs-result');
@@ -2217,7 +2326,7 @@ function openFoodSheet(mi, body, photo){
         if(_aiCache.has(b64)){ r=_aiCache.get(b64); }
         else{
           try{ r=await visionRecognize(b64); }catch(_){ r={ ok:false, error:'识别请求异常' }; }
-          // v8.0：只缓存成功结果。旧版连失败一起缓存，导致「重新识别」点了还是拿到缓存里的失败，按钮形同虚设
+          // 只缓存成功结果。旧版连失败一起缓存，导致「重新识别」点了还是拿到缓存里的失败，按钮形同虚设
           if(r && r.ok){
             if(_aiCache.size>12) _aiCache.delete(_aiCache.keys().next().value);   // 上限保护
             _aiCache.set(b64, r);
@@ -2267,7 +2376,7 @@ function openFoodSheet(mi, body, photo){
 }
 
 /* ============================================================
-   v7.8 体重曲线：手写 SVG，零第三方库
+   体重曲线：手写 SVG，零第三方库
    设计：粉→青渐变面积 + 平滑曲线（Catmull-Rom 转贝塞尔）+ 高光圆点 +
         起始虚线基准 + 极值星标。空数据 / 单点 / 脏数据都有明确兜底。
    ============================================================ */
@@ -2370,7 +2479,7 @@ function weightCardHtml(){
     <p style="font-size:10.5px;color:var(--faint);margin-top:6px">建议固定早晨空腹、如厕后称重；在“我的”页改体重也会自动记一笔。</p></div>`;
 }
 
-/* ---------- 数据（v7.5：番茄ToDo 式统计格 + 月历视图 + 每日训练评分） ---------- */
+/* ---------- 数据 ---------- */
 let dataMonth=null, dataScoreDay=null;   // 数据页内临时视图状态（不持久化）
 let _scoreDraft={};
 const SCORE_ITEMS=[['feel','训练感受'],['energy','体力状态'],['sat','满意度']];
@@ -2383,11 +2492,11 @@ function scoreEditorHtml(sc){
 function renderData(body){
   const now=new Date();
   if(!dataMonth) dataMonth={ y:now.getFullYear(), m:now.getMonth() };   // m: 0-based
-  if(dataScoreDay===null){ const tk=todayKey(); dataScoreDay = STATE.checkins[tk] ? tk : null; }
+  if(dataScoreDay===null){ const tk=todayKey(); dataScoreDay = isDayComplete(tk) ? tk : null; }
   // 统计格（番茄ToDo 式）
-  const totalCheck=Object.keys(STATE.checkins).length;
+  const totalCheck=dayCompleteCount();
   let monthDone=0;
-  Object.keys(STATE.checkins).forEach(k=>{ const [Y,M]=k.split('-').map(Number); if(Y===dataMonth.y && M-1===dataMonth.m) monthDone++; });
+  Object.keys(STATE.checkins).forEach(k=>{ const [Y,M]=k.split('-').map(Number); if(isDayComplete(k) && Y===dataMonth.y && M-1===dataMonth.m) monthDone++; });
   const totalEx=Object.keys(STATE.checkins).reduce((s,k)=>s+Object.values(STATE.checkins[k].ex||{}).filter(Boolean).length,0);
   // 月历：每日完成状态（✓=已打卡，★=已评分）
   const first=new Date(dataMonth.y, dataMonth.m, 1);
@@ -2397,7 +2506,7 @@ function renderData(body){
   for(let i=0;i<lead;i++) cells+=`<span class="cal-day empty"></span>`;
   for(let d=1;d<=days;d++){
     const k=`${dataMonth.y}-${dataMonth.m+1}-${d}`;
-    const done=!!STATE.checkins[k]; const scored=!!STATE.scores[k];
+    const done=isDayComplete(k); const scored=!!STATE.scores[k];
     const cls=['cal-day']; if(done)cls.push('done'); if(k===dataScoreDay)cls.push('sel'); if(k===todayKey())cls.push('today');
     cells+=`<button type="button" class="${cls.join(' ')}" data-cal="${k}"><span>${d}</span>${done?'<i>✓</i>':''}</button>`;
   }
@@ -2425,15 +2534,17 @@ function renderData(body){
       <div class="cal-grid">${cells}</div>
       <p style="font-size:10.5px;color:var(--faint);margin-top:8px">✓ 已打卡 · 点日期可补录/查看当天训练评分</p></div>
     ${scoreCard}`;
-  // 近 7 日动作数 + 体重趋势 + 知识库（v7.4 已有，保留）
-  const keys=Object.keys(STATE.checkins).sort().slice(-7);
-  const maxv=Math.max(1,...keys.map(k=>Object.values(STATE.checkins[k].ex||{}).filter(Boolean).length));
+  // 近 7 日动作数：最近 7 个自然日（今天及前 6 天），每根柱子 = 当天完成的动作个数（无记录记 0）
+  const base7=new Date(); base7.setHours(0,0,0,0);
+  const days7=[]; for(let i=6;i>=0;i--){ const d=new Date(base7); d.setDate(d.getDate()-i); days7.push(`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`); }
+  const cnt7=k=>Object.values(STATE.checkins[k]?.ex||{}).filter(Boolean).length;
+  const maxv=Math.max(1,...days7.map(cnt7));
   let bars='';
-  keys.forEach(k=>{ const n=Object.values(STATE.checkins[k].ex||{}).filter(Boolean).length; const dt=new Date(k); const h=Math.round(n/maxv*100);
+  days7.forEach(k=>{ const n=cnt7(k); const dt=new Date(k); const h=Math.round(n/maxv*100);
     bars+=`<div class="bar" style="height:${h}px"><span>${dt.getDate()}</span></div>`; });
-  body.innerHTML+=`<div class="card"><h4>近 7 日动作数</h4><div class="chart">${bars}</div></div>
+  body.innerHTML+=`<div class="card"><h4>近 7 日动作数 <span class="tag">最近 7 天</span></h4><div class="chart">${bars}</div><p style="font-size:10.5px;color:var(--faint);margin-top:6px">统计口径：今天及前 6 个自然日，每根柱子为当天完成的动作个数（含未打卡但已勾选的动作）。</p></div>
     ${weightCardHtml()}
-    <div class="card"><h4>知识库</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">纳西妲内置 <b style="color:var(--pink)">${KB.length}</b> 条带证据等级的训练/营养问答（A=系统综述 · B=权威机构 · C=专家共识）。点“聊天”随时问。</p></div>`;
+    <div class="card"><h4>知识库</h4><p style="font-size:12.5px;color:var(--ink2);line-height:1.7">小练内置 <b style="color:var(--pink)">${KB.length}</b> 条带证据等级的训练/营养问答（A=系统综述 · B=权威机构 · C=专家共识）。点“聊天”随时问。</p></div>`;
   // 绑定：月历翻页 / 选日 / 评分
   const pm=body.querySelector('[data-pm]'); if(pm) pm.onclick=()=>{ dataMonth.m--; if(dataMonth.m<0){ dataMonth.m=11; dataMonth.y--; } renderData(body); };
   const nm=body.querySelector('[data-nm]'); if(nm) nm.onclick=()=>{ dataMonth.m++; if(dataMonth.m>11){ dataMonth.m=0; dataMonth.y++; } renderData(body); };
@@ -2453,7 +2564,7 @@ function renderData(body){
   const sv=$('#score-save'); if(sv) sv.onclick=()=>{
     if(!( _scoreDraft.feel||_scoreDraft.energy||_scoreDraft.sat )){ toast('先点星星打个分吧 (｡･ω･｡)'); return; }
     STATE.scores[dataScoreDay]=Object.assign({ at:Date.now() }, _scoreDraft);
-    save(); setMood('happy',1800); toast('已保存训练评分，纳西妲看到你的感受啦'); renderData(body);
+    save(); setMood('happy',1800); toast('已保存训练评分，小练看到你的感受啦'); renderData(body);
   };
   const dl=$('#score-del'); if(dl) dl.onclick=()=>{ delete STATE.scores[dataScoreDay]; _scoreDraft={}; save(); renderData(body); toast('已清除该日评分'); };
   // 体重记录（夹取 30–200kg；非法输入不写入，只提示）
@@ -2469,7 +2580,7 @@ function renderData(body){
 }
 
 /* ============================================================
-   v7.10 教练与外观：桌面背景可更换 + 教练名字/头像可更换
+   教练与外观：桌面背景可更换 + 教练名字/头像可更换
    背景预设全为浅色（深色壁纸上深色文字不可读，不做假适配）；自定义上传压缩到 1080px JPEG。
    教练头像预设 = 参考图「连帽衫小狗」风格的自绘 SVG（48×48，含卫衣名字）。
    ============================================================ */
@@ -2508,10 +2619,27 @@ const COACH_AV_SVG = {
 function applyWallpaper(){
   const w = document.getElementById('wallpaper'); if(!w) return;
   const bg = STATE.settings && STATE.settings.bg;
+  // 清掉上一次可能挂着的图片监听器，避免旧图 onload 串场
+  if(w.__bgImg){ w.__bgImg.onload=null; w.__bgImg.onerror=null; w.__bgImg=null; }
   w.classList.remove('wall-custom');
-  if(bg && bg.slice(0,5)==='data:'){ w.style.background = `url("${bg}") center / cover no-repeat`; w.classList.add('wall-custom'); }
-  else if(bg && BG_PRESETS[bg]){ w.style.background = BG_PRESETS[bg]; w.classList.add('wall-custom'); }
-  else { w.style.background = ''; }
+  // 预设渐变：直接应用，无加载问题
+  if(bg && BG_PRESETS[bg]){ w.style.background = BG_PRESETS[bg]; w.classList.add('wall-custom'); return; }
+  // 自定义图片（data: URL）：先给一个安全的预设底色，再预加载；
+  // 加载成功才切换，失败或超时（8s）回落预设，避免“只显示一半 / 空白 / 偶发失败”
+  if(bg && bg.slice(0,5)==='data:'){
+    w.style.background = BG_PRESETS.p3; w.classList.add('wall-custom');   // 先铺安全底色
+    const img = new Image();
+    w.__bgImg = img;
+    let settled = false;
+    const fallback = ()=>{ if(settled) return; settled=true; clearTimeout(to); w.style.background = BG_PRESETS.p3; w.classList.add('wall-custom'); };
+    const to = setTimeout(fallback, 8000);
+    img.onload = ()=>{ if(settled) return; settled=true; clearTimeout(to);
+      w.style.background = `url("${bg}") center / cover no-repeat`; w.classList.add('wall-custom'); };
+    img.onerror = fallback;
+    img.src = bg;
+    return;
+  }
+  w.style.background = '';
 }
 // 教练身份应用到全局：助手面板头部 / 聊天输入占位 / 引导文案（聊天消息头像按发送时刻取值）
 function applyCoachIdentity(){
@@ -2530,10 +2658,10 @@ function saveSafe(){
   return ok;
 }
 
-/* ---------- 我的（v7.5：自定义昵称 + 头像上传 + 档案实时编辑，改完立即生效） ---------- */
+/* ---------- 我的 ---------- */
 function renderProfile(body){
   const p=STATE.profile; const g=dailyGoal();
-  const avatar = p && p.avatar ? p.avatar : 'assets/nahida-icon.webp';
+  const avatar = p && p.avatar ? p.avatar : svgURI(COACH_AV_SVG.dog2);
   body.innerHTML=`<div class="profile-head"><img id="pf-av" src="${avatar}" alt=""><b id="pf-name">${esc(p?(p.name||'训练者'):'训练者')}</b><span>${p?`${p.height}cm · ${p.weight}kg · 哑铃${p.dumbbell}kg`:'未设置档案'}</span>
     <button class="hc-go" id="pf-av-btn">📷 更换头像</button></div>
     <div class="card" style="padding:6px 14px">
@@ -2559,13 +2687,13 @@ function renderProfile(body){
       <div class="list-row"><span class="lr-ic">💧</span>今日饮水<b style="margin-left:auto">${STATE.waterMl||0} ml / ${g.water} ml</b></div>
       <div class="list-row"><span class="lr-ic">🎯</span>今日目标<b style="margin-left:auto">${g.protein}g 蛋白 · ${g.kcal} kcal</b></div>
       <div class="list-row"><span class="lr-ic">📚</span>知识库<b style="margin-left:auto">${KB.length} 条</b></div>
-      <div class="list-row" id="skin-row"><span class="lr-ic">🎨</span>桌宠形象与外观设置<b style="margin-left:auto">v8.1<span class="lr-ar">›</span></b></div>
+      <div class="list-row" id="skin-row"><span class="lr-ic">🎨</span>桌宠形象与外观设置<b style="margin-left:auto"><span class="lr-ar">›</span></b></div>
       <p style="font-size:10.5px;color:var(--faint);padding:2px 0 8px">下方可更换：桌宠形象 / 桌面背景 / 教练名字与头像。</p>
     </div>
     <div class="card" style="padding:6px 14px">
       <h4 style="margin:8px 0 2px">教练与外观</h4>
       <div class="pf-edit">
-        <label>教练名字<input id="co-name" type="text" maxlength="10" placeholder="纳西妲" value="${esc(STATE.settings.coachName||'')}"></label>
+        <label>教练名字<input id="co-name" type="text" maxlength="10" placeholder="小练" value="${esc(STATE.settings.coachName||'')}"></label>
       </div>
       <p class="set-lab">教练头像</p>
       <div class="av-row" id="co-avs">
@@ -2637,18 +2765,18 @@ function renderProfile(body){
     if(w>=30 && w<=200) STATE.profile.weight=w;
     if(d>0 && d<=100) STATE.profile.dumbbell=d;
     STATE.profile.name=name;
-    if(w>=30 && w<=200) logWeight(w);      // v7.8：改体重自动记一笔到曲线（同日覆盖）
+    if(w>=30 && w<=200) logWeight(w);      // 改体重自动记一笔到曲线（同日覆盖）
     save();
     $('#pf-name').textContent=name;
   };
   ['pe-name','pe-h','pe-w','pe-d'].forEach(id=>{ const n=$('#'+id); if(n) n.oninput=applyLive; });
-  // v7.10 教练与外观设置（教练名即时生效不重渲染防丢焦点；头像/背景/桌宠形象点选即换）
+  // 教练与外观设置（教练名即时生效不重渲染防丢焦点；头像/背景/桌宠形象点选即换）
   const coName=$('#co-name');
   if(coName) coName.oninput=()=>{
     STATE.settings.coachName = coName.value.trim().slice(0,10);
     save(); applyCoachIdentity();
   };
-  // v8.1 训练方案切换：只换数据源，打卡 / 重量 / 自定义动作一律不动
+  // 训练方案切换：只换数据源，打卡 / 重量 / 自定义动作一律不动
   const planPick=$('#plan-pick');
   if(planPick) planPick.onclick=e=>{
     const b=e.target.closest('.plan-pick'); if(!b) return;
@@ -2699,7 +2827,7 @@ function renderProfile(body){
     toast('已切换：' + sk.name);
     if(prevSkin!==key) petHearts(4);                      // 切换给一点反馈（不打断拖拽/悬挂状态）
   };
-  // v7.8 AI 识别设置：保存 + 真实连通性测试（不伪造结果）
+  // AI 识别设置：保存 + 真实连通性测试（不伪造结果）
   const vs=$('#vs-mode'), vep=$('#vs-ep'), vtk=$('#vs-tk'), vmd=$('#vs-md'), vtip=$('#vs-tip');
   if(vs){
     const cfg=STATE.vision||{};
@@ -2745,8 +2873,8 @@ function downloadFile(name, mime, text){
 }
 const _csvRow = arr => arr.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(',');
 function exportJSON(){
-  const data = JSON.stringify({ app:'薄肌日记', version:7, exportedAt:new Date().toISOString(), state:STATE }, null, 2);
-  downloadFile(`薄肌日记-备份-${todayKey()}.json`, 'application/json;charset=utf-8', data);
+  const data = JSON.stringify({ app:'训练日记', version:7, exportedAt:new Date().toISOString(), state:STATE }, null, 2);
+  downloadFile(`训练日记-备份-${todayKey()}.json`, 'application/json;charset=utf-8', data);
   toast('已导出 JSON 备份（可留存/换机恢复）');
 }
 function exportCSV(){
@@ -2773,7 +2901,7 @@ function exportCSV(){
     });
   });
   const csv = ckRows.map(_csvRow).join('\r\n') + '\r\n\r\n' + wRows.map(_csvRow).join('\r\n') + '\r\n\r\n' + mRows.map(_csvRow).join('\r\n');
-  downloadFile(`薄肌日记-记录-${todayKey()}.csv`, 'text/csv;charset=utf-8', '\ufeff' + csv);   // BOM：Excel 不乱码
+  downloadFile(`训练日记-记录-${todayKey()}.csv`, 'text/csv;charset=utf-8', '\ufeff' + csv);   // BOM：Excel 不乱码
   toast('已导出 CSV（打卡/重量/饮食三段）');
 }
 function importJSON(){
@@ -2795,13 +2923,13 @@ function importJSON(){
         }, st);
         if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
         if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
-        // v8.1：导入的方案键同样做校验 + pump→core 键名迁移
+        // 导入的方案键同样做校验 + pump→core 键名迁移
         if(STATE.planSet !== 'A' && STATE.planSet !== 'B') STATE.planSet = 'A';
         if(STATE.planEdits && STATE.planEdits.pump && !STATE.planEdits.core){ STATE.planEdits.core = STATE.planEdits.pump; delete STATE.planEdits.pump; }
         if(STATE.exLast && STATE.exLast.pump && !STATE.exLast.core){ STATE.exLast.core = STATE.exLast.pump; delete STATE.exLast.pump; }
-        // v7.10：导入备份同样过一遍新字段容错（背景/教练/桌宠皮肤）
+        // 导入备份同样过一遍新字段容错（背景/教练/桌宠皮肤）
         if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:'', coachName:'', coachAvatar:'' };
-        if(['nahida','spiderV1','spiderV2','spiderV3','official'].indexOf(STATE.petSkin)<0) STATE.petSkin='spiderV3';
+        if(['nahida','spiderV1','spiderV2','spiderV3'].indexOf(STATE.petSkin)<0) STATE.petSkin='spiderV3';
         save(); toast('导入成功，正在重载…'); setTimeout(()=>location.reload(), 700);
       }catch(_){ toast('这不是有效的备份 JSON 文件'); }
     };
@@ -2827,16 +2955,16 @@ $('#done-ok') && ($('#done-ok').onclick=()=>navUIClose('done-modal'));
    启动
    ============================================================ */
 function boot(){
-  // v7.10：应用可更换背景与教练身份（在首屏渲染前）
+  // 应用可更换背景与教练身份（在首屏渲染前）
   applyWallpaper(); applyCoachIdentity();
-  applyPlanSet();                    // v8.1：按已选方案挂载训练日数据（A 有卧推椅 / B 无卧推椅）
+  applyPlanSet();                    // 按已选方案挂载训练日数据（A 有卧推椅 / B 无卧推椅）
   renderHome(); initPet(); showOnboard();
-  // v7.10 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
+  // 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
   document.addEventListener('visibilitychange', ()=>{
     if(document.hidden) petRoundBubble('bye');
     else { petWake(); if(!$('#pet').classList.contains('mood-sleep')){ petGreet(); setMood('wave', 2200); } }
   });
-  // v7.3 真实 PWA：注册 Service Worker（仅 https/localhost 生效，file:// 静默跳过）
+  // 真实 PWA：注册 Service Worker（仅 https/localhost 生效，file:// 静默跳过）
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
   }

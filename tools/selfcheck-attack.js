@@ -1,4 +1,4 @@
-/* 薄肌日记 v7.6 攻击式自检：脏数据 / 异常输入 / 边界值 / 失败兜底 */
+/* 训练日记 v7.6 攻击式自检：脏数据 / 异常输入 / 边界值 / 失败兜底 */
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -198,14 +198,20 @@ check('E10 极端输入（1 万字符）不崩', () => { const w = boot(J({ prof
 
 /* ---------- F. 回归：v7.4/v7.5 关键链路未回退 ---------- */
 check('F1 返回键层栈仍在', () => { const w = boot(J({ profile: { weight: 70 } })); w.goModule('training'); w.navUIClose('module'); return !w.document.querySelector('#module').classList.contains('open'); });
-check('F2 月历打卡标记仍在', () => { const d = new Date(); const k = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-  const w = boot(J({ profile: { weight: 70 }, checkins: { [k]: { ex: { 0: true } } } })); w.goModule('data');
-  return w.document.querySelectorAll('#mod-body .cal-day.done').length === 1; });
+check('F2 月历打卡标记：完成打卡（含 at）才显示 ✓，部分勾选不算', () => { const d = new Date(); const k = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  const w1 = boot(J({ profile: { weight: 70 }, checkins: { [k]: { ex: { 0: true }, at: Date.now() } } })); w1.goModule('data');
+  const fullDone = w1.document.querySelectorAll('#mod-body .cal-day.done').length === 1;
+  const w2 = boot(J({ profile: { weight: 70 }, checkins: { [k]: { ex: { 0: true } } } })); w2.goModule('data');
+  const partialNotDone = w2.document.querySelectorAll('#mod-body .cal-day.done').length === 0;
+  return fullDone && partialNotDone; });
 check('F3 饮水 ml 计量仍在', () => { const w = boot(J({ waterMl: 300, profile: { weight: 70 } })); w.goModule('diet'); w.__click(w.document.querySelector('#water-250')); return w.__S.waterMl === 550; });
 check('F4 组间休息计时器可启动与跳过', () => { const w = boot(J({ profile: { weight: 70 } })); w.startRest(45);
   const shown = !w.document.querySelector('#rest-timer').classList.contains('hidden');
   w.stopRest(); return shown && w.document.querySelector('#rest-timer').classList.contains('hidden'); });
-check('F5 时间戳出处说明已接上', () => { const w = boot(J({ profile: { weight: 70 } })); w.goModule('training'); return w.document.querySelector('#mod-body').textContent.indexOf('时间戳取自') >= 0 || new Date().getDay() === 0; });
+check('F5 时间戳出处说明已接上', () => { const w = boot(J({ profile: { weight:70 } })); w.goModule('training'); return w.document.querySelector('#mod-body').textContent.indexOf('时间戳取自') >= 0 || new Date().getDay() === 0; });
+check('F6 打卡口径：仅完成全部动作并打卡（at）才计成功；部分勾选不计入连续/累计', () => { const d = new Date(); const k = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  const w = boot(J({ profile: { weight: 70 }, checkins: { [k]: { ex: { 0: true } } } }));
+  return w.eval('isDayComplete')(k) === false && w.eval('dayCompleteCount')() === 0 && w.eval('streak')() === 0; });
 
 /* ---------- G. v7.7 识别流程（置信度 / 条码 / 历史推荐 / 二次校验 / 相册入口） ---------- */
 check('G1 foodConfidence 非法来源→0，合法来源在(0,1]', () => { const w = boot(J({ profile: { weight: 70 } }));
@@ -320,13 +326,19 @@ check('H8 自绘形象：10 种情绪都能生成且无 undefined / 无外链', 
   return moods.every(m => { const s = f(m);
     return s.indexOf('<svg') === 0 && s.indexOf('undefined') < 0 && s.indexOf('NaN') < 0 && noRemote(s) && s.indexOf('<script') < 0; });
 });
-check('H9 皮肤切换：official 用素材、svg 用 dataURI', () => {
+check('H9 皮肤切换：自绘 SVG 皮肤均输出 dataURI（无外链素材）', () => {
   const w = boot(J({ profile: { weight: 70 } }));
-  w.__S.petSkin = 'official'; w.eval('applyPetArt')('happy');
-  const a = w.document.getElementById('pet-img').getAttribute('src');
-  w.__S.petSkin = 'svg'; w.eval('applyPetArt')('cheer');
-  const b = w.document.getElementById('pet-img').getAttribute('src');
-  return a.indexOf('assets/') >= 0 && b.indexOf('data:image/svg+xml') === 0 && b.indexOf('svg') > 0;
+  // petArtURI 是 applyPetArt 写入 pet-img.src 的唯一来源：自绘 SVG → data URI（含编码后的 <svg），无外部 http(s):// 资源引用
+  // 注意：SVG 命名空间 xmlns="http://www.w3.org/2000/svg" 会被编码为 http%3A%2F%2F，故只查未编码的 http:// 与 https://
+  const okURI = s => typeof s === 'string' && s.indexOf('data:image/svg+xml') === 0 && s.indexOf('http://') < 0 && s.indexOf('https://') < 0 && s.indexOf('%3Csvg') > 0;
+  w.__S.petSkin = 'nahida';
+  const a = w.eval('petArtURI')('happy');
+  w.__S.petSkin = 'spiderV3';
+  const b = w.eval('petArtURI')('cheer');
+  // 真实调用 applyPetArt 确认切换皮肤不抛错（K2/K3 已覆盖状态保留）
+  w.__S.petSkin = 'nahida'; w.eval('applyPetArt')('happy');
+  w.__S.petSkin = 'spiderV3'; w.eval('applyPetArt')('cheer');
+  return okURI(a) && okURI(b);
 });
 check('H10 自定义动作：超名截断 / 组数夹取 / XSS 不执行', () => {
   const w = boot(J({ profile: { weight: 70 } })); w.goModule('training');
@@ -542,11 +554,11 @@ function v710Checks() {
       && w.eval('spiderSVG')(m,'v2').indexOf('<svg') >= 0
       && w.eval('spiderSVG')(m,'v3').indexOf('<svg') >= 0));
     const w2 = boot(J({ profile: { weight: 70 }, petSkin: 'svg' }));
-    check('J4 旧值迁移：svg→nahida、spider→spiderV3、spiderV2→spiderV3、official 保留',
+    check('J4 旧值迁移：svg→nahida、spider→spiderV3、spiderV2→spiderV3、官方值→spiderV3（默认）',
       () => w2.__S.petSkin === 'nahida'
         && boot(J({ profile:{weight:70}, petSkin:'spider' })).__S.petSkin === 'spiderV3'
         && boot(J({ profile:{weight:70}, petSkin:'spiderV2' })).__S.petSkin === 'spiderV3'
-        && boot(J({ profile:{weight:70}, petSkin:'official' })).__S.petSkin === 'official'
+        && boot(J({ profile:{weight:70}, petSkin:'official' })).__S.petSkin === 'spiderV3'
         && boot(J({ profile:{weight:70}, petSkin:'spiderV1' })).__S.petSkin === 'spiderV1');
   }
   // J5–J7 桌宠行为
@@ -565,7 +577,7 @@ function v710Checks() {
     const w = boot(J({ profile: { weight: 70 }, settings: { coachName: '阿铁', bg: 'p3' } }));
     check('J8 教练名可配置', () => w.eval('coachName')() === '阿铁');
     const w2 = boot(J({ profile: { weight: 70 } }));
-    check('J9 教练名缺省回落纳西妲', () => w2.eval('coachName')() === '纳西妲');
+    check('J9 教练名缺省回落小练', () => w2.eval('coachName')() === '小练');
     w.eval('applyCoachIdentity')();
     check('J10 applyCoachIdentity → 聊天输入占位与引导文案生效', () => {
       const inp = w.document.getElementById('chat-text');
@@ -608,8 +620,8 @@ function v711Checks() {
   {
     const w = boot(J({ profile: { weight: 70 } }));
     const keys = w.eval('PET_SKINS.map(x=>x.key)');
-    check('K1 皮肤注册表五键齐全（nahida/spiderV1/V2/V3/official）',
-      () => JSON.stringify(keys) === JSON.stringify(['nahida','spiderV1','spiderV2','spiderV3','official']));
+    check('K1 皮肤注册表四键齐全（nahida/spiderV1/V2/V3）',
+      () => JSON.stringify(keys) === JSON.stringify(['nahida','spiderV1','spiderV2','spiderV3']));
     check('K2 skinBy 脏键回落第一项而非崩溃', () => w.eval('skinBy')('bad-key').key === 'nahida');
     // 切换保留停靠与情绪状态
     w.__S.petDock = { edge:'top', off:0.5 }; w.__S.petMood = 'sleep';

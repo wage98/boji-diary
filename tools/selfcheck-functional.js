@@ -1,4 +1,4 @@
-/* 薄肌日记 v7.5 行为级回归测试（jsdom） */
+/* 训练日记 v7.5 行为级回归测试（jsdom） */
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -175,6 +175,49 @@ if (plan) {
   // 休息日不执行
 }
 ok(true, 'finishDay 无异常（休息日跳过）');
+
+// 24. 自然语言处理层（NLP）：归一化 / 同义词 / 意图 / 模糊匹配 / 异常边界 / 可复现
+{
+  const norm = w.eval('nlpNormalize');
+  const expand = w.eval('nlpExpand');
+  const intent = w.eval('nlpIntent');
+  const kb = w.eval('nlpKbScore');
+  const reply = w.eval('nahidaReply');
+
+  // 24.1 归一化：全角→半角、去标点语气词、折叠空白、空值不抛
+  ok(norm('Ｈｅｌｌｏ？') === 'hello', 'NLP 归一化：全角字母+标点 → hello');
+  ok(norm('我 想 问  胸 肌 怎么练？！') === '我想问胸肌怎么练', 'NLP 归一化：去标点/语气词/折叠空白');
+  ok(norm(null) === '' && norm('') === '', 'NLP 归一化：null/空 返回空串不抛');
+
+  // 24.2 同义词扩展：用户说法映射到规范关键词（对齐 Rasa SynonymMapper / workout-tracker alias）
+  ok(expand('我想长肌肉').indexOf('增肌') >= 0, 'NLP 同义：长肌肉→增肌');
+  ok(expand('减肥吃什么').indexOf('减脂') >= 0, 'NLP 同义：减肥→减脂');
+
+  // 24.3 意图识别：带 score 的意图分类（对齐 Rasa IntentClassifier）
+  const i1 = intent('今天练什么'); ok(i1 && i1.intent === 'today_plan', 'NLP 意图：今天练什么→today_plan');
+  const i2 = intent('我蛋白够吗'); ok(i2 && i2.intent === 'protein', 'NLP 意图：蛋白够吗→protein');
+  ok(intent('') === null, 'NLP 意图：空输入→null 不抛');
+
+  // 24.4 知识库匹配：同义 + 单字错别字模糊容错
+  const m1 = kb('怎么练胸');
+  ok(m1.item && m1.item.q.indexOf('卧推') >= 0, 'NLP 匹配：怎么练胸→卧推相关（同义 胸→卧推）');
+  const m2 = kb('减肥吃什么好');
+  ok(m2.item && m2.item.q.indexOf('减脂') >= 0, 'NLP 匹配：减肥吃什么→减脂条目（同义）');
+  const m3 = kb('深撑');   // 深撑 = 深蹲 单字错别字
+  ok(m3.item && m3.item.q.indexOf('深蹲') >= 0, 'NLP 匹配：深撑→深蹲条目（错别字容错）');
+
+  // 24.5 异常边界：恶意/异常输入均返回 string、不抛（错误降级策略）
+  let threw = false, rStr = '';
+  try {
+    rStr = typeof reply(null) + '|' + typeof reply('') + '|' + typeof reply('<script>alert(1)</script>')
+         + '|' + typeof reply('x'.repeat(5000)) + '|' + typeof reply('🏋️💪😊');
+  } catch (e) { threw = true; }
+  ok(!threw && /string/.test(rStr), 'NLP 边界：null/空/HTML注入/超长/emoji 均返回 string 不抛');
+
+  // 24.6 可复现性：相同输入两次结果一致
+  ok(reply('今天练什么') === reply('今天练什么'), 'NLP 可复现：相同输入结果一致');
+  ok(kb('怎么练胸').item === kb('怎么练胸').item, 'NLP 可复现：匹配结果确定性');
+}
 
 // 23. 回归：导出 CSV 带 BOM（若 Blob 支持 arrayBuffer）
 (async () => {

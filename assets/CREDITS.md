@@ -1,32 +1,16 @@
 # 素材清单（可溯源 · 用户个人自用）
 
-本项目的角色素材**均来自既有动漫作品官方物料，非原创、非拼接**。逐项标注如下：
+本项目**所有视觉形象均为原创 / 自绘**，不引用任何第三方版权角色的官方美术素材：
 
-## 1. nahida-card.webp（首页 Hero 立绘）
-- **角色**：纳西妲（Nahida）
-- **出处**：《原神》（Genshin Impact）· miHoYo / HoYoverse 官方角色图
-- **来源页面**：https://genshin-impact.fandom.com/wiki/File:Nahida_Card.png
-- **原始文件**：https://static.wikia.nocookie.net/gensin-impact/images/4/4c/Nahida_Card.png
-- **规格**：1080×2160 WebP
-
-## 2. nahida-full.webp（备用全身立绘）
-- **角色**：纳西妲（Nahida）
-- **出处**：《原神》官方游戏内立绘
-- **来源页面**：https://genshin-impact.fandom.com/wiki/File:Character_Nahida_Game.png
-- **原始文件**：https://static.wikia.nocookie.net/gensin-impact/images/f/fc/Character_Nahida_Game.png
-- **规格**：884×1589 WebP
-
-## 3. nahida-icon.webp（助手头像 / 品牌头像 / 弹窗头像）
-- **角色**：纳西妲（Nahida）官方头像
-- **出处**：《原神》官方图标
-- **来源页面**：https://genshin-impact.fandom.com/wiki/File:Nahida_Icon.png
-- **原始文件**：https://static.wikia.nocookie.net/gensin-impact/images/f/f9/Nahida_Icon.png
-- **规格**：256×256 WebP（含透明通道）
-
----
+- 桌宠「小蛛」与「小练」、教练头像（黑衣 / 蓝衣 / 绿衣小狗）均为**运行时由代码生成的分层 SVG**（见 `app.js` 中的 `spiderSVG` / `nahidaSVG` / `coachDogSVG`），无外部图片依赖。
+- 品牌图标 `assets/icon.svg` 为**自绘 SVG**：渐变底 + 黑色连帽衫教练头像 + 「训练日记」字样。
+- `assets/pet-final-preview.png` 为桌宠皮肤的渲染预览图（生成产物，非源素材）。
+- `assets/install-qr.png` 为 PWA 安装指引二维码（用户自生成）。
 
 ## 版权说明
-以上图像版权归 miHoYo / HoYoverse 所有。本项目为**用户个人自用、非商业、非分发**的原型，依据用户明确指示使用既有动漫形象。若日后要公开发布或商用，需替换为已授权素材。
+以上图形均为本项目原创绘制或用户自生成，无第三方动漫 / 游戏角色素材。若日后公开发布或商用，继续使用自绘形象即可，无版权障碍。
 
-## 已弃用素材
-- `coach-hero.png` / `coach-avatar.png`（v5 原创角色「阿铁」）：自 v6 起停用，保留文件仅为回滚备份。
+## 已移除素材
+- `nahida-card.webp` / `nahida-icon.webp`：早期版本使用的第三方角色官方立绘 / 图标，自 v1.0.0 起移除，改为自绘 SVG，彻底去掉外部角色素材依赖与版权风险。
+- `nahida-full.webp`：备用全身立绘，早期已停用。
+- `coach-hero.png` / `coach-avatar.png`（v5 原创角色「阿铁」）：自 v6 起停用。

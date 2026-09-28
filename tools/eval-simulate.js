@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ============================================================
-   薄肌日记 v7.11 · tools/eval-simulate.js
+   训练日记 v7.11 · tools/eval-simulate.js
    多场景模拟评测：以「准确率」为核心指标的迭代回路，无需任何 API Key
 
    用法：node tools/eval-simulate.js

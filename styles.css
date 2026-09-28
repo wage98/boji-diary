@@ -1,6 +1,6 @@
 /* ============================================================
-   薄肌日记 v7 · styles.css
-   手机外壳 mockup + 模拟桌面 + 常驻浮层桌宠（纳西妲）
+   训练日记 · styles.css
+   手机外壳 mockup + 模拟桌面 + 常驻浮层桌宠（小练）
    二次元玻璃拟态 · 霓虹 token（与 v6 一致）
    ============================================================ */
 :root{
@@ -43,7 +43,7 @@ body{
 
 /* ---------- 壁纸 ---------- */
 .wallpaper{position:absolute; inset:0; z-index:0;
-  background:url('assets/nahida-card.webp') center 18% / cover no-repeat;
+  background:linear-gradient(165deg,#eaf2ff 0%,#e9ecfb 55%,#f5e9fb 100%);
   filter:saturate(.9) brightness(1.02);}
 .wallpaper::after{content:""; position:absolute; inset:0;
   background:linear-gradient(180deg,rgba(236,228,251,.55) 0%,rgba(220,243,236,.35) 38%,rgba(252,230,240,.78) 100%);}
@@ -161,7 +161,7 @@ body{
 .pet.dragging .pet-img{ animation:none !important; transform:scale(.93) rotate(-2deg); }
 .pet.hover-pulse{ filter:drop-shadow(0 0 12px rgba(167,220,196,.55)); }
 
-/* v7.3 桌宠“活起来”：招牌发饰宝珠浮动 + 草元素粒子上升（轻量 Live2D 等效，主题化） */
+/* 桌宠“活起来”：招牌发饰宝珠浮动 + 草元素粒子上升（轻量 Live2D 等效，主题化） */
 .pet-akuma{position:absolute; width:10px; height:10px; border-radius:50%; top:10px; z-index:3; pointer-events:none;
   background:radial-gradient(circle at 35% 30%, #fff, var(--mint)); box-shadow:0 0 9px rgba(167,220,196,.85);
   animation:akuma 3.2s ease-in-out infinite;}
@@ -264,7 +264,7 @@ body{
 .ex-do.done{background:var(--glass);color:var(--faint);}
 .ex-weight{margin-top:8px;display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink2);}
 .ex-weight input{width:64px;border:1px solid var(--line);border-radius:10px;padding:6px 8px;font-size:12px;background:var(--glass);color:var(--ink);outline:none;}
-/* v7.3 计划可编辑 + 渐进超负荷 */
+/* 计划可编辑 + 渐进超负荷 */
 .plan-edit-btn{margin-top:10px;width:100%;border:1px solid var(--mint);background:var(--glass);color:#1f4733;
   border-radius:12px;padding:8px;font-size:12.5px;font-weight:600;cursor:pointer;}
 .plan-edit-btn:active{transform:scale(.97);}
@@ -349,7 +349,7 @@ body{
 .fd-del{margin-left:6px; color:var(--faint);}
 
 /* ============================================================
-   v7.5 新增样式：饮水进度 / 拍照校正面板 / 统计格 / 月历 / 评分 / 档案编辑
+   新增样式：饮水进度 / 拍照校正面板 / 统计格 / 月历 / 评分 / 档案编辑
    ============================================================ */
 /* 饮水（ml） */
 .water-bar{height:8px; border-radius:8px; background:var(--glass); overflow:hidden; margin:10px 0 12px;}
@@ -360,7 +360,7 @@ body{
 .fd-ph{width:34px; height:34px; border-radius:10px; object-fit:cover; display:block;}
 /* 低置信度标记（记录流内 ⚠） */
 .fd-cf{font-size:10px; color:#c98a1b; margin-left:4px;}
-/* v7.7 Keep 风记录流：今日汇总可视化 */
+/* Keep 风记录流：今日汇总可视化 */
 .diet-sum .sum-big{display:flex; align-items:baseline; gap:6px; margin:2px 0 8px;}
 .diet-sum .sum-big b{font-size:30px; font-weight:800; color:var(--ink); letter-spacing:-.5px;}
 .diet-sum .sum-big span{font-size:12px; color:var(--faint);}
@@ -380,7 +380,7 @@ body{
 .fs-photo img{width:56px; height:56px; border-radius:12px; object-fit:cover; box-shadow:var(--sh);}
 .fs-photo.no span{color:var(--faint);}
 .fs-none{font-size:12px; color:var(--faint); padding:10px 2px;}
-/* v7.7 识别结果页：照片大图 / 置信度徽章 / 低置信度提示 / 骨架屏 / 主按钮 */
+/* 识别结果页：照片大图 / 置信度徽章 / 低置信度提示 / 骨架屏 / 主按钮 */
 .fs-hero{padding:8px 2px 10px;}
 .fs-hero img{width:100%; max-height:180px; object-fit:cover; border-radius:16px; box-shadow:var(--sh); display:block;}
 .fs-hero-tip{font-size:11.5px; color:var(--faint); padding-top:6px;}
@@ -522,7 +522,7 @@ body{
   .food-list{max-height:34vh;}
 }
 
-/* ===== v7.8 新增：AI 识别结果 / 体重曲线 / 自定义动作 ===== */
+/* ===== 新增：AI 识别结果 / 体重曲线 / 自定义动作 ===== */
 /* AI 识别块（结果页顶部，含骨架屏与降级文案） */
 .fs-ai{background:linear-gradient(135deg,rgba(127,216,196,.10),rgba(255,157,184,.08));
   border:1px dashed rgba(127,216,196,.38); border-radius:14px; padding:10px 12px; margin:8px 0 2px;}
@@ -534,7 +534,7 @@ body{
 .sk-row i:nth-child(2){animation-delay:.15s;}
 .sk-row i:nth-child(3){animation-delay:.3s;}
 @keyframes sk{0%{background-position:100% 0;}100%{background-position:-100% 0;}}
-/* v7.9 一键复制上一餐 */
+/* 一键复制上一餐 */
 .rep-row{font-size:12px; color:#3f8f63; background:rgba(127,216,168,.10); border:1px dashed rgba(127,216,168,.45);
   border-radius:10px; padding:7px 10px; margin-top:8px; cursor:pointer; user-select:none;}
 .rep-row:active{background:rgba(127,216,168,.2);}
@@ -560,7 +560,7 @@ body{
 .mx-grid label{flex:none;}
 .myex-del{flex:none; padding:8px 14px !important;}
 
-/* ============ v7.10 小蛛桌宠 · 视频同款行为 ============ */
+/* ============ 小蛛桌宠 · 视频同款行为 ============ */
 /* 顶边悬挂：拖到屏幕上缘松手，倒挂左右摆动 */
 .pet.edge-t .pet-body{transform-origin:50% 30px; animation:dangle-swing 3.2s ease-in-out infinite;}
 .pet.edge-t .pet-shadow{opacity:0;}
@@ -576,7 +576,7 @@ body{
   animation:heart-fly 1.9s ease-out forwards; filter:drop-shadow(0 2px 4px rgba(230,90,120,.35));}
 @keyframes heart-fly{0%{opacity:0; transform:translateY(0) scale(.5) rotate(-8deg);}
   14%{opacity:.95;}100%{opacity:0; transform:translateY(-88px) scale(1.25) rotate(10deg);}}
-/* ============ v7.10 教练与外观设置 ============ */
+/* ============ 教练与外观设置 ============ */
 .set-lab{font-size:11px;color:var(--faint);margin:10px 0 6px;font-weight:600;}
 .av-row{display:flex;gap:8px;flex-wrap:wrap;}
 .av-pick{width:54px;height:54px;border-radius:14px;border:2px solid var(--line);background:var(--glass);
@@ -587,7 +587,7 @@ body{
 .bg-swatches{display:flex;gap:8px;flex-wrap:wrap;}
 .bg-swatch{width:46px;height:46px;border-radius:12px;border:2px solid var(--line);cursor:pointer;padding:0;}
 .bg-swatch.on{border-color:#7fc49a;box-shadow:0 0 0 2px rgba(127,196,154,.22);}
-.bw0{background:url('assets/nahida-card.webp') center 18%/cover;}
+.bw0{background:linear-gradient(165deg,#eaf2ff,#e9ecfb 55%,#f5e9fb);}
 .bw1{background:linear-gradient(165deg,#ffe9d6,#ffd3c0 45%,#ffb7c5);}
 .bw2{background:linear-gradient(165deg,#e0f5e9,#c8e6d5 50%,#a8d8c0);}
 .bw3{background:linear-gradient(165deg,#efe9fb,#ddd2f2 55%,#c9b8e6);}
@@ -597,7 +597,7 @@ body{
 .wallpaper.wall-custom{filter:none;}
 .wallpaper.wall-custom::after{background:linear-gradient(180deg,rgba(255,255,255,.30) 0%,rgba(255,255,255,.14) 38%,rgba(255,255,255,.42) 100%);}
 
-/* ============ v8.0 小蛛桌宠 · 按参考视频重制的 7 项动作 ============
+/* ============ 小蛛桌宠 · 按参考视频重制的 7 项动作 ============
    依据「小蛛桌宠·按视频款式重制规格书」的逐帧解析结论落地：
    ① idle 待机呼吸 ② wave_hi 挥手 ③ bubble_hi 圆形气泡"hi" ④ crouch 蜷缩
    ⑤ dash_ghost 瞬移残影 ⑥ wave_bye 挥手告别+"bye" ⑦ exit 离场淡出。
@@ -636,13 +636,13 @@ body{
 .pet.act-exit{animation:pet-exit .4s ease forwards;}
 @keyframes pet-exit{to{opacity:0;transform:translate(-50%,-50%) scale(.86);}}
 
-/* ============ v8.1 动作卡片：目标肌群 / 节奏 / 呼吸 ============ */
+/* ============ 动作卡片：目标肌群 / 节奏 / 呼吸 ============ */
 .ex-muscle{font-size:11px; color:var(--ink2); padding:2px 0 4px; line-height:1.5;}
 .ex-meta{display:flex; flex-wrap:wrap; gap:6px; padding-bottom:6px;}
 .ex-meta span{font-size:10.5px; color:var(--faint); background:var(--glass);
   border:1px solid var(--line); border-radius:8px; padding:2px 7px;}
 
-/* ============ v8.1 训练方案切换（A 有卧推椅 / B 无卧推椅） ============ */
+/* ============ 训练方案切换（A 有卧推椅 / B 无卧推椅） ============ */
 .plan-pick{flex:1 1 140px; min-width:140px; text-align:left; cursor:pointer;
   border:2px solid var(--line); background:var(--glass); border-radius:14px; padding:10px 12px;
   display:flex; flex-direction:column; gap:3px; color:var(--ink); font-family:inherit;

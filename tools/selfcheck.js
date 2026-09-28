@@ -1,4 +1,4 @@
-/* 薄肌日记 · 自检总入口：依次跑「功能回归」与「攻击式自检」 */
+/* 训练日记 · 自检总入口：依次跑「功能回归」与「攻击式自检」 */
 const { spawnSync } = require('child_process');
 const path = require('path');
 const NODE = process.execPath;

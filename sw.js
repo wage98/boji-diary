@@ -1,6 +1,6 @@
-// 薄肌日记 v7.10 · Service Worker
-// 离线缓存 app shell，让“桌面常驻桌宠”在断网/二次打开时也能秒开
-const CACHE = 'boji-v8-1-20260928';
+// 训练日记 · Service Worker（离线缓存 app shell）
+// 让“桌面常驻桌宠”在断网/二次打开时也能秒开
+const CACHE = 'boji-1-0-0';
 const ASSETS = [
   './',
   './index.html',
@@ -8,8 +8,6 @@ const ASSETS = [
   './styles.css',
   './manifest.json',
   './assets/icon.svg',
-  './assets/nahida-card.webp',
-  './assets/nahida-icon.webp',
 ];
 
 self.addEventListener('install', e => {

@@ -1,6 +1,6 @@
 /* 快速抽取桌宠形象相关纯函数（不依赖 DOM），输出拼图 HTML 供截图验收。
    运行：node tools/gen-pet-shot.js [mood1,mood2]
-   v7.10：同时渲染小蛛（spiderSVG）与纳西妲（nahidaSVG）两套皮肤 + 三只教练小狗头像。 */
+   v7.10：同时渲染小蛛（spiderSVG）与小练（nahidaSVG）两套皮肤 + 三只教练小狗头像。 */
 const fs = require('fs');
 const path = require('path');
 const PROJ = path.join(__dirname, '..');
@@ -25,7 +25,7 @@ const MOODS = process.argv[2] ? process.argv[2].split(',')
 const card = (svg, label) => `<div class="c">${svg}<span>${label}</span></div>`;
 const cards = MOODS.map(m => {
   const f = m === 'blink' ? { eye:'closed', mouth:'smile', blush:1, brow:'flat', fx:'' } : m;
-  return card(spiderSVG(f), '小蛛·' + m) + card(nahidaSVG(f), '纳西妲·' + m);
+  return card(spiderSVG(f), '小蛛·' + m) + card(nahidaSVG(f), '小练·' + m);
 }).join('') +
   Object.entries(COACH_AV_SVG).map(([k, v]) => `<div class="c av">${v}<span>教练·${k}</span></div>`).join('');
 

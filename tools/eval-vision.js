@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ============================================================
-   薄肌日记 v7.10 · tools/eval-vision.js
+   训练日记 v7.10 · tools/eval-vision.js
    AI 识别真实误差评测（实事求是，不做假数据）
 
    用法：
@@ -115,7 +115,7 @@ function offlineEval(){
   const lines = [];
   const log = s => { console.log(s); lines.push(s); };
 
-  log('==== 薄肌日记 AI 识别评测（离线模式）====');
+  log('==== 训练日记 AI 识别评测（离线模式）====');
   log('测试集：' + GT.length + ' 张真实饮食照片（Wikimedia Commons，可溯源）');
 
   // A. 参考输出 → 生产 sanitize → 误差
