@@ -30,14 +30,15 @@ const MOODS = [
 ];
 const cards = MOODS.map(([m, label]) => `
   <div class="card">
-    <div class="row"><div class="big">${makePet.spiderSVG(m,'v1')}</div><div class="big">${makePet.spiderSVG(m,'v2')}</div><div class="big">${makePet.nahidaSVG(m)}</div></div>
-    <div class="cap"><b>${m}</b> · ${label} ｜ 小蛛早期版 · 小蛛现版 · 纳西妲</div>
+    <div class="row"><div class="big">${makePet.spiderSVG(m,'v3')}</div><div class="big">${makePet.spiderSVG(m,'v1')}</div><div class="big">${makePet.spiderSVG(m,'v2')}</div><div class="big">${makePet.nahidaSVG(m)}</div></div>
+    <div class="cap"><b>${m}</b> · ${label} ｜ 小蛛视频同款(v3) · 早期版(v1) · 现版(v2) · 纳西妲</div>
     <div class="sizes">
-      <span class="s104">${makePet.spiderSVG(m,'v2')}</span>
-      <span class="s64">${makePet.spiderSVG(m,'v2')}</span>
-      <span class="s40">${makePet.spiderSVG(m,'v2')}</span>
+      <span class="s104">${makePet.spiderSVG(m,'v3')}</span>
+      <span class="s64">${makePet.spiderSVG(m,'v3')}</span>
+      <span class="s40">${makePet.spiderSVG(m,'v3')}</span>
+      <span class="s104">${makePet.nahidaSVG(m)}</span>
     </div>
-    <div class="cap faint">小蛛 104px（桌宠实际尺寸） / 64px / 40px（左）；右侧同帧纳西妲对照</div>
+    <div class="cap faint">小蛛 v3：104px（桌宠实际尺寸） / 64px / 40px，最右为同帧纳西妲对照</div>
   </div>`).join('');
 
 const DOGS = [
@@ -51,7 +52,7 @@ const dogCards = DOGS.map(d => `
 
 const out = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>薄肌日记 · 桌宠形象预览（v7.10 小蛛 / 纳西妲 / 教练头像）</title>
+<title>薄肌日记 · 桌宠形象预览（v8.0 小蛛视频同款 / 纳西妲 / 教练头像）</title>
 <style>
   :root{ --bg:#f7f4fb; --card:#fff; --ink:#4a3f5c; --faint:#9c8fb0; --line:#ece5f4; }
   *{box-sizing:border-box;}
@@ -72,9 +73,9 @@ const out = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
   .s104 svg{width:104px; height:130px;} .s64 svg{width:64px; height:80px;} .s40 svg{width:40px; height:50px;}
   footer{margin-top:20px; font-size:12px; color:var(--faint); line-height:1.8;}
 </style></head><body>
-<h1>桌宠形象预览 · v7.11（小蛛早期版 / 小蛛现版 / 纳西妲 / 教练头像）</h1>
-<p class="sub">小蛛 = 参考视频同款风格的<strong>自绘</strong>分层 SVG（Q 版大头 + 白色大眼罩 + 蛛网纹战衣，零版权风险）；纳西妲 = v7.9 精致 Q 版自绘。<br>
-一种情绪 = 一组图层参数，不是独立图片；配色集中在 <code>PET_THEME</code>。教练头像为三只连帽衫小狗自绘 SVG（可在设置页替换为自定义上传）。</p>
+<h1>桌宠形象预览 · v8.0（小蛛视频同款 v3 / 早期版 v1 / 现版 v2 / 纳西妲 / 教练头像）</h1>
+<p class="sub"><b>v3「视频同款」</b>（最左，当前默认）= 按参考视频逐帧取色重制：主红 <code>#C92848</code> + 藏蓝 <code>#344383</code> + 描边 <code>#241018</code>，中心放射蛛网（6 主干）· 蜘蛛胸标 · 身形比 1.00 · 水滴形眼罩 · 无地面阴影。<br>
+v1 早期版 / v2 现版（去红蓝化的差异化版）保留可切换；纳西妲 = v7.9 精致 Q 版自绘。均为<strong>自绘</strong>分层 SVG，一种情绪 = 一组图层参数。教练头像为三只连帽衫小狗自绘 SVG。</p>
 <div class="grid">${cards}${dogCards}</div>
 <footer>
   生成方式：<code>node tools/gen-pet-preview.js</code>（直接执行 app.js 中的形象函数，页面内容是当前代码的真实输出，非手写样例）。<br>

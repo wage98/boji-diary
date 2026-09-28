@@ -465,7 +465,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -535,15 +535,19 @@ function v710Checks() {
     const w = boot(J({ profile: { weight: 70 } }));
     const svg = w.eval('spiderSVG')('happy', 'v2');
     check('J1 小蛛 SVG 输出有效（svg 标签+viewBox）', () => svg.indexOf('<svg') >= 0 && svg.indexOf('viewBox') >= 0);
-    check('J2 无 petSkin 脏数据 → 默认迁移为 spiderV2（v7.11）', () => w.__S.petSkin === 'spiderV2');
+    check('J2 无 petSkin 脏数据 → 默认迁移为 spiderV3（v8.0 视频同款）', () => w.__S.petSkin === 'spiderV3');
     const moods = ['happy','cheer','proud','expect','think','sad','sleep','wave','hover','drag','blink'];
-    check('J3 小蛛两版本 11 种帧全部输出有效', () => moods.every(m =>
-      w.eval('spiderSVG')(m,'v1').indexOf('<svg') >= 0 && w.eval('spiderSVG')(m,'v2').indexOf('<svg') >= 0));
+    check('J3 小蛛三个版本 11 种帧全部输出有效', () => moods.every(m =>
+      w.eval('spiderSVG')(m,'v1').indexOf('<svg') >= 0
+      && w.eval('spiderSVG')(m,'v2').indexOf('<svg') >= 0
+      && w.eval('spiderSVG')(m,'v3').indexOf('<svg') >= 0));
     const w2 = boot(J({ profile: { weight: 70 }, petSkin: 'svg' }));
-    check('J4 v7.10 旧值迁移：svg→nahida、spider→spiderV2、official 保留',
+    check('J4 旧值迁移：svg→nahida、spider→spiderV3、spiderV2→spiderV3、official 保留',
       () => w2.__S.petSkin === 'nahida'
-        && boot(J({ profile:{weight:70}, petSkin:'spider' })).__S.petSkin === 'spiderV2'
-        && boot(J({ profile:{weight:70}, petSkin:'official' })).__S.petSkin === 'official');
+        && boot(J({ profile:{weight:70}, petSkin:'spider' })).__S.petSkin === 'spiderV3'
+        && boot(J({ profile:{weight:70}, petSkin:'spiderV2' })).__S.petSkin === 'spiderV3'
+        && boot(J({ profile:{weight:70}, petSkin:'official' })).__S.petSkin === 'official'
+        && boot(J({ profile:{weight:70}, petSkin:'spiderV1' })).__S.petSkin === 'spiderV1');
   }
   // J5–J7 桌宠行为
   {
@@ -604,8 +608,8 @@ function v711Checks() {
   {
     const w = boot(J({ profile: { weight: 70 } }));
     const keys = w.eval('PET_SKINS.map(x=>x.key)');
-    check('K1 皮肤注册表四键齐全（nahida/spiderV1/spiderV2/official）',
-      () => JSON.stringify(keys) === JSON.stringify(['nahida','spiderV1','spiderV2','official']));
+    check('K1 皮肤注册表五键齐全（nahida/spiderV1/V2/V3/official）',
+      () => JSON.stringify(keys) === JSON.stringify(['nahida','spiderV1','spiderV2','spiderV3','official']));
     check('K2 skinBy 脏键回落第一项而非崩溃', () => w.eval('skinBy')('bad-key').key === 'nahida');
     // 切换保留停靠与情绪状态
     w.__S.petDock = { edge:'top', off:0.5 }; w.__S.petMood = 'sleep';
@@ -642,6 +646,96 @@ function v711Checks() {
       if(!rep) return false;
       const t = fs.readFileSync(path.join(PROJ, 'eval-set', 'last-simulate-report.txt'), 'utf8');
       return t.indexOf('准确率') >= 0 && t.indexOf('迭代效果') >= 0;
+    });
+  }
+}
+
+// ===== v8.0 增量：按视频规格重制小蛛 / 7 项动作 / 助手与识别缺陷修复 / 存储稳定性 =====
+function v80Checks() {
+  const CSS = fs.readFileSync(path.join(PROJ, 'styles.css'), 'utf8');
+  // L1–L8 形象规格（对齐「小蛛桌宠·按视频款式重制规格书」3.1 / 3.2）
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const T = w.eval('SPIDER_THEME').v3;
+    check('L1 v3 配色 = 视频实测值（主红 #C92848 / 藏蓝 #344383 / 描边 #241018）',
+      () => /^#c92848$/i.test(T.red) && /^#344383$/i.test(T.blue) && /^#241018$/i.test(T.ink));
+    check('L2 v3 蛛网为中心放射 + 6 主干 + 不透明度提到 .45',
+      () => T.web === 'radial' && T.webRays === 6 && T.webOp === 0.45);
+    check('L3 v3 胸标为蜘蛛徽记（撤销 v2 的哑铃胸标）', () => T.emblem === 'spider');
+    check('L4 v3 身形比回到 1.00（撤销 v2 的 1.07）', () => T.body === 1.00);
+    const svg = w.eval('spiderSVG')('happy', 'v3');
+    check('L5 v3 眼罩为水滴形 + 粗描边 3.4', () => svg.indexOf('stroke-width="3.4"') >= 0);
+    check('L6 v3 无地面阴影（视频角色悬浮于桌面）', () => svg.indexOf('cy="146"') < 0);
+    check('L7 v3 不出现星星眼 / 爱心眼 / 泪眼装饰', () => {
+      const bad = ['#f3cd72', '#ff8fa6', '#7ec8f0'];   // 星 / 爱心 / 泪的填充色
+      return bad.every(c => svg.indexOf(c) < 0);
+    });
+    check('L8 主题缺字段补默认值（旧主题不会读到 undefined）', () => {
+      const t = w.eval('spTheme')('v1');
+      return !!(t.redHL && t.blueD && t.lens && t.webW && t.lw && t.eyeShape);
+    });
+  }
+  // L9–L11 助手缺陷修复
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const md = w.eval('md');
+    check('L9 助手回答不再吞掉证据正文（星级标记后的说明文本须保留）', () => {
+      const out = md('先降重量。\n*[B] 证据：NSCA 建议肩胛稳定是卧推安全前提*');
+      return out.indexOf('证据等级 B') >= 0 && out.indexOf('NSCA 建议肩胛稳定是卧推安全前提') >= 0;
+    });
+    check('L10 教练头像预设 SVG → data URI（旧版直接当 img src 会渲染成破图）', () => {
+      w.__S.settings.coachAvatar = 'dog1';
+      const src = String(w.eval('coachAvatarSrc')());
+      return src.indexOf('data:image/svg+xml') === 0 && src.indexOf('<svg') < 0 && src.indexOf('%3Csvg') > 0;
+    });
+    check('L11 气泡文本为非字符串时不崩溃', () => w.eval('md')(undefined) === '' && w.eval('md')(null) === '');
+  }
+  // L12–L14 AI 识别：拒绝假识别
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const sv = w.eval('sanitizeVision');
+    check('L12 模型空响应 → 返回 null，不再兜底成「150 kcal」假结果', () => sv({}) === null && sv(null) === null);
+    check('L13 只给热量 → 按 20/50/30 拆宏量且热量守恒', () => {
+      const d = sv({ name: '炒饭', grams: 400, kcal: 600 });
+      return !!d && Math.abs((d.p * 4 + d.c * 4 + d.f * 9) - d.kcal) <= 2;
+    });
+    check('L14 extractJSON 能剥离 markdown 代码块', () => {
+      const j = w.eval('extractJSON')('```json\n{"name":"米饭","kcal":260}\n```');
+      return !!j && j.name === '米饭';
+    });
+  }
+  // L15 存储稳定性
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('L15 写入失败时 save() 不抛异常并返回 false（旧版会抛错中断整条调用链）', () => {
+      // 循环引用让 JSON.stringify 抛错，等价于配额溢出 / 存储不可用时的失败路径
+      const cyc = {}; cyc.self = cyc; w.__S.__boom = cyc;
+      let r = null;
+      try { r = w.eval('save')(); } catch (_) { return false; }
+      delete w.__S.__boom;
+      return r === false;
+    });
+  }
+  // L16–L18 视频动作
+  {
+    check('L16 视频 7 项动作的 keyframes 全部就绪', () => {
+      const need = ['pet-idle', 'pet-wave', 'pet-crouch', 'pet-exit', 'ghost-fade-1', 'ghost-fade-2', 'pet-bubble-pop'];
+      return need.every(n => CSS.indexOf('@keyframes ' + n) >= 0);
+    });
+    check('L17 不实现行走 / 跳跃动画（视频逐帧已否证）',
+      () => !/@keyframes\s+(pet-)?(walk|jump|run|hop)/i.test(CSS) && !/act-(walk|jump|run)/i.test(CSS));
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('L18 动作函数可调用且不崩（wave / crouch / exit / idle / 残影 / 圆气泡）', () => {
+      w.eval('bubbleBusy = false; bubbleQueue.length = 0;');   // 清掉 boot 时的问候台词队列
+      const pet = w.document.getElementById('pet');
+      w.eval('petAct')('wave');   const a = pet.classList.contains('act-wave');
+      w.eval('petAct')('crouch'); const b = pet.classList.contains('act-crouch');
+      w.eval('petAct')('exit');   const c = pet.classList.contains('act-exit');
+      w.eval('petAct')('idle');   const d = pet.classList.contains('act-idle') && !pet.classList.contains('act-exit');
+      w.eval('petDashGhost')();
+      w.eval('petRoundBubble')('hi');
+      const bub = w.document.getElementById('pet-bubble');
+      return a && b && c && d && bub.classList.contains('round') && bub.innerHTML.indexOf('hi') >= 0;
     });
   }
 }

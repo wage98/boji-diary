@@ -1,6 +1,6 @@
 import zipfile, os
 
-ZIP = '薄肌日记-v7.11-交接包.zip'
+ZIP = '薄肌日记-v8.0-交接包.zip'
 
 z = zipfile.ZipFile(ZIP, 'w', zipfile.ZIP_DEFLATED)
 
