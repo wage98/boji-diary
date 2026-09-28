@@ -1,6 +1,6 @@
 /* ============================================================
-   薄肌日记 v7.9 · app.js
-   手机桌面常驻二次元桌宠（纳西妲）健身 App —— 居家哑铃方案
+   薄肌日记 v7.11 · app.js
+   手机桌面常驻二次元桌宠健身 App —— 居家哑铃方案
    - 常驻浮层桌宠：情绪状态机 + 待机循环 + 左右缘直立探头吸附 + 点击对话 + 事件反应
    - 桌宠=桌面主屏，dock 展开 训练/饮食/聊天/数据/我的
    - v7.3：真实 PWA（manifest + SW 离线）、计划可编辑 + 哑铃渐进超负荷
@@ -24,6 +24,10 @@
            ②眨眼动画（保留嘴型只换眼型）+ 连点彩蛋 ③AI 识别：prompt 升级（中餐份量锚点+宏量自洽）
            + 同图缓存省额度 + 失败可重试 + 错误分类提示 ④知识库 42→62 条 + 问句归一化匹配
            + 数据化回答新增（体重趋势/本周统计/吃什么建议）⑤饮食「一键复制上一餐」（去照片防膨胀）
+   - v7.10：①桌宠「小蛛」视频同款风格自绘皮肤（大头白色大眼罩+蛛网纹，参考用户提供的 Q 版
+           桌宠视频与参考图，自绘矢量实现）+ 视频同款行为（拖到顶边悬挂摆动 / 连点翻跟头
+           冒爱心 / 回来自动 hi）②教练名字与头像可更换（三只连帽衫小狗预设 + 自定义上传）
+           ③桌面背景可更换（5 预设 + 自定义上传）④AI 识别真实饮食图测试集评测（tools/vision-eval.js）
    - 复用 v6 已验证资产：训练计划(4训练日23动作 + B站章节时间戳) / 知识库 / 打卡 / 数据
    纯前端 · localStorage 持久化 · 无构建
    ============================================================ */
@@ -32,7 +36,18 @@ const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const el = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-const COACH_NAME = '纳西妲';
+const DEFAULT_COACH = '纳西妲';
+// v7.10 教练身份：名字与头像可更换（预设三只连帽衫小狗形象 + 自定义上传），全局生效
+function coachName(){
+  const s = STATE && STATE.settings;
+  const n = s && typeof s.coachName === 'string' ? s.coachName.trim() : '';
+  return n ? n.slice(0, 10) : DEFAULT_COACH;
+}
+function coachAvatarSrc(){
+  const a = STATE && STATE.settings && STATE.settings.coachAvatar;
+  if(a && a.slice(0, 5) === 'data:') return a;
+  return COACH_AV_SVG[a] || 'assets/nahida-icon.webp';
+}
 
 /* ---------- 视频深链（卓叔 B站合集，章节时间戳可点开自验） ---------- */
 const BV = 'https://www.bilibili.com/video/BV1FY4y1y7Vh';
@@ -218,10 +233,49 @@ const KB = [
   { q:'体脂怎么看', a:'家用体脂秤误差 ±3–5%，看趋势别纠结绝对值；腰围更直观——腰围下降+力量保持=在掉脂不掉肌。\n*[B] 证据：BIA 体脂测量误差*', k:['体脂','bmi','体脂率','腰围'] },
   { q:'经期能练吗', a:'多数可以低中强度训练（有研究显示不适期中低强度运动反而缓解症状），避免大重量与倒立类；量多/痛得厉害就休息。\n*[B] 证据：运动与月经周期*', k:['经期','生理期','大姨妈','月经'] },
   { q:'体重不涨怎么办', a:'先记录 3 天饮食算均值——多数人是“以为吃多了”。热量每天再加 200–300 kcal（≈1 碗饭+1 勺蛋白粉），称重固定早晨空腹。\n*[C] 证据：能量平衡核查法*', k:['不涨','体重不增','瘦','吃不胖'] },
+  // ——— 日常闲聊 / 情绪陪伴（v7.11：人格一致性=同一套口吻，先接住情绪再给建议，不做无依据承诺）———
+  { q:"夸夸我", a:"当然要夸！你愿意开始记录，就已经超过只想不做的大多数了(｡･ω･｡)ﾉ\n我不空夸，只夸你真做到的事——翻开数据页，那些打勾的日子都是证据。", k:["夸夸", "夸我", "表扬", "鼓励"],
+    more:"想听具体的？告诉我你最近一次训练或记录，我按事实夸，夸到点上。" },
+  { q:"今天好累不想动", a:"那就先把“练”降级成“动”：拉伸 5 分钟、散步 10 分钟都算数。\n真累到精神差就休息，恢复也是训练的一部分——但我明天还会来提醒你๐·°(৹˃̵﹏˂̵৹)°·๐", k:["不想动", "好累", "太累了", "没力气", "疲惫"],
+    more:"若连续 3 天以上疲惫且心率未恢复，优先查睡眠与热量缺口，别硬扛。" },
+  { q:"我没动力了怎么办", a:"动力是会耗尽的，靠习惯更靠谱：今天目标降到“只做 1 组”，做完就算赢。\n*[C] 证据：行为科学里“最小可行习惯”比依赖意志力更可持续*", k:["没动力", "不想练", "坚持不下", "没状态"],
+    more:"三招：①把哑铃放在视线内；②固定时间（如饭后 30 分钟）；③先做你最喜欢的第一个动作。" },
+  { q:"心情不好怎么办", a:"先接住你的心情——不高的时候不用硬撑正能量(｡•́︿•̀｡)\n身体允许的话，出门走 15 分钟，光照与步行对情绪的帮助有证据支持；不想动就躺着休息，我陪你。", k:["心情不好", "不开心", "难过", "emo", "低落"],
+    more:"若状态持续两周以上并影响睡眠饮食，建议找专业心理咨询师聊聊，这不丢人。" },
+  { q:"谢谢你", a:"不用谢啦~ 看着你一点点变强，我也很开心(｡･ω･｡)ﾉ\n下次练完记得来告诉我，我等着听好消息。", k:["谢谢", "感谢", "多谢"] },
+  { q:"晚安", a:"晚安呀，睡前少刷会儿手机，灯光调暗会更容易入睡。\n*[B] 证据：睡眠不足会让肌肉合成与恢复打折*", k:["晚安", "睡觉", "睡了", "good night"] },
+  { q:"早上好", a:"早！先喝杯水补上夜里的水分，昨晚睡得怎么样？\n睡够的话状态会明显不同；没睡够今天就把强度降一档。", k:["早上好", "早安", "morning", "起床"] },
+  { q:"你是谁", a:"我是你的居家哑铃增肌教练——你名字由你来起（我的 → 教练名字）。\n我只做三件事：陪你练、帮你记、据实回答；不确定就直说，不瞎编。", k:["你是谁", "你叫什么", "自我介绍", "介绍下你"],
+    more:"技术上我是 App 内的规则＋知识库助手，不联网编造，也不会把你的数据传出去。" },
+  { q:"你会生气吗", a:"不会真的生气，但你偷懒的时候我会委屈地蹭过来提醒你一下(｡•́︿•̀｡)\n放心，我永远不用打击的方式督促你。", k:["生气", "会生气", "发脾气", "骂我"] },
+  { q:"讲个笑话", a:"健身界最好笑的一句话：「我从明天开始减肥」。\n……所以今天这顿先记一笔？拍照我帮你估~(›´ω`‹ )", k:["笑话", "讲个笑话", "逗我", "搞笑"] },
+  { q:"陪我聊会儿", a:"好呀，我在的。今天练了没？还是遇到别的事了？\n训练、吃、睡眠、工作都能聊，我不会敷衍你。", k:["陪我", "聊会", "聊天", "你在吗"] },
+  { q:"我想放弃健身了", a:"先别急着否定自己。想放弃通常不是懒，而是计划太重或回报太慢。\n我们把目标砍一半试试：每周 2 次、每次 20 分钟，坚持两周再看感觉。", k:["放弃", "不想练了", "算了", "没意义"],
+    more:"（如果你说的是生活层面的“不想继续”，一定告诉身边的人或专业人士——我虽然只是个 App，但很希望你好好的。）" },
+  { q:"下雨天没法出门怎么办", a:"正好练居家：弹力带划船、俯卧撑、深蹲、平板支撑，在家全能完成。\n雨声其实挺适合做拉伸和呼吸训练的(｡･ω･｡)", k:["下雨", "雨天", "不能出门", "下雨天"] },
+  { q:"你吃什么", a:"我不用吃饭，但我盯着你吃够蛋白这件事可是很认真的~\n你的每日蛋白目标在数据页，先看还差多少。", k:["你吃什么", "你吃饭", "吃东西"] },
+  { q:"今天的建议一句话", a:"一句话版本：动起来、吃够蛋白、睡够觉——这三件事里最容易做到的那件，今天就先做它。", k:["一句话", "给点建议", "随便说说", "怎么办"] }
 ];
 
 /* ---------- 多轮对话上下文（记住上一话题，支持追问与“结合我的数据”回答） ---------- */
-const CTX = { lastItem:null, lastQ:'', turns:0, greet:false };
+const CTX = { lastItem:null, lastQ:'', turns:0, greet:false, hist:[] };   // hist: 最近上下文窗口
+const CTX_WIN = 5;   // v7.11：上下文范围 = 最近 5 轮对话（超出自动淘汰最早一轮）
+function ctxPush(q, a){
+  try{
+    CTX.hist.push({ q:String(q||'').slice(0,120), a:String(a||'').slice(0,300), t:Date.now() });
+    while(CTX.hist.length > CTX_WIN) CTX.hist.shift();
+  }catch(_){}
+}
+function ctxRecent(n){ return CTX.hist.slice(-(n||CTX_WIN)); }
+/* 指代消解：问句里出现”它/这个/那/再来“时，复用窗口内最近的真实问题做主语 */
+function ctxResolveTopic(q){
+  const t=String(q||'').trim();
+  const has = /^(它|这个|那个|这|那|同上|再来|还|另外|那我|那要|那能)/.test(t)
+           || /(它|他|她|这个|那个|同上|刚才|前面|上面)(怎么|如何|为什么|是什么|能做|能吃|有用|靠|行)/.test(t);
+  if(!has) return null;
+  for(let i=CTX.hist.length-1;i>=0;i--) if(CTX.hist[i].q) return CTX.hist[i].q;
+  return null;
+}
 const FOLLOW_RE = /再(说|讲|详细|展开)(一点|些|点)?|详细(一点|些|说)|还有呢|然后呢|为什么|具体(怎么做|如何|点)|那(该|要)?怎么办|它呢|这个呢|继续|接着说/;
 // 结合本机数据的个性化回答（今天练什么 / 蛋白够吗 / 连打几天 / 上次重量 …）
 function dataReply(q){
@@ -292,6 +346,9 @@ function dataReply(q){
 function nahidaReply(text){
   const raw=(text||'').trim(); if(!raw) return '你想问什么呢？(｡･ω･｡)';
   const q=raw.toLowerCase();
+  // 0) 指代消解：”它/这个/再来点“ 补全为窗口内最近的真实问题
+  const topic=ctxResolveTopic(q);
+  const effQ=topic ? topic.toLowerCase() : q;
   // 1) 追问：接上一话题展开
   if(FOLLOW_RE.test(q) && CTX.lastItem){
     CTX.turns++;
@@ -302,14 +359,19 @@ function nahidaReply(text){
   // 2) 结合本机数据的个性化回答
   const dr=dataReply(q); if(dr){ CTX.turns++; return dr; }
   // 3) 知识库匹配（问句归一化 + 关键词命中计分）
-  const nq=String(q).replace(/[\s?？!！。，,\.、～~的啊呢吧嘛]/g,'');
+  const nq=String(effQ).replace(/[\s?？!！。，,\.、～~的啊呢吧嘛]/g,'');
   let best=null,bs=0;
   for(const item of KB){ let s=0; for(const k of item.k) if(nq.indexOf(k.toLowerCase())>=0) s+=2; if(s>bs){bs=s;best=item;} }
-  if(bs>0){ CTX.lastItem=best; CTX.lastQ=raw; CTX.turns++; return best.a + (best.more ? '\n（回我“再详细点”，我展开讲）' : ''); }
+  if(bs>0){ const ans=best.a + (best.more ? '\n（回我“再详细点”，我展开讲）' : '');
+    CTX.lastItem=best; CTX.lastQ=raw; CTX.turns++; ctxPush(raw, ans); return ans; }
   // 4) 寒暄
-  if(/你好|hi|在吗|在呢|嗨/.test(q)) return `你好呀，我是${COACH_NAME}，你的居家哑铃增肌教练(｡･ω･｡)ﾉ\n训练、营养、恢复都可以问我——我只回答有出处的，没把握的会直说。`;
+  if(/你好|hi|在吗|在呢|嗨/.test(q)){ const a=`你好呀，我是${coachName()}，你的居家哑铃增肌教练(｡･ω･｡)ﾉ\n训练、营养、恢复都可以问我——我只回答有出处的，没把握的会直说。`; ctxPush(raw,a); return a; }
   // 5) 兜底：不装懂
-  return `这个我不太确定，不想瞎编误导你(>_<)\n我擅长这些：\n· 今天练什么 / 我蛋白够吗 / 连打几天了\n· ${KB.slice(0,4).map(x=>x.q).join('、')}\n也可以直接问动作名称，比如“卧推”“深蹲”。`;
+  const nm=coachName();
+  const fb=`嗯…这个问题我不想拍脑袋就答你，怕误导 ${'(>_<)'}\n` +
+    `我是${nm}，能确定的是训练和营养这块；别的话题我也可以陪你聊两句~\n` +
+    `你可以问我：\n· 今天练什么 / 我蛋白够吗 / 连打几天了\n· ${KB.slice(0,4).map(x=>x.q).join('、')}\n也可以直接问动作名称，比如“卧推”“深蹲”。`;
+  ctxPush(raw, fb); return fb;
 }
 
 /* ---------- 食物库（v7.5：常见食物估算库，拍照记录后在此快速选取并校正） ---------- */
@@ -330,6 +392,7 @@ const EST_LIB = [
   { n:'米饭(1碗)', p:4, c:55, f:0 }, { n:'面条(1碗)', p:8, c:60, f:2 },
   { n:'馒头(1个)', p:7, c:45, f:1 }, { n:'全麦面包(2片)', p:8, c:34, f:3 },
   { n:'包子(1个)', p:7, c:28, f:5 }, { n:'饺子(10个)', p:12, c:40, f:8 },
+  { n:'蒸饺(6只)', p:11, c:28, f:6 }, { n:'寿司(2贯)', p:7, c:30, f:2 }, { n:'薯条(中包)', p:4, c:44, f:15 },
   { n:'白粥(1碗)', p:3, c:30, f:0 }, { n:'小米粥(1碗)', p:3, c:28, f:2 },
   { n:'玉米(1根)', p:4, c:30, f:2 }, { n:'红薯(1个/150g)', p:3, c:38, f:0 },
   { n:'土豆(1个/150g)', p:3, c:26, f:0 }, { n:'意面(1份)', p:8, c:65, f:4 },
@@ -388,7 +451,7 @@ let STATE = Object.assign({
   scores:{},                                 // v7.5：每日训练评分 { feel, energy, sat, at }
   petPos:null, petDock:null, petMood:'happy', lastPetTouch:Date.now(),
   planEdits:{}, exLast:{}, editPlan:false,   // v7.3：计划可编辑 + 渐进超负荷记忆
-  petSkin:'svg',                             // v7.8：桌宠皮肤 'svg' 自绘 / 'official' 原素材
+  petSkin:'spiderV2',                        // v7.11：桌宠皮肤 nahida/spiderV1/spiderV2/official（统一切换）
   myEx:[],                                   // v7.8：自定义动作 [{id,name,part,sets,reps,rest,note}]
   bodyWeights:[],                            // v7.8：体重曲线 [{d:'Y-M-D', w:70.5}]
   vision:{ mode:'off', endpoint:'', token:'', model:'glm-4v-flash' },  // v7.8：AI 图像识别
@@ -400,7 +463,16 @@ if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
 if(!Array.isArray(STATE.myEx)) STATE.myEx = [];
 if(!Array.isArray(STATE.bodyWeights)) STATE.bodyWeights = STATE.bodyWeights && typeof STATE.bodyWeights === 'object' ? [] : [];
 if(!STATE.vision || typeof STATE.vision !== 'object') STATE.vision = { mode:'off', endpoint:'', token:'', model:'glm-4v-flash' };
-if(STATE.petSkin !== 'official') STATE.petSkin = 'svg';
+/* v7.11 皮肤迁移（可逆：任何脏值/旧值都能落到合法皮肤，不会丢用户数据） */
+const _PET_KEYS = ['nahida','spiderV1','spiderV2','official'];
+const _PET_MAP  = { spider:'spiderV2', svg:'nahida' };   // v7.10 → v7.11
+if(STATE.petSkin in _PET_MAP) STATE.petSkin = _PET_MAP[STATE.petSkin];
+if(_PET_KEYS.indexOf(STATE.petSkin) < 0) STATE.petSkin = 'spiderV2';
+// v7.10：外观与教练设置（背景 / 教练名 / 教练头像），逐字段容错防脏数据
+if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:'', coachName:'', coachAvatar:'' };
+if(typeof STATE.settings.bg !== 'string') STATE.settings.bg = '';
+if(typeof STATE.settings.coachName !== 'string') STATE.settings.coachName = '';
+if(typeof STATE.settings.coachAvatar !== 'string') STATE.settings.coachAvatar = '';
 
 /* ---------- 工具 ---------- */
 const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
@@ -431,7 +503,7 @@ const LINES = {
   happy:['今天也要元气满满哦~','陪你一起变强(｡･ω･｡)ﾉ','要不要先喝口水呀','今天也要好好吃饭才行~'],
   expect:['该动一动啦，别瘫着~','今天的训练在等你哦','来，和我一起练嘛(｡•ᴗ•｡)','热身做好了没？'],
   cheer:['完成啦！超厉害的！','你今天超级棒(★ω★)','打卡成功，奖励自己一下~','这就是坚持的力量呀！'],
-  proud:['我就知道你能做到！','进步看得见呢(｡･ω･｡)','继续保持这个节奏~','纳西妲超为你骄傲的！'],
+  proud:['我就知道你能做到！','进步看得见呢(｡･ω･｡)','继续保持这个节奏~','{c}超为你骄傲的！'],
   sad:['今天还没练哦…','偷偷告诉你，动一下就好','明天我们一起补上嘛','呜…你都不理我(>_<)'],
   think:['让我想想这个问题…','嗯…查一下资料先','稍等，我组织下语言','这个我得确认一下出处'],
   sleep:['zzz… 我先眯一会儿','好困…你也早点休息呀','晚安，明天见~','呼…困得睁不开眼了'],
@@ -439,11 +511,14 @@ const LINES = {
   hover:['诶？你碰我啦(｡õ∀õ)','嘿嘿，被你发现啦~','摸摸头，舒服~','我一直在哦，放心'],
   drag:['带我去哪儿呀~','飞咯飞咯(｡ˇ∀ˇ)','抓稳咯，别松手！','去新位置安家啦'],
   tickle:['哈哈哈好痒(｡•̀ᴗ-)✧','别戳啦别戳啦~','再戳我就要唱歌咯♪','嘻嘻，最喜欢主人啦'],
+  dangle:['挂好啦，看我表演~','抓得稳稳的(｡•̀ᴗ-)✧','从这个角度看你的全屏，真不错','呼…悬垂举腿训练中'],
+  bye:['bye-bye~ 下次见','先走啦，记得想我','拜拜，回来找我玩哦~'],
   idleLong:['主人好久没动啦，记得起来拉伸一下哦','偷偷提醒：喝口水、眨眨眼~','久坐伤身，站起来走走嘛(｡•ᴗ•｡)','我陪你，但也要动一动呀'],
 };
 const _lastIdx = {};
 function pickLine(pool){ const arr = LINES[pool] || LINES.happy; if(arr.length===1) return arr[0];
-  let i; do { i = Math.floor(Math.random()*arr.length); } while(i === _lastIdx[pool]); _lastIdx[pool] = i; return arr[i]; }
+  let i; do { i = Math.floor(Math.random()*arr.length); } while(i === _lastIdx[pool]); _lastIdx[pool] = i;
+  return arr[i].replace('{c}', coachName()); }
 /* ---------- 桌宠形象 v7.9：方案 A「分层 SVG」· 精致 Q 版自绘皮肤 ----------
    设计要点：
    ① 一种情绪 = 一组图层参数（眼型/嘴型/腮红/特效），不是 N 张独立图 → 几 KB、零依赖。
@@ -655,16 +730,139 @@ ${petMouth(f.mouth)}
 ${petFx(f.fx)}
 </svg>`;
 }
-const PET_ART = {};   // 情绪 → dataURI 缓存（同一情绪只生成一次）
+/* ---------- 桌宠形象 v7.10：「小蛛」视频同款风格自绘皮肤 ----------
+   参考用户提供的 Q 版桌宠视频（抖音@ggbone）与三张参考图；自绘矢量实现（非搬运素材文件）：
+   ① 头身比约 1.5:1 的大头 Q 版；② 白色大「眼罩」+ 粗黑描边（贴纸感）；③ 蛛网纹红蓝战衣；
+   ④ 表情 = 眼罩形态（睁/眯/弯月/星星/爱心/泪/闭眼）+ 小嘴 + 特效，复用与纳西妲同一套
+   PET_FACE 情绪参数与情绪状态机——换形象零成本接入现有眨眼/彩蛋/台词体系。 */
+/* v7.11 小蛛双版本主题：早期版(v1)=初始灵感稿；现版(v2)=完成差异化的正式版。
+   差异集中在配色 / 纹样 / 胸标 / 身形比四项（详见 docs/小蛛形象差异说明.md），规避与漫威官方形象的相似性风险。 */
+const SPIDER_THEME = {
+  v1: { ink:'#26221f', red:'#d93a3a', redD:'#a52222', teal:'#3d6bd8', lens:'#ffffff', web:'radial', emblem:'spider',  body:1.00, label:'早期版' },
+  v2: { ink:'#2b2622', red:'#e2694a', redD:'#b34a2f', teal:'#2f8f7a', lens:'#f4fbf8', web:'diag',   emblem:'dumbbell', body:1.07, label:'现版' }
+};
+let _SP = SPIDER_THEME.v2;   // 当前生效主题（只由 spiderSVG 切换，幂等可回退）
+/* 眼罩基础形（左眼；右眼由镜像变换生成） */
+const SPIDER_LENS = 'M50 38 C36 34 24 44 23 57 C22 71 32 80 44 78 C53 76 57 67 56 55 C55 45 54 40 50 38 Z';
+/* 头部蛛网纹：从头顶中心放射 + 三圈弧（裁剪在头圆内） */
+function spWeb(){
+  const rays = [[101,12],[95.5,32.5],[80.5,47.5],[60,53],[39.5,47.5],[24.5,32.5],[19,12]]
+    .map(p=>`<line x1="60" y1="12" x2="${p[0]}" y2="${p[1]}"/>`).join('');
+  const rings = [13,23,33].map(r=>`<circle cx="60" cy="12" r="${r}"/>`).join('');
+  if(_SP.web === 'diag'){
+    const g=[]; for(let i=-2;i<=10;i++){ const o=i*13; g.push(`<line x1="${14+o}" y1="12" x2="${14+o+46}" y2="98"/>`); g.push(`<line x1="${14+o+46}" y1="12" x2="${14+o}" y2="98"/>`); }
+    return `<g stroke="${_SP.ink}" stroke-width=".9" fill="none" opacity=".22">${g.join('')}</g>`;
+  }
+  return `<g stroke="${_SP.ink}" stroke-width="1" fill="none" opacity=".3">${rays}${rings}</g>`;
+}
+/* 身体：小腿红靴 → 手臂 → 圆润躯干 → 蓝裤 → 胸前小蜘蛛 */
+function spBody(){
+  const ink = _SP.ink;
+  return `<g>
+  <g stroke="${ink}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="49.5" y="116" width="9" height="18" rx="4.5" fill="${_SP.teal}"/>
+    <rect x="61.5" y="116" width="9" height="18" rx="4.5" fill="${_SP.teal}"/>
+    <path d="M47.5 130 C45 136.5 50.5 140 55.5 137.8 L56.5 130Z" fill="${_SP.red}"/>
+    <path d="M72.5 130 C75 136.5 69.5 140 64.5 137.8 L63.5 130Z" fill="${_SP.red}"/>
+    <ellipse cx="38.5" cy="105" rx="6" ry="9.5" transform="rotate(22 38.5 105)" fill="${_SP.red}"/>
+    <ellipse cx="81.5" cy="105" rx="6" ry="9.5" transform="rotate(-22 81.5 105)" fill="${_SP.red}"/>
+    <circle cx="34.5" cy="115" r="4.4" fill="${_SP.red}"/>
+    <circle cx="85.5" cy="115" r="4.4" fill="${_SP.red}"/>
+    <path d="M47.5 90 C44.5 100 44.5 111 47.5 119.5 C55.5 123.5 64.5 123.5 72.5 119.5 C75.5 111 75.5 100 72.5 90 C64.5 85.5 55.5 85.5 47.5 90Z" fill="${_SP.red}"/>
+    <path d="M46.8 107 L73.2 107 L73.2 117.5 C64.5 121.5 55.5 121.5 46.8 117.5Z" fill="${_SP.teal}"/>
+  </g>
+  ${_SP.emblem === 'dumbbell'
+    ? `<g stroke="${_SP.ink}" stroke-width="1.6" stroke-linecap="round" fill="${_SP.lens}">
+         <rect x="52" y="98.4" width="16" height="4.2" rx="2.1"/>
+         <rect x="48.4" y="96.6" width="3.4" height="7.8" rx="1.7" fill="${_SP.teal}"/>
+         <rect x="68.2" y="96.6" width="3.4" height="7.8" rx="1.7" fill="${_SP.teal}"/>
+       </g>`
+    : `<g fill="${_SP.ink}">
+         <circle cx="60" cy="100.5" r="2"/>
+         <g stroke="${_SP.ink}" stroke-width=".9" stroke-linecap="round">
+           <line x1="58.4" y1="99" x2="55.6" y2="96.6"/><line x1="58.4" y1="102" x2="55.6" y2="103.4"/>
+           <line x1="61.6" y1="99" x2="64.4" y2="96.6"/><line x1="61.6" y1="102" x2="64.4" y2="103.4"/>
+         </g>
+       </g>`}
+  </g>`;
+}
+/* 单只眼罩（左眼）：kind 与 PET_FACE.eye 对应 */
+function spEye(kind){
+  const ink = _SP.ink;
+  const lens = `<path d="${SPIDER_LENS}" fill="#fff" stroke="${ink}" stroke-width="3" stroke-linejoin="round"/>`;
+  const lid  = y => `<g clip-path="url(#spLc)"><path d="M14 ${y} Q40 ${y+9} 66 ${y} L66 96 L14 96Z" fill="${_SP.red}"/><path d="M14 ${y} Q40 ${y+9} 66 ${y}" stroke="${ink}" stroke-width="2" fill="none"/></g>`;
+  if(kind==='smile')  return `<path d="M27 60 Q40 46 53 60 Q40 54 27 60Z" fill="#fff" stroke="${ink}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  if(kind==='closed') return `<path d="M28 57 Q40 67 52 57" stroke="${ink}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  if(kind==='squint') return lens + lid(47);
+  if(kind==='star')   return lens + `<path d="M39 48.6 l2.7 5.8 6.3.5 -4.8 4.1 1.5 6.2 -5.7-3.4 -5.7 3.4 1.5-6.2 -4.8-4.1 6.3-.5Z" fill="#f3cd72" stroke="${ink}" stroke-width=".9" stroke-linejoin="round"/>`;
+  if(kind==='heart')  return lens + `<path d="M39 63.5 c-3.4-3.8-8.9-1.6-8.9 3 0 4 5.5 7.2 8.9 10.1 3.4-2.9 8.9-6.1 8.9-10.1 0-4.6-5.5-6.8-8.9-3Z" fill="#ff8fa6" stroke="${ink}" stroke-width="1"/>`;
+  if(kind==='tear')   return lens + `<path d="M53 70 c1.9 2.7 2.9 4.2 2.9 5.6 a2.9 2.9 0 0 1-5.8 0 c0-1.4 1-2.9 2.9-5.6Z" fill="#7ec8f0" opacity=".92"/>`;
+  if(kind==='wide')   return lens + `<circle cx="39" cy="59" r="4.6" fill="#5b8dd9"/><circle cx="37.4" cy="57.4" r="1.6" fill="#fff"/>`;
+  return lens;
+}
+/* 小嘴（画在面罩下巴处，Q 版夸张化表情） */
+function spMouth(kind){
+  const ink = _SP.ink;
+  if(kind==='grin')  return `<path d="M54.5 83.5 Q60 91 65.5 83.5 Q60 86 54.5 83.5Z" fill="${ink}"/>`;
+  if(kind==='o')     return `<ellipse cx="60" cy="86" rx="3.1" ry="3.7" fill="#8c2f2f" stroke="${ink}" stroke-width="1.4"/>`;
+  if(kind==='wave')  return `<path d="M56 85.5 Q58 83 60 85.5 Q62 88 64 85.5" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  if(kind==='small') return `<path d="M58.4 85 Q60 86.6 61.6 85" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  if(kind==='smile') return `<path d="M56 84.5 Q60 88 64 84.5" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  return '';
+}
+/* 组装：小蛛（与纳西妲同一情绪参数表 PET_FACE） */
+function spiderSVG(mood, variant){
+  _SP = SPIDER_THEME[variant] || SPIDER_THEME.v2;
+  const f = (mood && typeof mood==='object') ? mood : (PET_FACE[mood] || PET_FACE.happy);
+  const bw = _SP.body;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+<defs>
+  <clipPath id="spHd"><circle cx="60" cy="54" r="40.6"/></clipPath>
+  <clipPath id="spLc"><path d="${SPIDER_LENS}"/></clipPath>
+</defs>
+<ellipse cx="60" cy="146" rx="24" ry="4" fill="#000" opacity=".08"/>
+<g transform="translate(${60*(1-bw)},${126*(1-bw)}) scale(${bw})">${spBody()}</g>
+<circle cx="60" cy="54" r="42" fill="${_SP.red}" stroke="${_SP.ink}" stroke-width="3"/>
+<g clip-path="url(#spHd)">
+  <ellipse cx="60" cy="99" rx="48" ry="16" fill="${_SP.redD}" opacity=".4"/>
+  ${spWeb()}
+</g>
+<g>${spEye(f.eye)}</g>
+<g transform="translate(120,0) scale(-1,1)">${spEye(f.eye)}</g>
+${spMouth(f.mouth)}
+${petFx(f.fx)}
+</svg>`;
+}
+/* v7.11 皮肤注册表：统一入口，四选一（切换只换渲染器，桌宠状态/配置/动画完全不受影响）
+   nahida  = 审验桌宠（v7.9 自绘 Q 版纳西妲）
+   spiderV1= 小蛛·早期版（初始灵感稿：红蓝高对比 + 放射蛛网 + 蜘蛛胸标 + 略修长）
+   spiderV2= 小蛛·现版（差异化正式版：珊瑚红/松绿 + 斜向网格 + 哑铃胸标 + 更圆更矮）
+   official= 官方素材（assets/nahida-icon.webp，溯源见 assets/CREDITS.md） */
+const PET_SKINS = [
+  { key:'nahida',   name:'审验桌宠 · 纳西妲', render: m => nahidaSVG(m) },
+  { key:'spiderV1', name:'小蛛 · 早期版',    render: m => spiderSVG(m, 'v1') },
+  { key:'spiderV2', name:'小蛛 · 现版',      render: m => spiderSVG(m, 'v2') },
+  { key:'official', name:'官方素材 · 纳西妲', render: m => nahidaSVG(m), asset:'assets/nahida-icon.webp' }
+];
+function skinBy(key){ for(let i=0;i<PET_SKINS.length;i++) if(PET_SKINS[i].key===key) return PET_SKINS[i]; return PET_SKINS[0]; }
+/* 皮肤调度层（旧接口保留，行为不变，便于回退） */
+function petSVG(mood){
+  const sk = skinBy(STATE.petSkin);
+  if(sk.key === 'nahida') return nahidaSVG(mood);
+  if(sk.key === 'spiderV1') return spiderSVG(mood, 'v1');
+  return spiderSVG(mood, 'v2');
+}
+const PET_ART = {};   // 皮肤:情绪 → dataURI 缓存（同一情绪只生成一次）
 function petArtURI(mood){
-  const k = (mood && typeof mood==='object') ? 'obj:' + JSON.stringify(mood) : (mood || 'happy');
-  if(!PET_ART[k]) PET_ART[k] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(nahidaSVG(mood));
+  const k = STATE.petSkin + ':' + ((mood && typeof mood==='object') ? 'obj:' + JSON.stringify(mood) : (mood || 'happy'));
+  if(!PET_ART[k]) PET_ART[k] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(petSVG(mood));
   return PET_ART[k];
 }
 // 皮肤映射层：换形象只改这里，桌宠引擎与 CSS 动画完全不动
 function applyPetArt(mood){
   const img = document.getElementById('pet-img'); if(!img) return;
-  if(STATE.petSkin === 'official'){ img.src = 'assets/nahida-icon.webp'; return; }
+  const sk = skinBy(STATE.petSkin);
+  if(sk.asset){ img.src = sk.asset; return; }
   img.src = petArtURI(mood || STATE.petMood || 'happy');
 }
 // 随机眨眼：只对睁眼情绪生效；瞬时帧保留原嘴型/腮红，135ms 后还原。官方皮肤不支持图层，自动跳过
@@ -674,7 +872,7 @@ function scheduleBlink(){
   blinkTimer = setTimeout(()=>{
     const mood = STATE.petMood || 'happy';
     const f = PET_FACE[mood];
-    if(f && (f.eye==='open' || f.eye==='star') && STATE.petSkin==='svg' && !document.hidden){
+    if(f && (f.eye==='open' || f.eye==='star') && STATE.petSkin!=='official' && !document.hidden){   // 官方素材为位图，不做眨眼帧
       const img = document.getElementById('pet-img');
       if(img){
         img.src = petArtURI({ eye:'closed', mouth:f.mouth, blush:f.blush, brow:f.brow, fx:'' });
@@ -713,7 +911,8 @@ function petIdle(){
   clearTimeout(idleTimer);
   idleTimer = setTimeout(()=>{
     const r = Math.random();
-    if(r<0.4) setMood('think', 2600);
+    if(r<0.12) petFlip();                                    // v7.10：随机翻个跟头（视频同款小把戏）
+    else if(r<0.4) setMood('think', 2600);
     else if(r<0.7) setMood('expect', 2600);
     else if(r<0.85) setMood('happy', 2600);
     else setMood('wave', 2200);
@@ -728,31 +927,58 @@ function petWake(){
   // 长时间空闲（>28s 未互动）给一句轻柔提醒，不进睡眠
   nudgeTimer = setTimeout(()=>{ if(Date.now()-STATE.lastPetTouch > 28000 && !$('#pet').classList.contains('mood-sleep')) say(pickLine('idleLong')); }, 28000);
 }
+// v7.10 顶边悬挂（视频同款）：拖到屏幕上缘松手 → 倒挂摆动；否则吸附左右缘
 const PEEK = 0.56;   // 探头比例：贴边时约 56% 身体在屏内、44% 被屏幕边缘裁切
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-// 侧边探头停靠（仅左右两缘）：角色保持直立、头朝屏内（非吸附侧），半身探出被屏幕裁切
 function applyDock(){
   const pet = $('#pet'); if(!pet) return;
   const sr = $('#screen').getBoundingClientRect();
   const pw = pet.offsetWidth || 126, ph = pet.offsetHeight || 150;
-  const dock = (STATE.petDock && (STATE.petDock.edge==='left'||STATE.petDock.edge==='right'))
-    ? STATE.petDock : { edge:'right', off:0.62 };     // 旧的上/下停靠数据迁移为默认右缘
+  const dock0 = STATE.petDock || { edge:'right', off:0.62 };
+  let dock = dock0;
+  if(dock0.edge==='top'){
+    const left = clamp((dock.off==null?0.5:dock.off)*sr.width - pw/2, 8, Math.max(8, sr.width-pw-8));
+    pet.style.left = left+'px'; pet.style.top = (-ph*0.30)+'px'; pet.style.transform = 'none';
+    pet.classList.remove('edge-l','edge-r','peek-more'); pet.classList.add('edge-t');
+    return;
+  }
+  dock = (dock.edge==='left'||dock.edge==='right') ? dock : { edge:'right', off:0.62 };  // 旧的上/下停靠数据迁移为默认右缘
   const isRight = dock.edge==='right';
   const left = isRight ? sr.width - pw*PEEK : -pw*(1-PEEK);
   const top = clamp(dock.off*sr.height - ph/2, 56 - ph/2, sr.height - 104 - ph/2);
   pet.style.left = left+'px'; pet.style.top = top+'px'; pet.style.transform = 'none';
-  pet.classList.remove('edge-l','edge-r','peek-more');
+  pet.classList.remove('edge-l','edge-r','edge-t','peek-more');
   pet.classList.add(isRight?'edge-r':'edge-l');
 }
-// 拖拽结束后吸附到较近的一侧（只考虑左/右）
+// 拖拽结束后吸附：顶部 16% 以内 → 悬挂；否则吸最近侧缘
 function dockToNearest(){
   const pet = $('#pet'); const sr = $('#screen').getBoundingClientRect(); const r = pet.getBoundingClientRect();
   const cx = r.left - sr.left + r.width/2, cy = r.top - sr.top + r.height/2;
+  if(cy < sr.height*0.16){
+    STATE.petDock = { edge:'top', off: clamp(cx/sr.width, 0.12, 0.88) }; save(); applyDock();
+    say(pickLine('dangle'));
+    return;
+  }
   const edge = cx < sr.width/2 ? 'left' : 'right';
   const off = clamp(cy/sr.height, 0.1, 0.9);
   STATE.petDock = { edge, off }; save(); applyDock();
 }
-// 连点彩蛋：5 秒内轻点 ≥5 次 → 特殊反应（不影响轻点打开助手的默认行为）
+/* v7.10 视频同款小把戏：翻跟头 + 冒爱心 */
+function petFlip(){
+  const pet = $('#pet'); if(!pet || pet.classList.contains('flip')) return;
+  pet.classList.add('flip'); setTimeout(()=>pet.classList.remove('flip'), 780);
+}
+function petHearts(n){
+  const box = document.querySelector('#pet .pet-particles'); if(!box) return;
+  for(let i=0;i<(n||6);i++){
+    const h = document.createElement('i'); h.className = 'fly-heart'; h.textContent = '❤';
+    h.style.left = (8+Math.random()*80)+'%';
+    h.style.fontSize = (9+Math.random()*9)+'px';
+    h.style.animationDelay = (Math.random()*0.55)+'s';
+    box.appendChild(h); setTimeout(()=>h.remove(), 2400);
+  }
+}
+// 连点彩蛋：5 秒内轻点 ≥5 次 → 翻跟头 + 冒爱心 + 特殊反应（不影响轻点打开助手的默认行为）
 let _tapTimes=[];
 function petTapEgg(){
   const now = Date.now();
@@ -761,6 +987,7 @@ function petTapEgg(){
     _tapTimes=[];
     say(pickLine('tickle'));
     setMood('drag', 2200);
+    petFlip(); petHearts(7);
   }
 }
 function initPet(){
@@ -909,13 +1136,13 @@ function renderHome(){
    ============================================================ */
 function md(s){ return esc(s).replace(/\*\[([ABC])\][^*]*\*/g,(_,lv)=>`<span class="ev">证据等级 ${lv}</span>`).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'); }
 function addMsg(role,text){
-  const chat=$('#chat'); const node=el(`<div class="msg ${role}">${role==='bot'?`<img class="av" src="assets/nahida-icon.webp" alt="">`:''}${md(text)}</div>`);
+  const chat=$('#chat'); const node=el(`<div class="msg ${role}">${role==='bot'?`<img class="av" src="${coachAvatarSrc()}" alt="">`:''}${md(text)}</div>`);
   chat.appendChild(node); chat.scrollTop=chat.scrollHeight;
 }
 function renderAssistant(){
   const chat=$('#chat');
   if(chat.childElementCount===0){
-    addMsg('bot',`你好呀，我是${COACH_NAME}，你的专属增肌教练(｡･ω･｡)ﾉ\n训练、营养、恢复都可以问我——我只回答有科学出处的，没把握的我会直说，不瞎编。`);
+    addMsg('bot',`你好呀，我是${coachName()}，你的专属增肌教练(｡･ω･｡)ﾉ\n训练、营养、恢复都可以问我——我只回答有科学出处的，没把握的我会直说，不瞎编。`);
   }
   const quick=$('#quick');
   quick.innerHTML='';
@@ -1253,9 +1480,10 @@ const VISION_PROMPT =
   '{"name":"中文名20字内","grams":数字,"kcal":数字,"protein":蛋白克,"carb":碳水克,"fat":脂肪克,"confidence":0到1,"uncertain":false}\n' +
   '规则：\n' +
   '1. 数值是照片中这份食物的总量（不是每100g），按可食部分计（去壳/去骨/弃汤渣）。\n' +
-  '2. 参考常见份量：一碗米饭约200g、一个鸡蛋约50g、一份炒菜约250-350g、一杯奶茶约400ml。\n' +
+  '2. 参考常见份量：一碗米饭约200g、一碗汤面约500g（含汤）、一份盖饭约450-500g、一个鸡蛋约50g、一份炒菜约250-350g、一屉蒸饺约20只（每只约25g）、一个标准汉堡约200-220g、一份中包薯条约113g、一杯奶茶约500ml、整张12寸披萨约480g（若只有一块按块算）。\n' +
   '3. kcal 要与宏量自洽：kcal ≈ protein*4 + carb*4 + fat*9，偏差控制在 ±20% 内。\n' +
-  '4. 画面清晰可辨时 confidence 取 0.7-0.9；不是食物或看不清时 uncertain=true 且 confidence<=0.3。';
+  '4. 以画面主体食物为准，背景里他人的食物、包装袋、餐具不计入；一餐含主食+菜时合并为一条（如"麻婆豆腐盖饭"）。\n' +
+  '5. 画面清晰可辨时 confidence 取 0.7-0.9；不是食物或看不清时 uncertain=true 且 confidence<=0.3。';
 const VISION_TIMEOUT = 18000, VISION_RETRY = 1;
 // 二次校验：模型可能返回离谱值 / 前后矛盾的宏量与热量，一律夹取 + 交叉验证
 function sanitizeVision(o){
@@ -1905,6 +2133,67 @@ function renderData(body){
   };
 }
 
+/* ============================================================
+   v7.10 教练与外观：桌面背景可更换 + 教练名字/头像可更换
+   背景预设全为浅色（深色壁纸上深色文字不可读，不做假适配）；自定义上传压缩到 1080px JPEG。
+   教练头像预设 = 参考图「连帽衫小狗」风格的自绘 SVG（48×48，含卫衣名字）。
+   ============================================================ */
+const BG_PRESETS = {
+  p1:'linear-gradient(165deg,#ffe9d6,#ffd3c0 45%,#ffb7c5)',
+  p2:'linear-gradient(165deg,#e0f5e9,#c8e6d5 50%,#a8d8c0)',
+  p3:'linear-gradient(165deg,#efe9fb,#ddd2f2 55%,#c9b8e6)',
+  p4:'linear-gradient(165deg,#dbeeff,#bcd9f5 55%,#9fc3ea)',
+  p5:'linear-gradient(165deg,#fdf3e7,#f6e4cf 55%,#eecfb4)'
+};
+function coachDogSVG(o){
+  // o: {hood, hoodText, fur, ear, patch, cap}
+  const ink = '#2b2320';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <path d="M7 48 C7 36.5 14 30.5 24 30.5 C34 30.5 41 36.5 41 48Z" fill="${o.hood}" stroke="${ink}" stroke-width="1.6"/>
+  <text x="24" y="42.5" font-size="5.4" fill="#fff" text-anchor="middle" font-weight="bold" font-family="Arial,sans-serif">${o.hoodText}</text>
+  <path d="M11.5 31.5 C14 26 34 26 36.5 31.5 C32 34.5 16 34.5 11.5 31.5Z" fill="${o.hood}" stroke="${ink}" stroke-width="1.4"/>
+  <ellipse cx="11.5" cy="15" rx="4.6" ry="7.4" transform="rotate(-16 11.5 15)" fill="${o.ear}" stroke="${ink}" stroke-width="1.4"/>
+  <ellipse cx="36.5" cy="15" rx="4.6" ry="7.4" transform="rotate(16 36.5 15)" fill="${o.ear}" stroke="${ink}" stroke-width="1.4"/>
+  <circle cx="24" cy="19.5" r="12.6" fill="${o.fur}" stroke="${ink}" stroke-width="1.6"/>
+  ${o.patch ? `<path d="M24 7.2 A12.6 12.6 0 0 1 36.6 19.5 L29 19.5 A7 7 0 0 0 24 12.8Z" fill="${o.patch}" stroke="${ink}" stroke-width="1.2"/>` : ''}
+  ${o.cap ? `<path d="M13 12.5 A12.4 12.4 0 0 1 35 12.5 L36 14 L12 14Z" fill="${o.cap}" stroke="${ink}" stroke-width="1.4"/><rect x="20" y="4.6" width="8" height="3.4" rx="1.7" fill="${o.cap}" stroke="${ink}" stroke-width="1.2"/>` : ''}
+  <circle cx="19.2" cy="19.5" r="1.7" fill="${ink}"/>
+  <circle cx="28.8" cy="19.5" r="1.7" fill="${ink}"/>
+  <circle cx="18.5" cy="18.8" r=".55" fill="#fff"/>
+  <circle cx="28.1" cy="18.8" r=".55" fill="#fff"/>
+  <ellipse cx="24" cy="24" rx="2" ry="1.5" fill="${ink}"/>
+  <path d="M24 25.5 L24 27 M24 27 C22.6 28.6 20.8 28 20.4 26.8 M24 27 C25.4 28.6 27.2 28 27.6 26.8" stroke="${ink}" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+const COACH_AV_SVG = {
+  dog1: coachDogSVG({ hood:'#5ba8e0', hoodText:'ALA LEI', fur:'#fdf3e4', ear:'#8a5a34' }),
+  dog2: coachDogSVG({ hood:'#2e2e33', hoodText:'Lanny',  fur:'#f0b060', ear:'#c98a3e', cap:'#f08c3e' }),
+  dog3: coachDogSVG({ hood:'#4caf6d', hoodText:'卡布达', fur:'#fbf7ef', ear:'#2e2e33', patch:'#2e2e33' })
+};
+function applyWallpaper(){
+  const w = document.getElementById('wallpaper'); if(!w) return;
+  const bg = STATE.settings && STATE.settings.bg;
+  w.classList.remove('wall-custom');
+  if(bg && bg.slice(0,5)==='data:'){ w.style.background = `url("${bg}") center / cover no-repeat`; w.classList.add('wall-custom'); }
+  else if(bg && BG_PRESETS[bg]){ w.style.background = BG_PRESETS[bg]; w.classList.add('wall-custom'); }
+  else { w.style.background = ''; }
+}
+// 教练身份应用到全局：助手面板头部 / 聊天输入占位 / 引导文案（聊天消息头像按发送时刻取值）
+function applyCoachIdentity(){
+  const nm = coachName();
+  const av = document.querySelector('.assistant .ph-av'); if(av) av.src = coachAvatarSrc();
+  const meta = document.querySelector('.assistant .ph-meta b'); if(meta) meta.textContent = nm;
+  const inp = document.getElementById('chat-text'); if(inp) inp.placeholder = `问${nm}任何训练/营养问题…`;
+  const ob = document.querySelector('#onboard .sub');
+  if(ob) ob.innerHTML = `我是<b>${esc(nm)}</b>，你的<b>居家哑铃</b>增肌教练，以后常驻你手机桌面陪你练啦~`;
+  const obBtn = document.getElementById('ob-save'); if(obBtn) obBtn.textContent = `开始和${nm}一起练`;
+}
+// 设置类大字符串（背景图 dataURL）保存的额度保护：失败要明确告诉用户，不能静默丢数据
+function saveSafe(){
+  try{ save(); return true; }
+  catch(_){ toast('本机存储空间不足：请换小一点的图片'); return false; }
+}
+
 /* ---------- 我的（v7.5：自定义昵称 + 头像上传 + 档案实时编辑，改完立即生效） ---------- */
 function renderProfile(body){
   const p=STATE.profile; const g=dailyGoal();
@@ -1926,8 +2215,36 @@ function renderProfile(body){
       <div class="list-row"><span class="lr-ic">💧</span>今日饮水<b style="margin-left:auto">${STATE.waterMl||0} ml / ${g.water} ml</b></div>
       <div class="list-row"><span class="lr-ic">🎯</span>今日目标<b style="margin-left:auto">${g.protein}g 蛋白 · ${g.kcal} kcal</b></div>
       <div class="list-row"><span class="lr-ic">📚</span>知识库<b style="margin-left:auto">${KB.length} 条</b></div>
-      <div class="list-row" id="skin-row"><span class="lr-ic">🎨</span>桌宠形象<b style="margin-left:auto">${STATE.petSkin==='official'?'官方素材':'自绘 SVG'}<span class="lr-ar">›</span></b></div>
-      <p style="font-size:10.5px;color:var(--faint);padding:2px 0 8px">默认使用分层 SVG 自绘形象（零版权风险、可演进为捏脸），可随时切换。</p>
+      <div class="list-row" id="skin-row"><span class="lr-ic">🎨</span>桌宠形象与外观设置<b style="margin-left:auto">v7.10<span class="lr-ar">›</span></b></div>
+      <p style="font-size:10.5px;color:var(--faint);padding:2px 0 8px">下方可更换：桌宠形象 / 桌面背景 / 教练名字与头像。</p>
+    </div>
+    <div class="card" style="padding:6px 14px">
+      <h4 style="margin:8px 0 2px">教练与外观</h4>
+      <div class="pf-edit">
+        <label>教练名字<input id="co-name" type="text" maxlength="10" placeholder="纳西妲" value="${esc(STATE.settings.coachName||'')}"></label>
+      </div>
+      <p class="set-lab">教练头像</p>
+      <div class="av-row" id="co-avs">
+        <button class="av-pick${STATE.settings.coachAvatar==='dog1'?' on':''}" data-av="dog1" title="阿拉雷">${COACH_AV_SVG.dog1}</button>
+        <button class="av-pick${STATE.settings.coachAvatar==='dog2'?' on':''}" data-av="dog2" title="Lanny">${COACH_AV_SVG.dog2}</button>
+        <button class="av-pick${STATE.settings.coachAvatar==='dog3'?' on':''}" data-av="dog3" title="卡布达">${COACH_AV_SVG.dog3}</button>
+        <button class="av-pick${(STATE.settings.coachAvatar||'').slice(0,5)==='data:'?' on':''}" id="co-av-up" title="上传自定义头像"><span class="up-ic">📷</span></button>
+      </div>
+      <p class="set-lab">桌面背景（建议浅色，深色壁纸文字可能看不清）</p>
+      <div class="bg-swatches" id="bg-sw">
+        <button class="bg-swatch bw0${!STATE.settings.bg?' on':''}" data-bg="" title="默认壁纸"></button>
+        <button class="bg-swatch bw1${STATE.settings.bg==='p1'?' on':''}" data-bg="p1" title="晨光橙"></button>
+        <button class="bg-swatch bw2${STATE.settings.bg==='p2'?' on':''}" data-bg="p2" title="薄荷绿"></button>
+        <button class="bg-swatch bw3${STATE.settings.bg==='p3'?' on':''}" data-bg="p3" title="雾紫"></button>
+        <button class="bg-swatch bw4${STATE.settings.bg==='p4'?' on':''}" data-bg="p4" title="海盐蓝"></button>
+        <button class="bg-swatch bw5${STATE.settings.bg==='p5'?' on':''}" data-bg="p5" title="奶油杏"></button>
+        <button class="bg-swatch custom${(STATE.settings.bg||'').slice(0,5)==='data:'?' on':''}" id="bg-up" title="上传自定义背景">＋</button>
+      </div>
+      <p class="set-lab">桌宠形象</p>
+      <div class="av-row" id="skin-pick">
+        ${PET_SKINS.map(sk=>`<button class="av-pick${STATE.petSkin===sk.key?' on':''}" data-skin="${sk.key}" title="${sk.name}">${sk.asset?`<img src="${sk.asset}" alt="${sk.name}">`:`<img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(sk.render('happy'))}" alt="${sk.name}">`}</button>`).join('')}
+      </div>
+      <p style="font-size:10.5px;color:var(--faint);padding:6px 0 8px;line-height:1.6">当前：<b>${skinBy(STATE.petSkin).name}</b>。切换只替换形象渲染器，桌宠位置（含悬挂）、偏好动画与设置都不动。<br>小技巧：把桌宠拖到屏幕<b>顶边</b>松手会悬挂摆动；连点 5 次它会翻跟头冒爱心；切后台再回来会和你打招呼。</p>
     </div>
     <div class="card" style="padding:6px 14px">
       <h4 style="margin:8px 0 2px">AI 食物识别 <span class="tag" id="vs-state">${(STATE.vision&&STATE.vision.mode&&STATE.vision.mode!=='off')?'已开启':'未开启'}</span></h4>
@@ -1981,12 +2298,51 @@ function renderProfile(body){
     $('#pf-name').textContent=name;
   };
   ['pe-name','pe-h','pe-w','pe-d'].forEach(id=>{ const n=$('#'+id); if(n) n.oninput=applyLive; });
-  // v7.8 桌宠形象切换（自绘 SVG ⇄ 官方素材）
-  const skinRow=$('#skin-row');
-  if(skinRow) skinRow.onclick=()=>{
-    STATE.petSkin = (STATE.petSkin==='official') ? 'svg' : 'official';
-    save(); applyPetArt(STATE.petMood||'happy'); renderProfile(body);
-    toast(STATE.petSkin==='official' ? '已切换为官方素材' : '已切换为自绘 SVG 形象');
+  // v7.10 教练与外观设置（教练名即时生效不重渲染防丢焦点；头像/背景/桌宠形象点选即换）
+  const coName=$('#co-name');
+  if(coName) coName.oninput=()=>{
+    STATE.settings.coachName = coName.value.trim().slice(0,10);
+    save(); applyCoachIdentity();
+  };
+  const coAvs=$('#co-avs');
+  if(coAvs) coAvs.onclick=e=>{
+    const b=e.target.closest('.av-pick'); if(!b) return;
+    if(b.id==='co-av-up'){
+      const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+      inp.onchange=()=>{ const f=inp.files && inp.files[0]; if(!f) return;
+        compressImage(f, 128, du=>{ if(!du){ toast('图片读取失败'); return; }
+          STATE.settings.coachAvatar=du; if(saveSafe()){ applyCoachIdentity(); renderProfile(body); toast('教练头像已更新 ✨'); } }); };
+      inp.click(); return;
+    }
+    STATE.settings.coachAvatar=b.dataset.av; save();
+    coAvs.querySelectorAll('.av-pick').forEach(x=>x.classList.toggle('on', x===b));
+    applyCoachIdentity(); toast('教练头像已更新 ✨');
+  };
+  const bgSw=$('#bg-sw');
+  if(bgSw) bgSw.onclick=e=>{
+    const b=e.target.closest('.bg-swatch'); if(!b || b.id==='bg-up') return;
+    STATE.settings.bg=b.dataset.bg||''; save();
+    bgSw.querySelectorAll('.bg-swatch').forEach(x=>x.classList.toggle('on', x===b));
+    applyWallpaper();
+  };
+  const bgUp=$('#bg-up');
+  if(bgUp) bgUp.onclick=()=>{
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+    inp.onchange=()=>{ const f=inp.files && inp.files[0]; if(!f) return;
+      compressImage(f, 1080, du=>{ if(!du){ toast('图片读取失败'); return; }
+        STATE.settings.bg=du; if(saveSafe()){ applyWallpaper(); renderProfile(body); toast('桌面背景已更换 ✨'); } }); };
+    inp.click();
+  };
+  const skinPick=$('#skin-pick');
+  if(skinPick) skinPick.onclick=e=>{
+    const b=e.target.closest('.av-pick'); if(!b) return;
+    const key=b.dataset.skin; const sk=skinBy(key);
+    const prevSkin=STATE.petSkin, prevMood=STATE.petMood||'happy';
+    STATE.petSkin=key; save();                            // 先落盘，失败也不影响页面
+    skinPick.querySelectorAll('.av-pick').forEach(x=>x.classList.toggle('on', x===b));
+    applyPetArt(prevMood);                                // 切换保留当前情绪，不重置动画状态
+    toast('已切换：' + sk.name);
+    if(prevSkin!==key) petHearts(4);                      // 切换给一点反馈（不打断拖拽/悬挂状态）
   };
   // v7.8 AI 识别设置：保存 + 真实连通性测试（不伪造结果）
   const vs=$('#vs-mode'), vep=$('#vs-ep'), vtk=$('#vs-tk'), vmd=$('#vs-md'), vtip=$('#vs-tip');
@@ -2084,6 +2440,9 @@ function importJSON(){
         }, st);
         if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
         if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
+        // v7.10：导入备份同样过一遍新字段容错（背景/教练/桌宠皮肤）
+        if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:'', coachName:'', coachAvatar:'' };
+        if(['nahida','spiderV1','spiderV2','official'].indexOf(STATE.petSkin)<0) STATE.petSkin='spiderV2';
         save(); toast('导入成功，正在重载…'); setTimeout(()=>location.reload(), 700);
       }catch(_){ toast('这不是有效的备份 JSON 文件'); }
     };
@@ -2101,7 +2460,7 @@ $('#ob-save') && ($('#ob-save').onclick=()=>{
   const h=+$('#ob-h').value, w=+$('#ob-w').value, d=+$('#ob-d').value;
   if(h<140||h>220||w<30||w>200||!d){ toast('身高140-220、体重30-200、哑铃重量必填'); return; }
   STATE.profile={height:h,weight:w,dumbbell:d,name:'训练者'}; STATE.isFirstLaunch=false; save();
-  navUIClose('onboard'); setMood('cheer',3000); toast('开始和纳西妲一起练吧！'); renderHome();
+  navUIClose('onboard'); setMood('cheer',3000); toast(`开始和${coachName()}一起练吧！`); renderHome();
 });
 $('#done-ok') && ($('#done-ok').onclick=()=>navUIClose('done-modal'));
 
@@ -2109,8 +2468,14 @@ $('#done-ok') && ($('#done-ok').onclick=()=>navUIClose('done-modal'));
    启动
    ============================================================ */
 function boot(){
-  // 壁纸加模糊由 css 处理；时钟每秒
+  // v7.10：应用可更换背景与教练身份（在首屏渲染前）
+  applyWallpaper(); applyCoachIdentity();
   renderHome(); initPet(); showOnboard();
+  // v7.10 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) say(pickLine('bye'));
+    else { petWake(); if(!$('#pet').classList.contains('mood-sleep')) setMood('wave', 2200); }
+  });
   // v7.3 真实 PWA：注册 Service Worker（仅 https/localhost 生效，file:// 静默跳过）
   if('serviceWorker' in navigator){
     window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });

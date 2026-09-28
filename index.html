@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-  薄肌日记 v7.9 · 桌宠常驻「居家哑铃」健身 App
-  主界面 = 手机桌面常驻二次元桌宠（纳西妲，沿用 v6 官方素材，溯源见 assets/CREDITS.md）
-  角色素材：miHoYo《原神》纳西妲官方立绘/头像（static.wikia.nocookie.net/gensin-impact，经 Fandom API 获取直链）
+  薄肌日记 v7.11 · 桌宠常驻「居家哑铃」健身 App
+  桌宠「小蛛」= 视频同款风格自绘分层 SVG（v7.10 默认，可切换纳西妲/官方素材）
+  教练名字与头像、桌面背景均可更换（我的 → 教练与外观）
   纯前端单页 · localStorage 持久化 · 无构建步骤
 -->
 <html lang="zh-CN">
@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#F3F0FB">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="assets/icon.svg">
-<title>薄肌日记 · 纳西妲的居家哑铃健身桌宠</title>
+<title>薄肌日记 · 居家哑铃健身桌宠</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -43,7 +43,7 @@
           <div class="home-card" id="home-today"><!-- 今日训练速览：一眼看到当天动作 --></div>
 
           <!-- 常驻浮层桌宠（可拖拽、吸附、记忆位置） -->
-          <div class="pet" id="pet" role="button" aria-label="纳西妲桌宠" tabindex="0">
+          <div class="pet" id="pet" role="button" aria-label="桌宠" tabindex="0">
             <div class="pet-bubble" id="pet-bubble"></div>
             <div class="pet-body">
               <img class="pet-img" id="pet-img" src="assets/nahida-icon.webp" alt="纳西妲">

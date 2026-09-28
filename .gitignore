@@ -9,3 +9,6 @@ node_modules/
 __pycache__/
 .DS_Store
 Thumbs.db
+
+# AI 识别评测测试集（真实饮食图 30MB，仅本地，不入库）
+eval-set/

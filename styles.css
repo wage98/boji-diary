@@ -560,7 +560,44 @@ body{
 .mx-grid label{flex:none;}
 .myex-del{flex:none; padding:8px 14px !important;}
 
+/* ============ v7.10 小蛛桌宠 · 视频同款行为 ============ */
+/* 顶边悬挂：拖到屏幕上缘松手，倒挂左右摆动 */
+.pet.edge-t .pet-body{transform-origin:50% 30px; animation:dangle-swing 3.2s ease-in-out infinite;}
+.pet.edge-t .pet-shadow{opacity:0;}
+.pet.edge-t .pet-bubble{top:auto; bottom:-10px; transform:translate(-50%,100%);}
+.pet.edge-t .pet-bubble.show{transform:translate(-50%,110%);}
+.pet.edge-t .pet-bubble::after{display:none;}
+@keyframes dangle-swing{0%,100%{transform:rotate(3.6deg);}50%{transform:rotate(-3.6deg);}}
+/* 翻跟头（连点彩蛋 / 随机小把戏） */
+.pet.flip .pet-img{animation:pet-flip .76s cubic-bezier(.45,.05,.55,.95) 1;}
+@keyframes pet-flip{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
+/* 冒爱心粒子 */
+.fly-heart{position:absolute; bottom:8px; pointer-events:none; opacity:0; z-index:6;
+  animation:heart-fly 1.9s ease-out forwards; filter:drop-shadow(0 2px 4px rgba(230,90,120,.35));}
+@keyframes heart-fly{0%{opacity:0; transform:translateY(0) scale(.5) rotate(-8deg);}
+  14%{opacity:.95;}100%{opacity:0; transform:translateY(-88px) scale(1.25) rotate(10deg);}}
+/* ============ v7.10 教练与外观设置 ============ */
+.set-lab{font-size:11px;color:var(--faint);margin:10px 0 6px;font-weight:600;}
+.av-row{display:flex;gap:8px;flex-wrap:wrap;}
+.av-pick{width:54px;height:54px;border-radius:14px;border:2px solid var(--line);background:var(--glass);
+  cursor:pointer;padding:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.av-pick svg,.av-pick img{width:100%;height:100%;border-radius:10px;pointer-events:none;}
+.av-pick.on{border-color:#7fc49a;background:rgba(127,196,154,.10);box-shadow:0 0 0 2px rgba(127,196,154,.22);}
+.av-pick .up-ic{font-size:20px;color:var(--faint);pointer-events:none;}
+.bg-swatches{display:flex;gap:8px;flex-wrap:wrap;}
+.bg-swatch{width:46px;height:46px;border-radius:12px;border:2px solid var(--line);cursor:pointer;padding:0;}
+.bg-swatch.on{border-color:#7fc49a;box-shadow:0 0 0 2px rgba(127,196,154,.22);}
+.bw0{background:url('assets/nahida-card.webp') center 18%/cover;}
+.bw1{background:linear-gradient(165deg,#ffe9d6,#ffd3c0 45%,#ffb7c5);}
+.bw2{background:linear-gradient(165deg,#e0f5e9,#c8e6d5 50%,#a8d8c0);}
+.bw3{background:linear-gradient(165deg,#efe9fb,#ddd2f2 55%,#c9b8e6);}
+.bw4{background:linear-gradient(165deg,#dbeeff,#bcd9f5 55%,#9fc3ea);}
+.bw5{background:linear-gradient(165deg,#fdf3e7,#f6e4cf 55%,#eecfb4);}
+.bg-swatch.custom{display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--faint);background:var(--glass);}
+.wallpaper.wall-custom{filter:none;}
+.wallpaper.wall-custom::after{background:linear-gradient(180deg,rgba(255,255,255,.30) 0%,rgba(255,255,255,.14) 38%,rgba(255,255,255,.42) 100%);}
+
 @media (prefers-reduced-motion: reduce){
-  .pet-img,.pet-ring,.glow,.pet-akuma,.pet-particles i{animation:none !important;}
+  .pet-img,.pet-ring,.glow,.pet-akuma,.pet-particles i,.fly-heart,.pet.flip .pet-img,.pet.edge-t .pet-body{animation:none !important;}
   *{transition-duration:.01ms !important;}
 }

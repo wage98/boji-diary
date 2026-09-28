@@ -14,7 +14,7 @@ const MSG = (process.argv[2] || 'chore: 更新项目文件') + '\n\n由 tools/pu
 const AUTHOR = { name: 'boji-diary', email: 'boji-diary@users.noreply.github.com' };
 
 const PROJ = path.join(__dirname, '..');
-const SKIP_DIR = new Set(['.git', '.workbuddy', '_archive', 'node_modules', 'dist', 'build']);
+const SKIP_DIR = new Set(['.git', '.workbuddy', '_archive', 'node_modules', 'dist', 'build', 'eval-set']);   // eval-set：30MB 测试图不入库，仅留本地
 const SKIP_EXT = new Set(['.zip', '.tmp', '.log', '.mjs']);
 const SKIP_PREFIX = ['_shot'];   // 形象截图临时文件（.html/.png）不推送
 

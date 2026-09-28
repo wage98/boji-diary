@@ -188,7 +188,11 @@ check('E4 无上下文追问不误触发', () => { const w = boot(J({ profile: {
 check('E5 结合数据：今天练什么', () => { const w = boot(J({ profile: { weight: 70 } })); const r = w.nahidaReply('今天练什么'); return r.indexOf('今天练【') >= 0 || r.indexOf('休息日') >= 0; });
 check('E6 结合数据：我蛋白够吗', () => { const w = boot(J({ profile: { weight: 70 } })); const r = w.nahidaReply('我蛋白够吗'); return r.indexOf('目标') >= 0; });
 check('E7 结合数据：连续打卡', () => { const w = boot(J({ profile: { weight: 70 } })); return w.nahidaReply('我连打几天了').indexOf('连续打卡') >= 0; });
-check('E8 未知问题兜底（不瞎编）', () => { const w = boot(J({ profile: { weight: 70 } })); return w.nahidaReply('明天股票会涨吗').indexOf('不太确定') >= 0; });
+check('E8 未知问题兜底（不瞎编 + v7.11 共情口径）', () => {
+  const w = boot(J({ profile: { weight: 70 } }));
+  const r = w.nahidaReply('明天股票会涨吗');
+  return /不想拍脑袋|不太确定|不确定/.test(r) && r.indexOf('卧推') >= 0;   // 必须给出替代话题，不能只说不知道
+});
 check('E9 空输入不崩', () => { const w = boot(J({ profile: { weight: 70 } })); return typeof w.nahidaReply('') === 'string'; });
 check('E10 极端输入（1 万字符）不崩', () => { const w = boot(J({ profile: { weight: 70 } })); return typeof w.nahidaReply('练'.repeat(10000)) === 'string'; });
 
@@ -461,7 +465,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -521,5 +525,123 @@ function v79Checks() {
       const arr = w.__S.meals[tk] && w.__S.meals[tk][0];
       check('I10 点击复制 → 条目新增且照片已去除', () => !!arr && arr.length === 1 && arr[0].n === '鸡胸' && !arr[0].photo);
     }
+  }
+}
+
+// ===== v7.10 增量：小蛛皮肤 / 悬挂翻转爱心 / 教练身份 / 桌面背景 / 识别评测联动 =====
+function v710Checks() {
+  // J1–J4 皮肤体系
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const svg = w.eval('spiderSVG')('happy', 'v2');
+    check('J1 小蛛 SVG 输出有效（svg 标签+viewBox）', () => svg.indexOf('<svg') >= 0 && svg.indexOf('viewBox') >= 0);
+    check('J2 无 petSkin 脏数据 → 默认迁移为 spiderV2（v7.11）', () => w.__S.petSkin === 'spiderV2');
+    const moods = ['happy','cheer','proud','expect','think','sad','sleep','wave','hover','drag','blink'];
+    check('J3 小蛛两版本 11 种帧全部输出有效', () => moods.every(m =>
+      w.eval('spiderSVG')(m,'v1').indexOf('<svg') >= 0 && w.eval('spiderSVG')(m,'v2').indexOf('<svg') >= 0));
+    const w2 = boot(J({ profile: { weight: 70 }, petSkin: 'svg' }));
+    check('J4 v7.10 旧值迁移：svg→nahida、spider→spiderV2、official 保留',
+      () => w2.__S.petSkin === 'nahida'
+        && boot(J({ profile:{weight:70}, petSkin:'spider' })).__S.petSkin === 'spiderV2'
+        && boot(J({ profile:{weight:70}, petSkin:'official' })).__S.petSkin === 'official');
+  }
+  // J5–J7 桌宠行为
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    w.__S.petDock = { edge: 'top', off: 0.5 };
+    w.eval('applyDock')();
+    check('J5 顶边悬挂：edge-top → pet 挂上 edge-t 类', () => w.document.getElementById('pet').classList.contains('edge-t'));
+    w.eval('petFlip')();
+    check('J6 翻跟头：petFlip → flip 类', () => w.document.getElementById('pet').classList.contains('flip'));
+    w.eval('petHearts')(3);
+    check('J7 冒爱心：petHearts → fly-heart 节点入列', () => w.document.querySelectorAll('#pet .fly-heart').length >= 3);
+  }
+  // J8–J11 教练身份 + 背景
+  {
+    const w = boot(J({ profile: { weight: 70 }, settings: { coachName: '阿铁', bg: 'p3' } }));
+    check('J8 教练名可配置', () => w.eval('coachName')() === '阿铁');
+    const w2 = boot(J({ profile: { weight: 70 } }));
+    check('J9 教练名缺省回落纳西妲', () => w2.eval('coachName')() === '纳西妲');
+    w.eval('applyCoachIdentity')();
+    check('J10 applyCoachIdentity → 聊天输入占位与引导文案生效', () => {
+      const inp = w.document.getElementById('chat-text');
+      const ob = w.document.querySelector('#onboard .sub');
+      return inp && inp.placeholder.indexOf('阿铁') >= 0 && ob && ob.innerHTML.indexOf('阿铁') >= 0;
+    });
+    w.eval('applyWallpaper')();
+    check('J11 背景预设 p3 → wallpaper 渐变生效；脏 bg 回落默认', () => {
+      const el = w.document.getElementById('wallpaper');
+      const okP3 = el.style.background.indexOf('linear-gradient') >= 0 && el.classList.contains('wall-custom');
+      w.__S.settings.bg = 'not-a-preset';
+      w.eval('applyWallpaper')();
+      const okFall = el.style.background === '' && !el.classList.contains('wall-custom');
+      return okP3 && okFall;
+    });
+  }
+  // J12–J14 识别优化联动
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const lib = w.eval('window.__S') && null; // noop
+    const has = w.eval('EST_LIB.some(x=>x.n.indexOf("蒸饺")>=0)') && w.eval('EST_LIB.some(x=>x.n.indexOf("寿司")>=0)') && w.eval('EST_LIB.some(x=>x.n.indexOf("薯条")>=0)');
+    check('J12 EST_LIB 新增蒸饺/寿司/薯条（测试集驱动）', () => !!has);
+    check('J13 生产 prompt 含盖饭/份量锚点/背景忽略规则', () => {
+      const p = w.eval('VISION_PROMPT');
+      return p.indexOf('盖饭') >= 0 && p.indexOf('主体') >= 0 && p.indexOf('113g') >= 0;
+    });
+  }
+  {
+    const src = fs.readFileSync(path.join(PROJ, 'tools', 'eval-vision.js'), 'utf8');
+    check('J14 识别评测工具就绪（真值表 13 条 + live 模式）', () => (src.match(/file:'/g) || []).length >= 26 && src.indexOf('--live') >= 0);
+    const rep = fs.existsSync(path.join(PROJ, 'eval-set', 'last-offline-report.txt'));
+    check('J15 离线评测报告已落盘', () => rep);
+  }
+}
+
+
+// ===== v7.11 增量：统一皮肤注册表 / 5 轮上下文 / 闲聊知识库 / 模拟评测联动 =====
+function v711Checks() {
+  // K1–K3 统一切换
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const keys = w.eval('PET_SKINS.map(x=>x.key)');
+    check('K1 皮肤注册表四键齐全（nahida/spiderV1/spiderV2/official）',
+      () => JSON.stringify(keys) === JSON.stringify(['nahida','spiderV1','spiderV2','official']));
+    check('K2 skinBy 脏键回落第一项而非崩溃', () => w.eval('skinBy')('bad-key').key === 'nahida');
+    // 切换保留停靠与情绪状态
+    w.__S.petDock = { edge:'top', off:0.5 }; w.__S.petMood = 'sleep';
+    w.eval('applyDock')(); w.eval('applyPetArt')('sleep');
+    w.__S.petSkin = 'nahida'; w.eval('applyPetArt')('sleep');
+    check('K3 切换皮肤不丢状态（悬挂类保留 + 情绪保留）',
+      () => w.document.getElementById('pet').classList.contains('edge-t') && w.__S.petMood === 'sleep');
+  }
+  // K4–K6 上下文窗口 5 轮
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const reply = w.eval('nahidaReply');
+    ['卧推肩疼怎么办','深蹲膝盖响','鸡蛋吃几个','奶茶能喝吗','今天吃什么','随便聊聊','谢谢'].forEach(q => reply(q));
+    check('K4 上下文窗口封顶 5 轮（多问不膨胀）', () => w.eval('window.__CTX').hist.length === 5);
+    const w2 = boot(J({ profile: { weight: 70 } }));
+    const r2 = w2.eval('nahidaReply');
+    r2('引体向上做不了'); const a = r2('它怎么练');
+    check('K5 指代消解：“它”复用窗口内最近主题（引体→离心）', () => a.indexOf('离心') >= 0);
+    check('K6 闲聊知识库命中（晚安/心情不好）', () => {
+      const w3 = boot(J({ profile: { weight: 70 } }));
+      const r3 = w3.eval('nahidaReply');
+      return r3('晚安').indexOf('晚安呀') >= 0 && r3('心情不好怎么办').indexOf('接住') >= 0;
+    });
+  }
+  // K7–K8 形象差异与评测联动
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('K7 小蛛两版本主题确实不同（配色/纹样/胸标/身形比）', () => {
+      const T = w.eval('SPIDER_THEME');
+      return T.v1.red !== T.v2.red && T.v1.web !== T.v2.web && T.v1.emblem !== T.v2.emblem && T.v1.body !== T.v2.body;
+    });
+    const rep = fs.existsSync(path.join(PROJ, 'eval-set', 'last-simulate-report.txt'));
+    check('K8 多场景模拟评测报告已落盘（准确率口径）', () => {
+      if(!rep) return false;
+      const t = fs.readFileSync(path.join(PROJ, 'eval-set', 'last-simulate-report.txt'), 'utf8');
+      return t.indexOf('准确率') >= 0 && t.indexOf('迭代效果') >= 0;
+    });
   }
 }
