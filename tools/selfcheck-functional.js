@@ -1,4 +1,4 @@
-/* 训练日记 v7.5 行为级回归测试（jsdom） */
+/* 训练日记 v1.0.0 行为级回归测试（jsdom） */
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
