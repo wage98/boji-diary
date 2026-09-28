@@ -636,6 +636,22 @@ body{
 .pet.act-exit{animation:pet-exit .4s ease forwards;}
 @keyframes pet-exit{to{opacity:0;transform:translate(-50%,-50%) scale(.86);}}
 
+/* ============ v8.1 动作卡片：目标肌群 / 节奏 / 呼吸 ============ */
+.ex-muscle{font-size:11px; color:var(--ink2); padding:2px 0 4px; line-height:1.5;}
+.ex-meta{display:flex; flex-wrap:wrap; gap:6px; padding-bottom:6px;}
+.ex-meta span{font-size:10.5px; color:var(--faint); background:var(--glass);
+  border:1px solid var(--line); border-radius:8px; padding:2px 7px;}
+
+/* ============ v8.1 训练方案切换（A 有卧推椅 / B 无卧推椅） ============ */
+.plan-pick{flex:1 1 140px; min-width:140px; text-align:left; cursor:pointer;
+  border:2px solid var(--line); background:var(--glass); border-radius:14px; padding:10px 12px;
+  display:flex; flex-direction:column; gap:3px; color:var(--ink); font-family:inherit;
+  transition:border-color .18s var(--ease), background .18s var(--ease);}
+.plan-pick b{font-size:13px;}
+.plan-pick span{font-size:11.5px; color:var(--ink2);}
+.plan-pick em{font-size:10.5px; color:var(--faint); font-style:normal; line-height:1.5;}
+.plan-pick.on{border-color:#7fc49a; background:rgba(127,196,154,.10); box-shadow:0 0 0 2px rgba(127,196,154,.22);}
+
 @media (prefers-reduced-motion: reduce){
   .pet-img,.pet-ring,.glow,.pet-akuma,.pet-particles i,.fly-heart,.pet.flip .pet-img,.pet.edge-t .pet-body,
   .pet.act-idle .pet-img,.pet.act-wave .pet-img,.pet.act-crouch .pet-img,.pet.act-exit,

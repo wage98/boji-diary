@@ -1,5 +1,5 @@
 /* ============================================================
-   薄肌日记 v8.0 · app.js
+   薄肌日记 v8.1 · app.js
    手机桌面常驻二次元桌宠健身 App —— 居家哑铃方案
    - 常驻浮层桌宠：情绪状态机 + 待机循环 + 左右缘直立探头吸附 + 点击对话 + 事件反应
    - 桌宠=桌面主屏，dock 展开 训练/饮食/聊天/数据/我的
@@ -65,88 +65,209 @@ const BV = 'https://www.bilibili.com/video/BV1FY4y1y7Vh';
 const vid = (t, label) => ({ url: `${BV}/?t=${t}`, label });
 const TIMESTAMP_NOTE = '时间戳取自卓叔《30个家庭哑铃增肌动作教学》合集章节，属最佳可得映射，点开可自验。';
 
-/* ---------- 训练计划（4 训练日 / 23 动作） ---------- */
-const PLANS = {
-  push: { name:'推日 · 胸肩三头', greeting:'今天练胸肩，把手机放下，胸肌支棱起来！', ex:[
-    { name:'哑铃卧推', sets:4, reps:'8-12', rest:75, base:0.8, video:vid(139,'哑铃卧推 02:19'),
-      standard:'肩胛后缩下沉，哑铃下放至胸侧，推起时呼气、胸肌主动收缩。',
-      note:'别耸肩借力；小臂垂直地面，手腕中立。' },
-    { name:'上斜哑铃推举', sets:3, reps:'10-12', rest:60, base:0.6, video:vid(230,'上斜哑铃推举'),
-      standard:'椅背 30° 左右，推举轨迹略向锁骨聚拢。',
-      note:'角度别太高，否则压肩膀。' },
-    { name:'哑铃肩推', sets:3, reps:'10-12', rest:60, base:0.5, video:vid(420,'哑铃肩推'),
-      standard:'核心收紧，推至顶端不锁死，肩胛稳定。',
-      note:'腰别反弓，重量宁轻勿借。' },
-    { name:'哑铃侧平举', sets:3, reps:'12-15', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
-      standard:'小臂略内旋“倒水”感，肘高于腕，顶峰停顿。',
-      note:'别甩重量，用肩中束发力。' },
-    { name:'俯身侧平举', sets:3, reps:'12-15', rest:45, base:0.2, video:vid(560,'俯身侧平举'),
-      standard:'俯身约 45°，后束主导向两侧抬起。',
-      note:'脖子放松，别耸肩。' },
-    { name:'颈后臂屈伸', sets:3, reps:'10-12', rest:45, base:0.3, video:vid(1300,'颈后臂屈伸 21:40'),
-      standard:'上臂贴耳固定，仅小臂伸展。',
-      note:'肘别外撇，动作慢。' },
-  ]},
-  pull: { name:'拉日 · 背二头', greeting:'练背啦，想象把世界拉向你(｡･ω･｡)', ex:[
-    { name:'单臂哑铃划船', sets:4, reps:'10-12', rest:60, base:0.7, video:vid(300,'单臂哑铃划船'),
-      standard:'脊柱中立，肘贴身体向后上方拉，背阔主导。',
-      note:'别用惯性甩，顶峰夹背。' },
-    { name:'俯身哑铃硬拉', sets:3, reps:'10-12', rest:75, base:0.9, video:vid(500,'俯身哑铃硬拉'),
-      standard:'髋铰链，哑铃贴腿下滑，臀腿主导。',
-      note:'腰挺直，别圆背。' },
-    { name:'哑铃耸肩', sets:3, reps:'12-15', rest:45, base:0.8, video:vid(620,'哑铃耸肩'),
-      standard:'直上直下耸肩，顶峰停顿。',
-      note:'别转肩，斜方发力。' },
-    { name:'俯身哑铃面拉', sets:3, reps:'12-15', rest:45, base:0.2, video:vid(700,'面拉'),
-      standard:'俯身，双手各持一哑铃，拉向眉心方向并外旋，后束主导。',
-      note:'居家哑铃版面拉，改善圆肩，别耸肩。' },
-    { name:'锤式弯举', sets:3, reps:'10-12', rest:45, base:0.3, video:vid(900,'锤式弯举'),
-      standard:'中立握，肘固定身体两侧弯举。',
-      note:'别借力摆。' },
-    { name:'集中弯举', sets:3, reps:'10-12', rest:45, base:0.2, video:vid(980,'集中弯举'),
-      standard:'肘抵大腿内侧，顶峰收缩二头。',
-      note:'慢起慢落。' },
-  ]},
-  legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
-    { name:'高脚杯深蹲', sets:4, reps:'10-12', rest:75, base:1.0, video:vid(832,'高脚杯深蹲 13:52'),
-      standard:'哑铃抱胸，髋膝同步下蹲至大腿水平，重心在足中。',
-      note:'膝盖跟脚尖同向，别内扣。' },
-    { name:'保加利亚分腿蹲', sets:3, reps:'10-12', rest:60, base:0.6, video:{ url:'https://search.bilibili.com/all?keyword=保加利亚分腿蹲', label:'保加利亚分腿蹲（合集外·站内搜）' },
-      standard:'后脚搭凳，前腿下蹲至 90°，躯干略前倾。',
-      note:'合集未收录，已给站内搜索兜底；核心收紧。' },
-    { name:'哑铃罗马尼亚硬拉', sets:3, reps:'10-12', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
-      standard:'微屈膝，髋后推，腘绳主导，背挺直。',
-      note:'下放靠腘绳拉伸感，别圆背。' },
-    { name:'哑铃箭步蹲', sets:3, reps:'12/腿', rest:60, base:0.6, video:vid(860,'哑铃箭步蹲'),
-      standard:'向前迈步下蹲，前后腿约 90°。',
-      note:'躯干稳定，膝盖不内扣。' },
-    { name:'站姿提踵', sets:3, reps:'15-20', rest:40, base:0.8, video:vid(1000,'站姿提踵'),
-      standard:'踮脚至顶端停顿，慢落。',
-      note:'全程控制，别弹震。' },
-    { name:'臀桥', sets:3, reps:'12-15', rest:45, base:1.0, video:vid(950,'臀桥'),
-      standard:'肩撑地，髋顶起至肩髋膝一线。',
-      note:'顶峰夹臀停顿。' },
-  ]},
-  pump: { name:'泵感日 · 手臂胸', greeting:'小重量高次数，今天主打一个泵！', ex:[
-    { name:'哑铃飞鸟', sets:3, reps:'12-15', rest:45, base:0.3, video:vid(250,'哑铃飞鸟'),
-      standard:'微屈肘画弧，胸肌拉伸到收缩。',
-      note:'别用太大重量，感受胸。' },
-    { name:'二头弯举', sets:3, reps:'12-15', rest:45, base:0.25, video:vid(880,'二头弯举'),
-      standard:'肘固定，慢起慢落全幅度。',
-      note:'别甩。' },
-    { name:'三头下压', sets:3, reps:'12-15', rest:45, base:0.2, video:vid(1320,'三头下压'),
-      standard:'大臂贴体，仅小臂下压。',
-      note:'顶峰伸尽。' },
-    { name:'腕弯举', sets:3, reps:'15-20', rest:40, base:0.1, video:vid(1100,'腕弯举'),
-      standard:'前臂固定，腕部屈伸。',
-      note:'小重量即可。' },
-    { name:'卷腹', sets:3, reps:'15-20', rest:40, base:0, video:vid(1150,'卷腹'),
-      standard:'腹肌收缩卷起，下背贴地。',
-      note:'别用脖子拉。' },
-  ]},
+/* ---------- 训练计划：两套独立方案（A 有卧推椅 / B 无卧推椅）----------
+   两套均覆盖 推 / 拉 / 腿 / 核心 四大肌群，各 4 训练日 × 6 动作 = 24 个动作；
+   两套数据各自完整、互不交叉引用（切换方案只换数据源，不共享动作对象）。
+
+   动作字段格式（两套统一）：
+     name     动作名
+     muscle   目标肌群
+     sets     组数
+     reps     每组次数（支撑类等长动作为秒数）
+     tempo    动作节奏「离心-底停-向心」秒数，如 2-1-1；等长动作写「静态」
+     breath   呼吸方式
+     rest     组间休息（秒）
+     base     起始建议重量系数（× 单只哑铃重量，见 suggKg）；自重动作为 0
+     video    教学视频（卓叔合集时间戳；合集未收录的用站内搜索兜底，不伪造时间戳）
+     standard 动作标准
+     note     常见错误提示 */
+const bsearch = kw => ({ url: 'https://search.bilibili.com/all?keyword=' + encodeURIComponent(kw), label: kw + '（合集外·站内搜）' });
+const PLAN_SETS = {
+  /* ===== A 套：居家 · 有卧推椅 ===== */
+  A: {
+    key: 'A',
+    name: '居家 · 有卧推椅',
+    sub: '有一张可调角度的卧推椅（或稳固长凳）',
+    fit: '家里已有卧推椅 / 可调长凳，想让胸背动作更贴近健身房版（平板与上斜卧推、手撑椅划船、肩撑椅臀桥）。',
+    days: {
+      push: { name:'推日 · 胸肩三头', greeting:'今天练胸肩，把手机放下，胸肌支棱起来！', ex:[
+        { name:'哑铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:vid(139,'哑铃卧推 02:19'),
+          standard:'肩胛后缩下沉贴住椅面，哑铃下放至胸侧乳线高度，推起时胸肌主动收缩。',
+          note:'别耸肩借力；小臂保持垂直地面，手腕中立不翻。' },
+        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:60, base:0.6, video:vid(230,'上斜哑铃推举'),
+          standard:'椅背调到 30° 左右，推举轨迹略向锁骨方向聚拢。',
+          note:'角度别太高，超过 45° 就变成肩推，压肩膀。' },
+        { name:'坐姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:vid(420,'哑铃肩推'),
+          standard:'靠背支撑，核心收紧，推至顶端不锁死肘，肩胛稳定。',
+          note:'腰别反弓代偿，重量宁轻勿借。' },
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
+          standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿 1 秒。',
+          note:'别甩重量，用肩中束发力而不是斜方。' },
+        { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:bsearch('仰卧哑铃臂屈伸'),
+          standard:'仰卧在椅上，上臂保持垂直于地面，仅小臂做屈伸。',
+          note:'肘别外撇，动作放慢，别用手腕甩。' },
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:vid(560,'俯身侧平举'),
+          standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
+          note:'脖子放松别耸肩，重量轻一点更找得到后束。' },
+      ]},
+      pull: { name:'拉日 · 背二头', greeting:'练背啦，想象把世界拉向你(｡･ω･｡)', ex:[
+        { name:'单臂哑铃划船（手撑椅）', muscle:'背阔肌 · 大圆肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:vid(300,'单臂哑铃划船'),
+          standard:'一手一膝撑椅，脊柱中立，肘贴身体向后上方拉，背阔主导。',
+          note:'别用惯性甩，顶峰夹背停 1 秒。' },
+        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:bsearch('俯身哑铃划船'),
+          standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
+          note:'腰别塌、别圆背，起身时不要用腰硬拽。' },
+        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:vid(620,'哑铃耸肩'),
+          standard:'直上直下耸肩，顶峰停顿 1 秒。',
+          note:'别转肩画圈，斜方发力。' },
+        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:vid(700,'面拉'),
+          standard:'俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。',
+          note:'居家哑铃版面拉，改善圆肩，别耸肩。' },
+        { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:vid(900,'锤式弯举'),
+          standard:'中立握（锤式），肘固定于身体两侧做弯举。',
+          note:'别借力摆动身体。' },
+        { name:'集中弯举', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:vid(980,'集中弯举'),
+          standard:'坐姿，肘抵同侧大腿内侧，顶峰主动收缩二头。',
+          note:'慢起慢落，别用手腕带。' },
+      ]},
+      legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
+        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:vid(832,'高脚杯深蹲 13:52'),
+          standard:'哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。',
+          note:'膝盖跟脚尖同向，别内扣。' },
+        { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
+          standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
+          note:'靠腘绳拉伸感控制下放，别圆背。' },
+        { name:'保加利亚分腿蹲（后脚搭椅）', muscle:'股四头肌 · 臀大肌', sets:3, reps:'10-12/腿', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:bsearch('保加利亚分腿蹲'),
+          standard:'后脚背搭在椅面上，前腿下蹲至约 90°，躯干略前倾。',
+          note:'合集未收录，已给站内搜索兜底；核心收紧别晃。' },
+        { name:'哑铃箭步蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:vid(860,'哑铃箭步蹲'),
+          standard:'向前迈步下蹲，前后腿各约 90°，后膝接近地面。',
+          note:'躯干保持稳定，膝盖不内扣。' },
+        { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:vid(1000,'站姿提踵'),
+          standard:'踮到顶端停顿 1 秒，慢速落下充分拉伸。',
+          note:'全程控制，别靠弹震借力。' },
+        { name:'臀桥（肩撑椅）', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12-15', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:vid(950,'臀桥'),
+          standard:'肩胛撑在椅面，髋顶起至肩-髋-膝成一条直线。',
+          note:'顶峰主动夹臀停顿，别用腰顶。' },
+      ]},
+      core: { name:'核心日 · 腰腹', greeting:'核心稳了，全身都听话~', ex:[
+        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:vid(1150,'卷腹'),
+          standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
+          note:'别用脖子拉，手别抱头使劲。' },
+        { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:bsearch('反向卷腹'),
+          standard:'仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。',
+          note:'落下时腰别弹起，慢速离心。' },
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:bsearch('平板支撑'),
+          standard:'耳-肩-髋-踝一条直线，臀部与腹部同时收紧。',
+          note:'别塌腰或撅屁股，撑不住就降膝盖。' },
+        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:bsearch('俄罗斯转体'),
+          standard:'坐姿屈膝，双手持一只哑铃向身体两侧转体触地。',
+          note:'别只甩手，用腹斜肌带动躯干旋转。' },
+        { name:'死虫式', muscle:'核心抗伸展 · 腹横肌', sets:3, reps:'12/侧', tempo:'2-1-2', breath:'伸展吸气，收回呼气', rest:40, base:0, video:bsearch('死虫式'),
+          standard:'仰卧，对侧手脚缓慢伸展，腰背始终贴紧地面。',
+          note:'腰一旦离地就停止伸展，幅度宁小勿大。' },
+        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:bsearch('侧平板支撑'),
+          standard:'肘在肩正下方，髋部抬起成一条直线。',
+          note:'别塌髋，两侧时间要对称。' },
+      ]},
+    }
+  },
+  /* ===== B 套：居家 · 无卧推椅 ===== */
+  B: {
+    key: 'B',
+    name: '居家 · 无卧推椅',
+    sub: '只有哑铃 + 地板（可选稳固凳子 / 台阶）',
+    fit: '家里没有卧推椅，不想为训练添大件；上肢推类改用地板动作，行程受限但更安全、对肩更友好。',
+    days: {
+      push: { name:'推日 · 胸肩三头', greeting:'地板也能练出胸，今天稳稳推！', ex:[
+        { name:'地板哑铃卧推', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:bsearch('地板哑铃卧推'),
+          standard:'仰卧地面屈膝，肘触地即停，推起时胸肌主动收缩。',
+          note:'合集未收录，已给站内搜索兜底；肘别外展 90° 直角，约 45° 更护肩。' },
+        { name:'地板哑铃飞鸟', muscle:'胸大肌（拉伸位刺激）', sets:3, reps:'12-15', tempo:'2-1-1', breath:'展开吸气，合拢呼气', rest:45, base:0.3, video:vid(250,'哑铃飞鸟'),
+          standard:'微屈肘画弧下放至肘接近地面，再靠胸肌合拢。',
+          note:'别用太大重量，感受胸肌拉伸与收缩。' },
+        { name:'站姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:vid(420,'哑铃肩推'),
+          standard:'站姿核心收紧，推至顶端不锁死肘，肩胛稳定。',
+          note:'腰别反弓代偿，站姿比坐姿更考验核心。' },
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
+          standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿。',
+          note:'别甩重量，用肩中束发力。' },
+        { name:'单臂过顶臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:bsearch('单臂过顶臂屈伸'),
+          standard:'站姿或坐姿，单手持哑铃过头顶，上臂贴耳固定，仅小臂屈伸。',
+          note:'合集未收录，已给站内搜索兜底；肘别外撇，动作放慢。' },
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:vid(560,'俯身侧平举'),
+          standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
+          note:'脖子放松别耸肩。' },
+      ]},
+      pull: { name:'拉日 · 背二头', greeting:'没有椅子也能练背，拉起来！', ex:[
+        { name:'单臂哑铃划船（扶墙/凳）', muscle:'背阔肌 · 大圆肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:vid(300,'单臂哑铃划船'),
+          standard:'一手扶墙或稳固凳面，身体前倾，肘贴身体向后上方拉。',
+          note:'别用惯性甩，顶峰夹背停 1 秒。' },
+        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:bsearch('俯身哑铃划船'),
+          standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
+          note:'合集未收录，已给站内搜索兜底；腰别塌、别圆背。' },
+        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:vid(620,'哑铃耸肩'),
+          standard:'直上直下耸肩，顶峰停顿 1 秒。',
+          note:'别转肩画圈。' },
+        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:vid(700,'面拉'),
+          standard:'俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。',
+          note:'改善圆肩，别耸肩。' },
+        { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:vid(900,'锤式弯举'),
+          standard:'中立握，肘固定于身体两侧做弯举。',
+          note:'别借力摆动身体。' },
+        { name:'集中弯举（坐姿）', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:vid(980,'集中弯举'),
+          standard:'坐地上或凳上，肘抵同侧大腿内侧，顶峰收缩二头。',
+          note:'慢起慢落，别用手腕带。' },
+      ]},
+      legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
+        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:vid(832,'高脚杯深蹲 13:52'),
+          standard:'哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。',
+          note:'膝盖跟脚尖同向，别内扣。' },
+        { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
+          standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
+          note:'靠腘绳拉伸感控制下放，别圆背。' },
+        { name:'哑铃相扑深蹲', muscle:'股四头肌内侧 · 臀大肌 · 大腿内收肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.7, video:bsearch('相扑深蹲'),
+          standard:'宽站距、脚尖外展，哑铃垂于身前，髋膝同步下蹲。',
+          note:'合集未收录，已给站内搜索兜底；膝盖始终跟脚尖同向。' },
+        { name:'原地哑铃分腿蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:bsearch('原地分腿蹲'),
+          standard:'前后分腿站定，原地下降至前后腿各约 90°。',
+          note:'合集未收录，已给站内搜索兜底；躯干稳定，别左右晃。' },
+        { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:vid(1000,'站姿提踵'),
+          standard:'踮到顶端停顿 1 秒，慢速落下充分拉伸。',
+          note:'全程控制，别靠弹震借力。' },
+        { name:'单腿臀桥', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12/侧', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:bsearch('单腿臀桥'),
+          standard:'仰卧地面，单脚支撑顶髋至肩-髋-膝一线，另腿伸直悬空。',
+          note:'合集未收录，已给站内搜索兜底；骨盆别歪，顶峰夹臀。' },
+      ]},
+      core: { name:'核心日 · 腰腹', greeting:'核心稳了，全身都听话~', ex:[
+        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:vid(1150,'卷腹'),
+          standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
+          note:'别用脖子拉，手别抱头使劲。' },
+        { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:bsearch('反向卷腹'),
+          standard:'仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。',
+          note:'落下时腰别弹起，慢速离心。' },
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:bsearch('平板支撑'),
+          standard:'耳-肩-髋-踝一条直线，臀部与腹部同时收紧。',
+          note:'别塌腰或撅屁股，撑不住就降膝盖。' },
+        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:bsearch('俄罗斯转体'),
+          standard:'坐姿屈膝，双手持一只哑铃向身体两侧转体触地。',
+          note:'别只甩手，用腹斜肌带动躯干旋转。' },
+        { name:'登山者', muscle:'核心 · 髋屈肌', sets:3, reps:'20', tempo:'快节奏', breath:'均匀呼吸，不憋气', rest:40, base:0, video:bsearch('登山者'),
+          standard:'俯撑姿势，交替把膝盖收向胸口，臀部不上抬。',
+          note:'合集未收录，已给站内搜索兜底；别撅屁股，速度服从姿势。' },
+        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:bsearch('侧平板支撑'),
+          standard:'肘在肩正下方，髋部抬起成一条直线。',
+          note:'别塌髋，两侧时间要对称。' },
+      ]},
+    }
+  }
 };
-// 7 天类型：周日休，其余按 推/拉/腿/泵/推/拉 循环
-const DAY_TYPES = ['rest','push','pull','legs','pump','push','pull'];
+/* 当前生效的训练日数据（切换方案时整体替换，见 applyPlanSet） */
+let PLANS = PLAN_SETS.A.days;
+// 7 天类型：周日休，其余按 推/拉/腿/核心/推/拉 循环
+// v8.1：第 5 天键名由 pump（泵感日·手臂胸）改为 core（核心日·腰腹），与「推/拉/腿/核心」的肌群划分保持一致；
+//       老数据里 planEdits / exLast 的 pump 键会在下方迁移段自动改名，已编辑的组数与上次重量不丢。
+const DAY_TYPES = ['rest','push','pull','legs','core','push','pull'];
 const WEEKDAY = ['周日','周一','周二','周三','周四','周五','周六'];
 const getDayType = w => (Number.isInteger(+w) && w >= 0 && w <= 6) ? DAY_TYPES[w] : 'rest';
 const dayTypeLabel = t => t === 'rest' ? '休息日' : PLANS[t].name;
@@ -489,6 +610,7 @@ let STATE = Object.assign({
   myEx:[],                                   // v7.8：自定义动作 [{id,name,part,sets,reps,rest,note}]
   bodyWeights:[],                            // v7.8：体重曲线 [{d:'Y-M-D', w:70.5}]
   vision:{ mode:'off', endpoint:'', token:'', model:'glm-4v-flash' },  // v7.8：AI 图像识别
+  planSet:'A',                               // v8.1：训练方案 A=有卧推椅 / B=无卧推椅
 }, load());
 // v7.5 数据迁移：旧版饮水按“杯”（1杯≈250ml），一次性换算为 ml
 if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
@@ -509,6 +631,18 @@ if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:
 if(typeof STATE.settings.bg !== 'string') STATE.settings.bg = '';
 if(typeof STATE.settings.coachName !== 'string') STATE.settings.coachName = '';
 if(typeof STATE.settings.coachAvatar !== 'string') STATE.settings.coachAvatar = '';
+/* v8.1 训练方案迁移（可逆：脏值一律落到 A 套，不丢任何训练数据）
+   ① 方案键：'A' / 'B'，其他值（含旧版本没有此字段）统一为 'A'。
+   ② 训练日键重命名：老版本的 pump（泵感日·手臂胸）→ core（核心日·腰腹），
+      把 planEdits / exLast 里的同名键搬过去，用户改过的组数与记录过的重量不丢。 */
+if(STATE.planSet !== 'A' && STATE.planSet !== 'B') STATE.planSet = 'A';
+if(!STATE.planEdits || typeof STATE.planEdits !== 'object') STATE.planEdits = {};
+if(!STATE.exLast || typeof STATE.exLast !== 'object') STATE.exLast = {};
+if(STATE.planEdits.pump && !STATE.planEdits.core){ STATE.planEdits.core = STATE.planEdits.pump; delete STATE.planEdits.pump; }
+if(STATE.exLast.pump && !STATE.exLast.core){ STATE.exLast.core = STATE.exLast.pump; delete STATE.exLast.pump; }
+/* 方案调度：切换只替换训练日数据源，打卡 / 重量 / 自定义动作等既有数据完全不动 */
+function planSetMeta(){ return PLAN_SETS[STATE.planSet] || PLAN_SETS.A; }
+function applyPlanSet(){ PLANS = planSetMeta().days; }
 
 /* ---------- 工具 ---------- */
 const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
@@ -1369,7 +1503,8 @@ function renderTraining(body){
     <div class="dash"></div><p style="font-size:12px;color:var(--faint)">想看动作？点上方其他训练日 →</p></div>`;
   } else {
     const plan=PLANS[t]; const exDone=STATE.checkins[sel]?.ex||{};
-    html+=`<div class="card"><h4>${plan.name} <span class="tag">居家哑铃</span><span class="tag">约 ${estMin(plan)} 分钟</span></h4><p style="font-size:12px;color:var(--ink2)">${plan.greeting}</p>
+    const _ps=planSetMeta();
+    html+=`<div class="card"><h4>${plan.name} <span class="tag">${_ps.key} 套 · ${esc(_ps.name.replace('居家 · ',''))}</span><span class="tag">居家哑铃</span><span class="tag">约 ${estMin(plan)} 分钟</span></h4><p style="font-size:12px;color:var(--ink2)">${plan.greeting}</p>
       <button class="plan-edit-btn" id="plan-edit">${STATE.editPlan?'完成编辑 ✓':'✎ 编辑计划'}</button></div>`;
     plan.ex.forEach((e,i)=>{
       const finished=exDone[i];
@@ -1380,6 +1515,8 @@ function renderTraining(body){
         : '';
       const overRow = ov.next ? `<div class="ex-over">上次 <b>${ov.cur}</b>kg · 建议 <b>${ov.next}</b>kg${ov.ready?` <button data-apply="${i}">应用 +2.5</button>`:'（达标后解锁）'}</div>` : '';
       html+=`<div class="ex"><div class="ex-top"><span class="ex-no">${i+1}</span><span class="ex-name">${e.name}</span><span class="ex-sets">${eff.sets}×${eff.reps} · 休${e.rest}s</span></div>
+        <div class="ex-muscle">${esc(e.muscle||'')}</div>
+        <div class="ex-meta"><span>节奏 ${esc(e.tempo||'-')}</span><span>呼吸 ${esc(e.breath||'-')}</span></div>
         <div class="ex-kv"><span class="k">动作标准</span><span class="v ok">${e.standard}</span><span class="k">注意事项</span><span class="v warn">${e.note}</span></div>
         <div class="ex-weight">起始重量 <input type="number" inputmode="decimal" value="${STATE.weights[sel]?.[i] ?? (suggKg(e)||'')}" placeholder="kg" data-w="${i}"> kg</div>
         ${editRow}${overRow}
@@ -2410,11 +2547,19 @@ function renderProfile(body){
       <p style="font-size:11px;color:var(--faint);padding:4px 0 10px">体重/哑铃改动会即时影响：训练建议起始重量、每日蛋白/热量/饮水目标、体重趋势。</p>
     </div>
     <div class="card" style="padding:6px 14px">
+      <h4 style="margin:8px 0 2px">训练方案 <span class="tag">${planSetMeta().name}</span></h4>
+      <p style="font-size:11px;color:var(--faint);line-height:1.6">两套方案各自完整、互不交叉：均为 4 个训练日（推 / 拉 / 腿 / 核心）× 6 个动作。切换只换动作数据源，<b>打卡记录、重量记录、自定义动作都不受影响</b>。</p>
+      <div class="av-row" id="plan-pick" style="margin-top:8px">
+        ${['A','B'].map(k=>{ const s=PLAN_SETS[k]; return `<button class="plan-pick${STATE.planSet===k?' on':''}" data-plan="${k}" title="${esc(s.name)}"><b>${k} 套</b><span>${esc(s.name.replace('居家 · ',''))}</span><em>${esc(s.sub)}</em></button>`; }).join('')}
+      </div>
+      <p id="plan-fit" style="font-size:11px;color:var(--faint);line-height:1.6;padding-top:8px">适用：${esc(planSetMeta().fit)}</p>
+    </div>
+    <div class="card" style="padding:6px 14px">
       <div class="list-row"><span class="lr-ic">🔥</span>连续打卡<b style="margin-left:auto">${streak()} 天</b></div>
       <div class="list-row"><span class="lr-ic">💧</span>今日饮水<b style="margin-left:auto">${STATE.waterMl||0} ml / ${g.water} ml</b></div>
       <div class="list-row"><span class="lr-ic">🎯</span>今日目标<b style="margin-left:auto">${g.protein}g 蛋白 · ${g.kcal} kcal</b></div>
       <div class="list-row"><span class="lr-ic">📚</span>知识库<b style="margin-left:auto">${KB.length} 条</b></div>
-      <div class="list-row" id="skin-row"><span class="lr-ic">🎨</span>桌宠形象与外观设置<b style="margin-left:auto">v7.10<span class="lr-ar">›</span></b></div>
+      <div class="list-row" id="skin-row"><span class="lr-ic">🎨</span>桌宠形象与外观设置<b style="margin-left:auto">v8.1<span class="lr-ar">›</span></b></div>
       <p style="font-size:10.5px;color:var(--faint);padding:2px 0 8px">下方可更换：桌宠形象 / 桌面背景 / 教练名字与头像。</p>
     </div>
     <div class="card" style="padding:6px 14px">
@@ -2502,6 +2647,17 @@ function renderProfile(body){
   if(coName) coName.oninput=()=>{
     STATE.settings.coachName = coName.value.trim().slice(0,10);
     save(); applyCoachIdentity();
+  };
+  // v8.1 训练方案切换：只换数据源，打卡 / 重量 / 自定义动作一律不动
+  const planPick=$('#plan-pick');
+  if(planPick) planPick.onclick=e=>{
+    const b=e.target.closest('.plan-pick'); if(!b) return;
+    const k=b.dataset.plan;
+    if(k!=='A' && k!=='B') return;            // 脏值一律忽略，不写进 STATE
+    if(k===STATE.planSet) return;
+    STATE.planSet=k; save(); applyPlanSet();
+    renderProfile(body); renderHome();
+    toast('已切换到 ' + PLAN_SETS[k].name);
   };
   const coAvs=$('#co-avs');
   if(coAvs) coAvs.onclick=e=>{
@@ -2635,10 +2791,14 @@ function importJSON(){
           profile:null, isFirstLaunch:true, checkins:{}, weights:{}, meals:{}, water:0, waterMl:null,
           scores:{},
           petPos:null, petDock:null, petMood:'happy', lastPetTouch:Date.now(),
-          planEdits:{}, exLast:{}, editPlan:false,
+          planEdits:{}, exLast:{}, editPlan:false, planSet:'A',
         }, st);
         if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
         if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
+        // v8.1：导入的方案键同样做校验 + pump→core 键名迁移
+        if(STATE.planSet !== 'A' && STATE.planSet !== 'B') STATE.planSet = 'A';
+        if(STATE.planEdits && STATE.planEdits.pump && !STATE.planEdits.core){ STATE.planEdits.core = STATE.planEdits.pump; delete STATE.planEdits.pump; }
+        if(STATE.exLast && STATE.exLast.pump && !STATE.exLast.core){ STATE.exLast.core = STATE.exLast.pump; delete STATE.exLast.pump; }
         // v7.10：导入备份同样过一遍新字段容错（背景/教练/桌宠皮肤）
         if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:'', coachName:'', coachAvatar:'' };
         if(['nahida','spiderV1','spiderV2','spiderV3','official'].indexOf(STATE.petSkin)<0) STATE.petSkin='spiderV3';
@@ -2669,6 +2829,7 @@ $('#done-ok') && ($('#done-ok').onclick=()=>navUIClose('done-modal'));
 function boot(){
   // v7.10：应用可更换背景与教练身份（在首屏渲染前）
   applyWallpaper(); applyCoachIdentity();
+  applyPlanSet();                    // v8.1：按已选方案挂载训练日数据（A 有卧推椅 / B 无卧推椅）
   renderHome(); initPet(); showOnboard();
   // v7.10 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
   document.addEventListener('visibilitychange', ()=>{

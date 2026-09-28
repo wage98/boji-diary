@@ -465,7 +465,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -646,6 +646,103 @@ function v711Checks() {
       if(!rep) return false;
       const t = fs.readFileSync(path.join(PROJ, 'eval-set', 'last-simulate-report.txt'), 'utf8');
       return t.indexOf('准确率') >= 0 && t.indexOf('迭代效果') >= 0;
+    });
+  }
+}
+
+// ===== v8.1 增量：A/B 两套训练方案（有/无卧推椅） =====
+function v81Checks() {
+  const DAYS = ['push', 'pull', 'legs', 'core'];
+  // M1–M5 两套方案的完整性与字段规范
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const sets = w.eval('PLAN_SETS');
+    check('M1 两套方案齐全（A 有卧推椅 / B 无卧推椅），各含推/拉/腿/核心 4 天',
+      () => !!sets.A && !!sets.B && DAYS.every(d => sets.A.days[d] && sets.B.days[d]));
+    check('M2 每套动作数量充分（≥24，即 4 天 × ≥6 动作）', () => {
+      const n = s => DAYS.reduce((a, d) => a + s.days[d].ex.length, 0);
+      return n(sets.A) >= 24 && n(sets.B) >= 24
+        && DAYS.every(d => sets.A.days[d].ex.length >= 6 && sets.B.days[d].ex.length >= 6);
+    });
+    check('M3 两套互不交叉引用（动作对象不共享，改一套不影响另一套）', () => {
+      const objs = [];
+      ['A', 'B'].forEach(k => DAYS.forEach(d => sets[k].days[d].ex.forEach(e => objs.push(e))));
+      for (let i = 0; i < objs.length; i++)                 // 同一对象引用出现两次即为交叉引用
+        for (let j = i + 1; j < objs.length; j++) if (objs[i] === objs[j]) return false;
+      const before = sets.B.days.push.ex[0].name;
+      sets.A.days.push.ex[0].name = '__tmp__';              // 改 A 不应影响 B
+      const clean = sets.B.days.push.ex[0].name === before;
+      sets.A.days.push.ex[0].name = sets.A.days.push.ex[0].name === '__tmp__' ? before : sets.A.days.push.ex[0].name;
+      return clean;
+    });
+    check('M4 每个动作字段齐全（名称/肌群/组数/次数/节奏/呼吸/休息/标准/易错/视频）', () => {
+      const need = ['name', 'muscle', 'sets', 'reps', 'tempo', 'breath', 'rest', 'standard', 'note', 'video'];
+      let okAll = true;
+      ['A', 'B'].forEach(k => DAYS.forEach(d => sets[k].days[d].ex.forEach(e => {
+        if (!need.every(f => e[f] !== undefined && e[f] !== null && e[f] !== '')) okAll = false;
+      })));
+      return okAll;
+    });
+    check('M5 动作视频链接均为合法 https（合集未收录时用站内搜索兜底，不伪造时间戳）',
+      () => DAYS.every(d => sets.A.days[d].ex.concat(sets.B.days[d].ex)
+        .every(e => /^https:\/\//.test(e.video.url) && !!e.video.label)));
+  }
+  // M6–M9 切换与数据兼容
+  {
+    check('M6 默认方案为 A，脏值一律回落 A',
+      () => boot(J({ profile: { weight: 70 } })).__S.planSet === 'A'
+        && boot(J({ profile: { weight: 70 }, planSet: 'zzz' })).__S.planSet === 'A'
+        && boot(J({ profile: { weight: 70 }, planSet: 'B' })).__S.planSet === 'B');
+    const w2 = boot(J({ profile: { weight: 70 }, planSet: 'B' }));
+    check('M7 切换方案后 PLANS 指向对应数据源', () => {
+      const S = w2.eval('PLAN_SETS');
+      w2.eval('applyPlanSet')();
+      const cur = w2.eval('PLANS');
+      return cur === S.B.days && cur.push.ex[0].name !== S.A.days.push.ex[0].name;
+    });
+    check('M8 切换方案不丢打卡 / 重量 / 自定义动作', () => {
+      const w3 = boot(J({ profile: { weight: 70 }, planSet: 'A',
+        checkins: { '2026-9-28': { ex: { 0: true, 1: true } } },
+        weights: { '2026-9-28': { 0: '12.5' } },
+        myEx: [{ id: 'm1', name: '测试动作', part: '胸', sets: 3, reps: '10', rest: 60, note: '' }] }));
+      w3.__S.planSet = 'B'; w3.eval('applyPlanSet')();
+      return w3.__S.checkins['2026-9-28'].ex[0] === true
+        && w3.__S.weights['2026-9-28'][0] === '12.5'
+        && w3.__S.myEx.length === 1;
+    });
+    check('M9 老数据 pump 键迁移为 core（已改组数与上次重量不丢）', () => {
+      const w4 = boot(J({ profile: { weight: 70 }, planEdits: { pump: { 0: { sets: 5 } } }, exLast: { pump: { 0: '20' } } }));
+      return !!w4.__S.planEdits.core && w4.__S.planEdits.core[0].sets === 5
+        && !!w4.__S.exLast.core && w4.__S.exLast.core[0] === '20'
+        && w4.__S.planEdits.pump === undefined;
+    });
+  }
+  // M10–M11 渲染级冒烟：训练页与设置页能正常渲染，切换后内容跟着变
+  {
+    const w = boot(J({ profile: { weight: 70, height: 170, dumbbell: 10 }, planSet: 'A' }));
+    w.goModule('training');
+    const htmlA = w.document.getElementById('mod-body').innerHTML;
+    check('M10 训练页渲染：含动作名 / 目标肌群 / 节奏 / 呼吸 / 方案标签', () => {
+      const first = w.eval('PLAN_SETS').A.days[w.eval('getDayType')(new Date().getDay())];
+      const t = w.eval('getDayType')(new Date().getDay());
+      if (t === 'rest') return true;                       // 周日休息日不渲染动作，跳过
+      return htmlA.indexOf(first.ex[0].name) >= 0
+        && htmlA.indexOf(first.ex[0].muscle) >= 0
+        && htmlA.indexOf('节奏') >= 0 && htmlA.indexOf('呼吸') >= 0
+        && htmlA.indexOf('A 套') >= 0;
+    });
+    w.goModule('profile');
+    const phtml = w.document.getElementById('mod-body').innerHTML;
+    check('M11 设置页含训练方案切换 UI（A/B 两个选项 + 适用场景）',
+      () => phtml.indexOf('plan-pick') >= 0 && phtml.indexOf('data-plan="A"') >= 0
+        && phtml.indexOf('data-plan="B"') >= 0 && phtml.indexOf('适用：') >= 0);
+    check('M12 点击 B 套后方案切换生效且页面不崩', () => {
+      const btn = w.document.querySelector('#plan-pick .plan-pick[data-plan="B"]');
+      if (!btn) return false;
+      w.__click(btn);
+      const ok = w.__S.planSet === 'B' && w.eval('PLANS') === w.eval('PLAN_SETS').B.days;
+      w.goModule('training');                              // 切换后仍要能正常渲染训练页
+      return ok && w.document.getElementById('mod-body').innerHTML.indexOf('B 套') >= 0;
     });
   }
 }

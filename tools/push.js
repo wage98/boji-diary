@@ -14,7 +14,8 @@ const MSG = (process.argv[2] || 'chore: 更新项目文件') + '\n\n由 tools/pu
 const AUTHOR = { name: 'boji-diary', email: 'boji-diary@users.noreply.github.com' };
 
 const PROJ = path.join(__dirname, '..');
-const SKIP_DIR = new Set(['.git', '.workbuddy', '_archive', 'node_modules', 'dist', 'build', 'eval-set']);   // eval-set：30MB 测试图不入库，仅留本地
+// 不入库的目录：eval-set 30MB 测试图、_archive 本地归档、_shot 截图与抽帧产物
+const SKIP_DIR = new Set(['.git', '.workbuddy', '_archive', 'node_modules', 'dist', 'build', 'eval-set', '_shot']);
 const SKIP_EXT = new Set(['.zip', '.tmp', '.log', '.mjs']);
 const SKIP_PREFIX = ['_shot'];   // 形象截图临时文件（.html/.png）不推送
 
@@ -50,7 +51,21 @@ async function gh(method, url, body) {
   const pc = await gh('GET', '/git/commits/' + parent);
   const baseTree = pc.tree.sha;
 
+  /* 同步删除：Git Data API 以 base_tree 增量提交，本地已删/已移动的文件不会自动消失，
+     必须显式列出 sha:null 才会从仓库移除（v8.1 整理了目录，需要清掉旧的 _shot/ 与改名前的文档）。
+     只删 blob，且只删「远端有、本地没有」的路径。 */
+  const rt = await gh('GET', '/git/trees/' + baseTree + '?recursive=1');
+  const remotePaths = (rt.tree || []).filter(x => x.type === 'blob').map(x => x.path);
+  const localSet = new Set(files.map(f => f.rel.replace(/\\/g, '/')));
+  const removed = remotePaths.filter(p => !localSet.has(p));
+  if (removed.length) {
+    console.log('将在仓库中删除（本地已不存在）:', removed.length, '个');
+    removed.slice(0, 12).forEach(p => console.log('  ×', p));
+    if (removed.length > 12) console.log('  …等共', removed.length, '个');
+  }
+
   const tree = [];
+  removed.forEach(p => tree.push({ path: p, mode: '100644', type: 'blob', sha: null }));
   for (const f of files) {
     const buf = fs.readFileSync(f.abs);
     const b = await gh('POST', '/git/blobs', { content: buf.toString('base64'), encoding: 'base64' });
