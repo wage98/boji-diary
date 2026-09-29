@@ -2040,6 +2040,46 @@ function runTrackSVG(pts, w, h){
     <circle cx="${X(pts[pts.length-1]).toFixed(1)}" cy="${Y(pts[pts.length-1]).toFixed(1)}" r="5" fill="#e17055"/>
   </svg>`;
 }
+/* 地图底图（可选，默认关闭）：
+   本项目离线优先，因此默认只画轨迹形状图；用户显式打开后才去加载 OSM 瓦片。
+   瓦片加载失败（离线/被墙）时自动退回纯轨迹视图，不会白屏或卡住。
+   瓦片来自 OpenStreetMap，遵循其使用政策（低流量个人使用）。 */
+function runTileURL(z, x, y){ return 'https://tile.openstreetmap.org/' + z + '/' + x + '/' + y + '.png'; }
+function runFitZoom(pts, w, h){
+  const lats = pts.map(p=>p.lat), lons = pts.map(p=>p.lon);
+  const minLa = Math.min.apply(null, lats), maxLa = Math.max.apply(null, lats);
+  const minLo = Math.min.apply(null, lons), maxLo = Math.max.apply(null, lons);
+  for(let z = 17; z >= 8; z--){
+    const dw = Math.abs(lonToPx(maxLo, z) - lonToPx(minLo, z));
+    const dh = Math.abs(latToPx(minLa, z) - latToPx(maxLa, z));
+    if(dw <= w - 40 && dh <= h - 40) return z;
+  }
+  return 8;
+}
+function runMapHTML(pts, w, h){
+  if(!pts || pts.length < 2) return '';
+  const z = runFitZoom(pts, w, h);
+  const lats = pts.map(p=>p.lat), lons = pts.map(p=>p.lon);
+  const cLa = (Math.min.apply(null,lats) + Math.max.apply(null,lats)) / 2;
+  const cLo = (Math.min.apply(null,lons) + Math.max.apply(null,lons)) / 2;
+  const cx = lonToPx(cLo, z), cy = latToPx(cLa, z);          // 中心点全局像素
+  const ox = cx - w/2, oy = cy - h/2;                        // 视口左上角全局像素
+  const t0x = Math.floor(ox / 256), t0y = Math.floor(oy / 256);
+  const t1x = Math.floor((ox + w) / 256), t1y = Math.floor((oy + h) / 256);
+  let tiles = '';
+  for(let tx = t0x; tx <= t1x; tx++)
+    for(let ty = t0y; ty <= t1y; ty++)
+      tiles += '<img class="run-tile" src="' + runTileURL(z, tx, ty) + '" style="left:' + (tx*256 - ox) +
+               'px;top:' + (ty*256 - oy) + 'px" alt="" loading="lazy">';
+  const X = p => lonToPx(p.lon, z) - ox, Y = p => latToPx(p.lat, z) - oy;
+  const d = pts.map((p,i)=>(i ? 'L' : 'M') + X(p).toFixed(1) + ' ' + Y(p).toFixed(1)).join(' ');
+  return '<div class="run-tiles">' + tiles +
+    '<svg class="run-track" viewBox="0 0 ' + w + ' ' + h + '">' +
+    '<path d="' + d + '" fill="none" stroke="#6c5ce7" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<circle cx="' + X(pts[0]).toFixed(1) + '" cy="' + Y(pts[0]).toFixed(1) + '" r="5.5" fill="#7fc49a" stroke="#fff" stroke-width="2"/>' +
+    '<circle cx="' + X(pts[pts.length-1]).toFixed(1) + '" cy="' + Y(pts[pts.length-1]).toFixed(1) + '" r="5.5" fill="#e17055" stroke="#fff" stroke-width="2"/>' +
+    '</svg></div>';
+}
 function renderRun(body){
   const t = runTotals();
   const live = RUN.active;
@@ -2070,11 +2110,17 @@ function renderRun(body){
     </div>
     ${(live && RUN.pts.length > 1) || rs.length ? `
     <div class="card" style="padding:12px 14px">
-      <h4 style="margin:0 0 8px">${live ? '当前轨迹' : '最近一次轨迹'}</h4>
-      <div class="run-map">${runTrackSVG(live ? RUN.pts : (rs[0] ? rs[0].pts : []), 320, 190)}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <h4 style="margin:0;flex:1">${live ? '当前轨迹' : '最近一次轨迹'}</h4>
+        <button class="ex-do ghost-btn" id="run-map-tg" style="padding:6px 10px">地图底图：${STATE.settings.runMap?'开':'关'}</button>
+      </div>
+      <div class="run-map">${STATE.settings.runMap
+        ? runMapHTML(live ? RUN.pts : (rs[0] ? rs[0].pts : []), 320, 190)
+        : runTrackSVG(live ? RUN.pts : (rs[0] ? rs[0].pts : []), 320, 190)}</div>
       <p style="font-size:10.5px;color:var(--faint);line-height:1.7;padding-top:8px">
-        说明：这里画的是<b>轨迹形状图</b>（离线可用）。若你需要带底图的地图视图，需联网加载地图瓦片；
-        本项目坚持离线优先，因此不内置在线底图，也不伪造地图。
+        ${STATE.settings.runMap
+          ? '底图来自 OpenStreetMap，<b>需要联网</b>；离线或瓦片取不到时会自动只剩轨迹线（不会白屏）。'
+          : '当前为<b>轨迹形状图</b>（离线可用）。打开「地图底图」后会联网加载 OSM 瓦片。'}
       </p>
     </div>` : ''}
     ${rs.length ? `
@@ -2088,6 +2134,9 @@ function renderRun(body){
   `;
   const st = $('#run-start'); if(st) st.onclick = runStart;
   const sp = $('#run-stop'); if(sp) sp.onclick = runStop;
+  const mt = $('#run-map-tg');
+  if(mt) mt.onclick = ()=>{ STATE.settings.runMap = !STATE.settings.runMap; save(); renderModule('run');
+    toast(STATE.settings.runMap ? '已开启地图底图（需联网）' : '已关闭地图底图，回到离线轨迹图'); };
 }
 
 function renderModule(name){

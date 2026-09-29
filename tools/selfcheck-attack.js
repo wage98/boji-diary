@@ -1018,5 +1018,20 @@ function v110bChecks() {
       const rs = w2.__S.runs || [];
       return rs.length === 0;
     });
+    check('P9 地图底图：两点以上生成瓦片与轨迹层，点不足返回空', () => {
+      const f = w.eval('runMapHTML');
+      const two = f([{ lat: 39.9, lon: 116.4 }, { lat: 39.905, lon: 116.408 }], 320, 190);
+      const one = f([{ lat: 39.9, lon: 116.4 }], 320, 190);
+      return two.indexOf('run-tile') >= 0 && two.indexOf('<path') >= 0 && one === '';
+    });
+    check('P10 地图底图默认关闭（离线优先），开启后走瓦片分支', () => {
+      const w3 = boot(J({ profile: { weight: 70 }, runs: [{ date: '2026-9-29', dist: 1200, ms: 420000, kcal: 90, pts: [{ lat: 39.9, lon: 116.4 }, { lat: 39.905, lon: 116.408 }] }] }));
+      w3.eval('renderRun')(w3.document.getElementById('mod-body'));
+      const off = w3.document.getElementById('mod-body').innerHTML.indexOf('run-tile') < 0;
+      w3.__S.settings.runMap = true;
+      w3.eval('renderRun')(w3.document.getElementById('mod-body'));
+      const on = w3.document.getElementById('mod-body').innerHTML.indexOf('run-tile') >= 0;
+      return off && on;
+    });
   }
 }

@@ -712,3 +712,7 @@ body{
 .run-rd{flex:none; font-size:11px; color:var(--faint);}
 .run-rv{flex:1; text-align:right; font-size:11.5px;}
 .run-rv b{font-weight:700;}
+/* 跑步地图底图（可选，需联网） */
+.run-tiles{position:relative; width:100%; height:100%; overflow:hidden; background:#eae6f2;}
+.run-tile{position:absolute; width:256px; height:256px; image-rendering:auto;}
+.run-track{position:absolute; left:0; top:0; width:100%; height:100%;}
