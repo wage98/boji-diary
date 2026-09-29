@@ -12,7 +12,7 @@
    历史版本流水见 docs/轮次总结.md，此处不再罗列。
    ============================================================ */
 'use strict';
-const APP_VERSION = '1.0.0';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
+const APP_VERSION = '1.1.0';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const el = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
@@ -37,6 +37,9 @@ const svgURI = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(Str
 /* ---------- 视频深链（卓叔 B站合集，章节时间戳可点开自验） ---------- */
 const BV = 'https://www.bilibili.com/video/BV1FY4y1y7Vh';
 const vid = (t, label) => ({ url: `${BV}/?t=${t}`, label });
+/* v1.1：B 站单视频直链（每个动作唯一对应一个视频，label 用真实视频标题，便于核对）。
+   来源：B 站搜索结果，按「标题必须含该动作核心名词 + 教学信号」筛选，见 docs/视频来源核对.md */
+const blink = (bvid, label) => ({ url: 'https://www.bilibili.com/video/' + bvid, label });
 const TIMESTAMP_NOTE = '时间戳取自卓叔《30个家庭哑铃增肌动作教学》合集章节，属最佳可得映射，点开可自验。';
 
 /* ---------- 训练计划：两套独立方案（A 有卧推椅 / B 无卧推椅）----------
@@ -77,10 +80,10 @@ const PLAN_SETS = {
         { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿 1 秒。',
           note:'别甩重量，用肩中束发力而不是斜方。' },
-        { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:bsearch('仰卧哑铃臂屈伸'),
+        { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1Cz421i79n', "对握哑铃仰卧臂屈伸详解"),
           standard:'仰卧在椅上，上臂保持垂直于地面，仅小臂做屈伸。',
           note:'肘别外撇，动作放慢，别用手腕甩。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:bsearch('俯身侧平举'),
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1di421D7rm', "俯身哑铃侧平举详解"),
           standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
           note:'脖子放松别耸肩，重量轻一点更找得到后束。' },
       ]},
@@ -88,7 +91,7 @@ const PLAN_SETS = {
         { name:'单臂哑铃划船（手撑椅）', muscle:'背阔肌 · 大圆肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:vid(300,'单臂哑铃划船'),
           standard:'一手一膝撑椅，脊柱中立，肘贴身体向后上方拉，背阔主导。',
           note:'别用惯性甩，顶峰夹背停 1 秒。' },
-        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:bsearch('俯身哑铃划船'),
+        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1ij411H773', "哑铃划船详解"),
           standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
           note:'腰别塌、别圆背，起身时不要用腰硬拽。' },
         { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:vid(620,'哑铃耸肩'),
@@ -111,9 +114,9 @@ const PLAN_SETS = {
         { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
           standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
           note:'靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。' },
-        { name:'保加利亚分腿蹲（后脚搭椅）', muscle:'股四头肌 · 臀大肌', sets:3, reps:'10-12/腿', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:bsearch('保加利亚分腿蹲'),
+        { name:'保加利亚分腿蹲（后脚搭椅）', muscle:'股四头肌 · 臀大肌', sets:3, reps:'10-12/腿', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV12Hpez1EVv', "别再把保加利亚分腿蹲搞砸了（正确姿势！）"),
           standard:'后脚背搭在椅面上，前腿下蹲至约 90°，躯干略前倾。',
-          note:'合集未收录，已给站内搜索兜底；核心收紧别晃。' },
+          note:'核心收紧别晃。' },
         { name:'哑铃箭步蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:vid(860,'哑铃箭步蹲'),
           standard:'向前迈步下蹲，前后腿各约 90°，后膝接近地面。',
           note:'躯干保持稳定，膝盖不内扣。' },
@@ -128,19 +131,19 @@ const PLAN_SETS = {
         { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:vid(1150,'卷腹'),
           standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
           note:'别用脖子拉，手别抱头使劲。' },
-        { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:bsearch('反向卷腹'),
+        { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:blink('BV1wvcozSEyJ', "反向卷腹-紧致下腹，新手友好不伤腰"),
           standard:'仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。',
           note:'落下时腰别弹起，慢速离心。' },
-        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:bsearch('平板支撑'),
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1sU4y1E76b', "掌握平板支撑正确做法，轻松突破1分钟"),
           standard:'耳-肩-髋-踝一条直线，臀部与腹部同时收紧。',
           note:'别塌腰或撅屁股，撑不住就降膝盖。' },
-        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:bsearch('俄罗斯转体'),
+        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:blink('BV1HaigeJEiS', "腹肌训练入门动作简易俄罗斯转体"),
           standard:'坐姿屈膝，双手持一只哑铃向身体两侧转体触地。',
           note:'别只甩手，用腹斜肌带动躯干旋转。' },
-        { name:'死虫式', muscle:'核心抗伸展 · 腹横肌', sets:3, reps:'12/侧', tempo:'2-1-2', breath:'伸展吸气，收回呼气', rest:40, base:0, video:bsearch('死虫式'),
+        { name:'死虫式', muscle:'核心抗伸展 · 腹横肌', sets:3, reps:'12/侧', tempo:'2-1-2', breath:'伸展吸气，收回呼气', rest:40, base:0, video:blink('BV1i1w7zYEyh', "10分钟核心跟练「死虫」"),
           standard:'仰卧，对侧手脚缓慢伸展，腰背始终贴紧地面。',
           note:'腰一旦离地就停止伸展，幅度宁小勿大。' },
-        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:bsearch('侧平板支撑'),
+        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:blink('BV1eF3tzjEMk', "侧腹王牌训练动作：侧平板支撑保姆级教学"),
           standard:'肘在肩正下方，髋部抬起成一条直线。',
           note:'别塌髋，两侧时间要对称。' },
       ]},
@@ -154,9 +157,9 @@ const PLAN_SETS = {
     fit: '家里没有卧推椅，不想为训练添大件；上肢推类改用地板动作，行程受限但更安全、对肩更友好。',
     days: {
       push: { name:'推日 · 胸肩三头', greeting:'地板也能练出胸，今天稳稳推！', ex:[
-        { name:'地板哑铃卧推', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:bsearch('地板哑铃卧推'),
+        { name:'地板哑铃卧推', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:blink('BV1mD421J7o3', "哑铃平板卧推详解"),
           standard:'仰卧地面屈膝，肘触地即停，推起时胸肌主动收缩。',
-          note:'合集未收录，已给站内搜索兜底；肘别外展 90° 直角，约 45° 更护肩。' },
+          note:'肘别外展 90° 直角，约 45° 更护肩。' },
         { name:'地板哑铃飞鸟', muscle:'胸大肌（拉伸位刺激）', sets:3, reps:'12-15', tempo:'2-1-1', breath:'展开吸气，合拢呼气', rest:45, base:0.3, video:vid(250,'哑铃飞鸟'),
           standard:'微屈肘画弧下放至肘接近地面，再靠胸肌合拢。',
           note:'别用太大重量，感受胸肌拉伸与收缩。' },
@@ -166,10 +169,10 @@ const PLAN_SETS = {
         { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿。',
           note:'别甩重量，用肩中束发力。' },
-        { name:'哑铃俯身臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:bsearch('哑铃俯身臂屈伸'),
+        { name:'哑铃俯身臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1sw411G7jY', "俯身哑铃臂屈伸详解"),
           standard:'俯身约 45°，上臂贴紧身体并垂直地面，仅小臂向后伸直再收回，肘为固定支点。',
           note:'不甩重量；肘部固定不晃，重量宁轻勿重，避免用手腕带。居家无椅也能做，对肩关节压力小。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:bsearch('俯身侧平举'),
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1di421D7rm', "俯身哑铃侧平举详解"),
           standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
           note:'脖子放松别耸肩。' },
       ]},
@@ -177,9 +180,9 @@ const PLAN_SETS = {
         { name:'单臂哑铃划船（扶墙/凳）', muscle:'背阔肌 · 大圆肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:vid(300,'单臂哑铃划船'),
           standard:'一手扶墙或稳固凳面，身体前倾，肘贴身体向后上方拉。',
           note:'别用惯性甩，顶峰夹背停 1 秒。' },
-        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:bsearch('俯身哑铃划船'),
+        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1ij411H773', "哑铃划船详解"),
           standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
-          note:'合集未收录，已给站内搜索兜底；腰别塌、别圆背。' },
+          note:'腰别塌、别圆背。' },
         { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:vid(620,'哑铃耸肩'),
           standard:'直上直下耸肩，顶峰停顿 1 秒。',
           note:'别转肩画圈。' },
@@ -200,41 +203,133 @@ const PLAN_SETS = {
         { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
           standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
           note:'靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。' },
-        { name:'哑铃相扑深蹲', muscle:'股四头肌内侧 · 臀大肌 · 大腿内收肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.7, video:bsearch('相扑深蹲'),
+        { name:'哑铃相扑深蹲', muscle:'股四头肌内侧 · 臀大肌 · 大腿内收肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.7, video:blink('BV1ga4y1Z717', "哑铃相扑深蹲讲解"),
           standard:'宽站距、脚尖外展，哑铃垂于身前，髋膝同步下蹲。',
-          note:'合集未收录，已给站内搜索兜底；膝盖始终跟脚尖同向。' },
-        { name:'原地哑铃分腿蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:bsearch('原地分腿蹲'),
+          note:'膝盖始终跟脚尖同向。' },
+        { name:'原地哑铃分腿蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1fs4y1k7BP', "分腿蹲教学，教你找对分腿蹲重心，两个技…"),
           standard:'前后分腿站定，原地下降至前后腿各约 90°。',
-          note:'合集未收录，已给站内搜索兜底；躯干稳定，别左右晃。' },
+          note:'躯干稳定，别左右晃。' },
         { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:vid(1000,'站姿提踵'),
           standard:'踮到顶端停顿 1 秒，慢速落下充分拉伸。',
           note:'全程控制，别靠弹震借力。' },
-        { name:'单腿臀桥', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12/侧', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:bsearch('单腿臀桥'),
+        { name:'单腿臀桥', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12/侧', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:blink('BV1cW421d7kj', "肌骨重建｜如何正确完成臀桥动作The …"),
           standard:'仰卧地面，单脚支撑顶髋至肩-髋-膝一线，另腿伸直悬空。',
-          note:'合集未收录，已给站内搜索兜底；骨盆别歪，顶峰夹臀。' },
+          note:'骨盆别歪，顶峰夹臀。' },
       ]},
       core: { name:'核心日 · 腰腹', greeting:'核心稳了，全身都听话~', ex:[
         { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:vid(1150,'卷腹'),
           standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
           note:'别用脖子拉，手别抱头使劲。' },
-        { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:bsearch('反向卷腹'),
+        { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:blink('BV1wvcozSEyJ', "反向卷腹-紧致下腹，新手友好不伤腰"),
           standard:'仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。',
           note:'落下时腰别弹起，慢速离心。' },
-        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:bsearch('平板支撑'),
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1sU4y1E76b', "掌握平板支撑正确做法，轻松突破1分钟"),
           standard:'耳-肩-髋-踝一条直线，臀部与腹部同时收紧。',
           note:'别塌腰或撅屁股，撑不住就降膝盖。' },
-        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:bsearch('俄罗斯转体'),
+        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:blink('BV1HaigeJEiS', "腹肌训练入门动作简易俄罗斯转体"),
           standard:'坐姿屈膝，双手持一只哑铃向身体两侧转体触地。',
           note:'别只甩手，用腹斜肌带动躯干旋转。' },
-        { name:'登山者', muscle:'核心 · 髋屈肌', sets:3, reps:'20', tempo:'快节奏', breath:'均匀呼吸，不憋气', rest:40, base:0, video:bsearch('登山者'),
+        { name:'登山者', muscle:'核心 · 髋屈肌', sets:3, reps:'20', tempo:'快节奏', breath:'均匀呼吸，不憋气', rest:40, base:0, video:blink('BV1ft4y1q7QC', "【常见动作错误：登山者】"),
           standard:'俯撑姿势，交替把膝盖收向胸口，臀部不上抬。',
-          note:'合集未收录，已给站内搜索兜底；别撅屁股，速度服从姿势。' },
-        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:bsearch('侧平板支撑'),
+          note:'别撅屁股，速度服从姿势。' },
+        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:blink('BV1eF3tzjEMk', "侧腹王牌训练动作：侧平板支撑保姆级教学"),
           standard:'肘在肩正下方，髋部抬起成一条直线。',
           note:'别塌髋，两侧时间要对称。' },
       ]},
     }
+  },
+
+  /* ===== C 套：健身房 · 器械齐全（v1.1 新增）=====
+     沿用 A/B 同样的动作对象结构；健身房杠铃/器械动作用 kgBase:'bw' 按体重给起始建议。 */
+  C: {
+    key: 'C',
+    name: '健身房 · 器械齐全',
+    sub: '有杠铃、固定器械与龙门架（商用健身房）',
+    fit: '在健身房训练，想用杠铃与固定器械做标准分化（卧推 / 深蹲 / 硬拉 + 器械孤立动作）。',
+    days: {
+      push: { name:'推日 · 胸三头', greeting:'今天练胸，杠铃卧推给我顶起来！', ex:[
+        { name:'杠铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:90, base:0.45, kgBase:'bw', video:blink('BV1ra411d7y4', "怎么做平板杠铃卧推"),
+          standard:'肩胛后缩下沉贴凳，杠铃下放至乳线高度，推起时胸肌主动收缩，小臂全程垂直地面。',
+          note:'手腕别翻；起桥适度即可，别靠腰反弹。' },
+        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.5, video:blink('BV1aa4y1o7XA', "上斜哑铃卧推详解"),
+          standard:'凳背调 30° 左右，哑铃下放至锁骨上方，推起轨迹略向内聚拢。',
+          note:'角度别超过 45°，否则变肩推压肩膀。' },
+        { name:'坐姿器械推胸', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'推出呼气，收回吸气', rest:60, base:0.35, kgBase:'bw', video:blink('BV1Zf4y1T7QA', "健身房“坐姿推胸器”超详细版教学！学不…"),
+          standard:'座椅调至把手对齐乳线，肩胛贴靠背，推出到顶点不锁死肘。',
+          note:'别耸肩；重量宁轻勿借，感受胸肌收缩。' },
+        { name:'平板哑铃飞鸟', muscle:'胸大肌（外侧与中缝）', sets:3, reps:'10-12', tempo:'2-1-2', breath:'张开吸气，合拢呼气', rest:60, base:0.25, video:blink('BV1V24y167jv', "胸肌变宽必练的动作，平板哑铃飞鸟"),
+          standard:'仰卧凳上，肘微屈固定角度，像抱树一样张开再合拢。',
+          note:'别做成卧推；肘角度全程不变，重量轻一点。' },
+        { name:'绳索夹胸', muscle:'胸大肌中缝', sets:3, reps:'12-15', tempo:'1-1-2', breath:'夹拢呼气，打开吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1fi4y1L774', "跪姿夹胸教学"),
+          standard:'龙门架高位滑轮，身体略前倾，双手弧形向下向内夹拢。',
+          note:'别用手臂硬压，靠胸肌把重量\"抱\"过来。' },
+        { name:'绳索下压', muscle:'肱三头肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'下压呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1q54y1r7UY', "手臂塑形弹力带臂下压训练肱三头肌健身教学"),
+          standard:'肘夹紧身体两侧固定，仅小臂向下压到底并稍外分。',
+          note:'肘别外撇上抬，否则三头发力大打折扣。' },
+      ]},
+      pull: { name:'拉日 · 背二头', greeting:'练背日，把背阔拉开！', ex:[
+        { name:'高位下拉', muscle:'背阔肌 · 大圆肌 · 肱二头肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下拉呼气，还原吸气', rest:75, base:0.4, kgBase:'bw', video:blink('BV1Wqh26pEUM', "高位下拉保姆级教学"),
+          standard:'大腿固定好，躯干略后倾，肘向下向后走，拉到锁骨位置。',
+          note:'别用身体后仰甩重量；肩胛先下沉再发力。' },
+        { name:'坐姿绳索划船', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'后拉呼气，还原吸气', rest:75, base:0.4, kgBase:'bw', video:blink('BV15FbW6aEgk', "低位坐姿划船使用教程"),
+          standard:'胸贴靠垫，脊柱中立，拉向腹部上沿，顶峰夹背停 1 秒。',
+          note:'别圆背；还原时让肩胛充分前伸拉开。' },
+        { name:'杠铃俯身划船', muscle:'背阔肌 · 菱形肌 · 竖脊肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:90, base:0.35, kgBase:'bw', video:blink('BV1an4y1f73u', "练背教程：杠铃划船的动作模式、常见错误…"),
+          standard:'髋部折叠约 45°，腰背挺直，杠铃沿大腿拉向下腹。',
+          note:'最忌圆背硬拉；宁可用小重量也不要弓腰。' },
+        { name:'直臂下压', muscle:'背阔肌 · 大圆肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'下压呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV141gp6TEbX', "背部干货来了！赵师直臂下压教学，现场一…"),
+          standard:'微前倾，双臂几乎伸直，从高位把绳索压到大腿前。',
+          note:'手臂别弯成划船；保持直臂才能孤立背阔。' },
+        { name:'哑铃弯举', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:60, base:0.25, video:blink('BV1X54y1a71n', "哑铃弯举动作教学"),
+          standard:'肘固定于身体两侧，全程只有小臂动，顶峰主动收缩。',
+          note:'别借腰部摆动甩重量。' },
+        { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:60, base:0.25, video:blink('BV1uE411R7qv', "每日一练:哑铃交替锤式弯举教学"),
+          standard:'中立握（锤式），肘夹紧身体两侧做弯举。',
+          note:'别外撇手腕，慢起慢落。' },
+      ]},
+      legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
+        { name:'杠铃深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:120, base:0.6, kgBase:'bw', video:blink('BV1MXm1BhEjx', "健身新手必看：力量训练之王杠铃深蹲详细…"),
+          standard:'杠铃置于斜方肌上，核心收紧，下蹲至大腿低于水平后蹬地起身。',
+          note:'膝与脚尖同向；腰别塌，起不来就减重量。' },
+        { name:'腿举', muscle:'股四头肌 · 臀大肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'屈膝吸气，蹬出呼气', rest:90, base:1.2, kgBase:'bw', video:blink('BV1XJ411G7u3', "腿举机超详细教学！来看看这些错误是不是…"),
+          standard:'腰臀贴紧靠背，膝屈至 90° 左右再蹬出，脚掌全程踩实。',
+          note:'别让臀部离垫；膝别内扣，蹬到顶不锁死。' },
+        { name:'罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下放吸气，起身呼气', rest:90, base:0.5, kgBase:'bw', video:blink('BV1BJ41197mr', "［OTA］罗马尼亚硬拉动作详解"),
+          standard:'微屈膝，髋部向后推，杠铃贴腿下放到膝下，臀肌发力顶髋起身。',
+          note:'全程腰背挺直，绝不圆背；感受腘绳肌拉伸。' },
+        { name:'坐姿腿屈伸', muscle:'股四头肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'伸直呼气，还原吸气', rest:60, base:0.25, kgBase:'bw', video:blink('BV1DT421a7Lq', "坐姿腿屈伸详解"),
+          standard:'背部贴紧靠背，踝关节卡好滚垫，伸直到顶停 1 秒再慢放。',
+          note:'别用爆发力甩，慢放更刺激股四头。' },
+        { name:'俯卧腿弯举', muscle:'腘绳肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'勾起呼气，还原吸气', rest:60, base:0.25, kgBase:'bw', video:blink('BV1kmaa6GEg8', "俯卧腿弯举机使用教程"),
+          standard:'俯卧，滚垫压在踝上方，向臀部勾起后缓慢还原。',
+          note:'臀部别抬起借力，重量轻一点更找得到腘绳。' },
+        { name:'站姿提踵', muscle:'小腿三头肌', sets:3, reps:'15-20', tempo:'1-2-1', breath:'提起呼气，落下吸气', rest:45, base:0.5, kgBase:'bw', video:blink('BV13r4y1P7G3', "半蹲提踵动作，让你跑步不粗腿！#健身教程"),
+          standard:'前脚掌踩在台阶或踏板上，充分伸展后提踵到顶停顿。',
+          note:'别借膝盖弹动；踝关节活动度做到位。' },
+      ]},
+      core: { name:'肩日 · 肩与核心', greeting:'肩练宽一点，核心稳一点！', ex:[
+        { name:'坐姿哑铃推举', muscle:'三角肌前束·中束 · 肱三头肌', sets:4, reps:'8-10', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:75, base:0.35, video:blink('BV1Lp411d7DU', "新手篇——哑铃坐姿推举"),
+          standard:'靠背支撑，核心收紧，推至顶端不锁死肘。',
+          note:'腰别反弓代偿，重量宁轻勿借。' },
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.15, video:blink('BV18o4y147RH', "哑铃侧平举——正确做法（全程无废话）"),
+          standard:'小臂略内旋做出\"倒水\"感，肘略高于腕，顶峰停顿 1 秒。',
+          note:'别甩重量，用肩中束发力而不是斜方。' },
+        { name:'绳索面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1wZ421e7K2', "绳索面拉详解"),
+          standard:'滑轮调至面部高度，拉向眉心并外旋，后束主导。',
+          note:'别耸肩；改善圆肩的王牌动作，重量轻即可。' },
+        { name:'负重卷腹', muscle:'腹直肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:45, base:0.2, video:blink('BV1K64y15745', "腹肌训练 负重卷腹"),
+          standard:'仰卧屈膝，双手抱片于胸前，卷起时下背贴地、胸廓向骨盆靠拢。',
+          note:'别用脖子发力硬拽，慢落更刺激腹直肌。' },
+        { name:'悬垂举腿', muscle:'腹直肌下部 · 髋屈肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'举起呼气，落下吸气', rest:60, base:0, video:blink('BV1Uo4y1t7S6', "下腹王牌动作：悬垂举腿——正确做法（全…"),
+          standard:'单杠悬挂，核心收紧把膝盖/双腿举至髋部屈曲，缓慢下落。',
+          note:'别靠身体摆动甩腿，控制下落才是重点。' },
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1sU4y1E76b', "掌握平板支撑正确做法，轻松突破1分钟"),
+          standard:'肘在肩正下方，身体成一条直线，核心持续收紧。',
+          note:'别塌腰或撅屁股，撑不住就降膝盖。' },
+      ]}
+    }
   }
+
 };
 /* 当前生效的训练日数据（切换方案时整体替换，见 applyPlanSet） */
 let PLANS = PLAN_SETS.A.days;
@@ -365,14 +460,23 @@ const KB = [
 
 /* ---------- 多轮对话上下文（记住上一话题，支持追问与“结合我的数据”回答） ---------- */
 const CTX = { lastItem:null, lastQ:'', turns:0, greet:false, hist:[] };   // hist: 最近上下文窗口
-const CTX_WIN = 5;   // 上下文范围 = 最近 5 轮对话（超出自动淘汰最早一轮）
+/* v1.1：上下文窗口改为可配置。STATE.ctxLimit = 0 表示**不限轮数**（用户要求限时开放全部对话记忆）；
+   设成正整数 N 则只保留最近 N 轮。无论哪种，都有硬上限 CTX_HARD 防止内存无限增长。 */
+const CTX_WIN = 5;         // 默认的“有限”档位（用户切回限制时用）
+const CTX_HARD = 200;      // 硬上限：即使不限轮数也只留最近 200 轮，避免长期累积拖慢与撑爆存储
+function ctxLimit(){ const n = (STATE && typeof STATE.ctxLimit === 'number') ? STATE.ctxLimit : 0; return n > 0 ? n : 0; }
 function ctxPush(q, a){
   try{
     CTX.hist.push({ q:String(q||'').slice(0,120), a:String(a||'').slice(0,300), t:Date.now() });
-    while(CTX.hist.length > CTX_WIN) CTX.hist.shift();
+    const lim = ctxLimit();
+    const max = lim > 0 ? lim : CTX_HARD;      // 0=不限 → 落到硬上限
+    while(CTX.hist.length > max) CTX.hist.shift();
   }catch(_){}
 }
-function ctxRecent(n){ return CTX.hist.slice(-(n||CTX_WIN)); }
+function ctxRecent(n){
+  const lim = ctxLimit();
+  return CTX.hist.slice(-(n || (lim > 0 ? lim : CTX.hist.length)));
+}
 /* 指代消解：问句里出现”它/这个/那/再来“时，复用窗口内最近的真实问题做主语 */
 function ctxResolveTopic(q){
   const t=String(q||'').trim();
@@ -716,7 +820,10 @@ let STATE = Object.assign({
   myEx:[],                                   // 自定义动作 [{id,name,part,sets,reps,rest,note}]
   bodyWeights:[],                            // 体重曲线 [{d:'Y-M-D', w:70.5}]
   vision:{ mode:'off', endpoint:'', token:'', model:'glm-4v-flash' },  // AI 图像识别
-  planSet:'A',                               // 训练方案 A=有卧推椅 / B=无卧推椅
+  planSet:'A',                               // 训练方案 A=有卧推椅 / B=无卧推椅 / C=健身房器械
+  runs:[],                                   // v1.1 跑步记录 [{date,dist,ms,kcal,pts[]}]
+  knowledge:{ read:{} },                     // v1.1 知识库已读标记 { 'k1':1 }
+  ctxLimit:0,                                // v1.1 上下文记忆轮数上限；0=不限（限时开放）
 }, load());
 // 数据迁移：旧版饮水按“杯”（1杯≈250ml），一次性换算为 ml
 if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
@@ -725,11 +832,15 @@ if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
 if(!Array.isArray(STATE.myEx)) STATE.myEx = [];
 if(!Array.isArray(STATE.bodyWeights)) STATE.bodyWeights = STATE.bodyWeights && typeof STATE.bodyWeights === 'object' ? [] : [];
 if(!STATE.vision || typeof STATE.vision !== 'object') STATE.vision = { mode:'off', endpoint:'', token:'', model:'glm-4v-flash' };
+// v1.1 新板块字段容错：跑步记录 / 知识库已读 / 上下文记忆上限
+if(!Array.isArray(STATE.runs)) STATE.runs = [];
+if(!STATE.knowledge || typeof STATE.knowledge !== 'object' || !STATE.knowledge.read) STATE.knowledge = { read:{} };
+if(typeof STATE.ctxLimit !== 'number' || STATE.ctxLimit < 0) STATE.ctxLimit = 0;   // 0 = 不限轮数
 /* 皮肤迁移（可逆：任何脏值/旧值都能落到合法皮肤，不会丢用户数据）
    ：v2（去红蓝化版）升级为 v3（视频同款）——用户要的正是撤销 v2 那四项改动；
    v2 仍保留在注册表里，可随时在「我的 → 桌宠形象」切回，切换不丢状态。 */
-const _PET_KEYS = ['nahida','spiderV1','spiderV2','spiderV3'];
-const _PET_MAP  = { spider:'spiderV3', svg:'nahida', spiderV2:'spiderV3' };
+const _PET_KEYS = ['nahida','spiderV1','spiderV2','spiderV3','official','photo'];
+const _PET_MAP  = { spider:'spiderV3', svg:'nahida', spiderV2:'spiderV3', official:'official' };
 if(STATE.petSkin in _PET_MAP) STATE.petSkin = _PET_MAP[STATE.petSkin];
 if(_PET_KEYS.indexOf(STATE.petSkin) < 0) STATE.petSkin = 'spiderV3';
 // 外观与教练设置（背景 / 教练名 / 教练头像），逐字段容错防脏数据
@@ -741,7 +852,7 @@ if(typeof STATE.settings.coachAvatar !== 'string') STATE.settings.coachAvatar = 
    ① 方案键：'A' / 'B'，其他值（含旧版本没有此字段）统一为 'A'。
    ② 训练日键重命名：老版本的 pump（泵感日·手臂胸）→ core（核心日·腰腹），
       把 planEdits / exLast 里的同名键搬过去，用户改过的组数与记录过的重量不丢。 */
-if(STATE.planSet !== 'A' && STATE.planSet !== 'B') STATE.planSet = 'A';
+if(['A','B','C'].indexOf(STATE.planSet) < 0) STATE.planSet = 'A';   // 脏值一律回落 A
 if(!STATE.planEdits || typeof STATE.planEdits !== 'object') STATE.planEdits = {};
 if(!STATE.exLast || typeof STATE.exLast !== 'object') STATE.exLast = {};
 if(STATE.planEdits.pump && !STATE.planEdits.core){ STATE.planEdits.core = STATE.planEdits.pump; delete STATE.planEdits.pump; }
@@ -755,7 +866,13 @@ const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.ge
 const wd = () => new Date().getDay();
 const selKey = () => STATE.selDate || todayKey();
 const estMin = plan => plan.ex.reduce((s,e)=>s + e.sets*((e.rest||60)/60) + e.sets*1.2, 0) | 0;
-const suggKg = e => STATE.profile ? Math.max(1, Math.round((STATE.profile.dumbbell||10) * (e.base||0.4))) : null;
+const suggKg = e => {
+  if(!STATE.profile) return null;
+  const d = STATE.profile.dumbbell || 10, bw = STATE.profile.weight || 65;
+  // 健身房杠铃/器械动作按体重给起始建议（更贴近实际），哑铃动作沿用「单只哑铃 × 系数」
+  if(e.kgBase === 'bw') return Math.max(5, Math.round(bw * (e.base||0.3) / 2.5) * 2.5);
+  return Math.max(1, Math.round(d * (e.base||0.4)));
+}
 // 打卡“完成”判定：必须走完 finishDay（写入 at 时间戳）才算当日打卡成功；
 // 仅勾选部分动作（STATE.checkins[k].ex 有 true 但无 at）不算完成，不计入连续/累计打卡。
 const isDayComplete = k => !!(STATE.checkins[k] && STATE.checkins[k].at);
@@ -1172,22 +1289,28 @@ ${spMouth(f.mouth)}
 ${fx ? petFx(fx) : ''}
 </svg>`;
 }
-/* 皮肤注册表：统一入口，四种自绘形象（切换只换渲染器，桌宠状态/配置/动画完全不受影响）
+/* 皮肤注册表：统一入口，四种自绘形象 + 一种立绘位图（切换只换渲染器，桌宠状态/配置/动画完全不受影响）
    nahida  = 自绘桌宠（小练）
    spiderV1= 小蛛·早期版（初始灵感稿：红蓝高对比 + 放射蛛网 + 蜘蛛胸标 + 略修长）
    spiderV2= 小蛛·现版（差异化正式版：珊瑚红/松绿 + 斜向网格 + 哑铃胸标 + 更圆更矮）
-   spiderV3= 小蛛·视频同款（默认，按参考视频重制） */
+   spiderV3= 小蛛·视频同款（默认，按参考视频重制）
+   official= 立绘位图（assets/nahida-icon.webp；位图皮肤不做眨眼/表情换帧，溯源见 assets/CREDITS.md）
+   注：对外显示名一律不含角色本名，只称「官方立绘」，避免第三方角色字样出现在界面上。 */
 const PET_SKINS = [
   { key:'nahida',   name:'自绘桌宠', render: m => nahidaSVG(m) },
   { key:'spiderV1', name:'小蛛 · 早期版',    render: m => spiderSVG(m, 'v1') },
   { key:'spiderV2', name:'小蛛 · 现版',      render: m => spiderSVG(m, 'v2') },
-  { key:'spiderV3', name:'小蛛 · 视频同款',  render: m => spiderSVG(m, 'v3') }
+  { key:'spiderV3', name:'小蛛 · 视频同款',  render: m => spiderSVG(m, 'v3') },
+  { key:'official', name:'官方立绘', render: m => nahidaSVG(m), asset:'assets/nahida-icon.webp' },
+  { key:'photo',   name:'照片桌宠', render: m => photoPetSVG(m, (STATE.settings && STATE.settings.petPhoto) || ''), photo:true }
 ];
 function skinBy(key){ for(let i=0;i<PET_SKINS.length;i++) if(PET_SKINS[i].key===key) return PET_SKINS[i]; return PET_SKINS[0]; }
 /* 皮肤调度层（旧接口保留，行为不变，便于回退） */
 function petSVG(mood){
   const sk = skinBy(STATE.petSkin);
   if(sk.key === 'nahida') return nahidaSVG(mood);
+  // 照片桌宠：每次实时合成（照片可能刚换），不走 dataURI 缓存
+  if(sk.key === 'photo') return photoPetSVG(mood, (STATE.settings && STATE.settings.petPhoto) || '');
   if(sk.key === 'spiderV1') return spiderSVG(mood, 'v1');
   if(sk.key === 'spiderV2') return spiderSVG(mood, 'v2');
   return spiderSVG(mood, 'v3');
@@ -1195,6 +1318,8 @@ function petSVG(mood){
 const PET_ART = {};   // 皮肤:情绪 → dataURI 缓存（同一情绪只生成一次）
 function petArtURI(mood){
   const k = STATE.petSkin + ':' + ((mood && typeof mood==='object') ? 'obj:' + JSON.stringify(mood) : (mood || 'happy'));
+  // 照片桌宠实时合成，不进缓存（换照片后必须立刻生效，不能用旧 dataURI）
+  if(skinBy(STATE.petSkin).photo) return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(petSVG(mood));
   if(!PET_ART[k]) PET_ART[k] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(petSVG(mood));
   return PET_ART[k];
 }
@@ -1204,8 +1329,8 @@ function applyPetArt(mood){
   const sk = skinBy(STATE.petSkin);
   // 视频款(v3)为悬浮角色，隐藏地面阴影（视频实测无地面阴影）
   const pet = document.getElementById('pet');
-  if(pet) pet.classList.toggle('pet-video', sk.key === 'spiderV3');
-  if(sk.asset){ img.src = sk.asset; return; }
+  if(pet){ pet.classList.toggle('pet-video', sk.key === 'spiderV3'); pet.classList.toggle('skin-photo', sk.key === 'photo'); }
+  if(sk.asset && !sk.photo){ img.src = sk.asset; return; }
   img.src = petArtURI(mood || STATE.petMood || 'happy');
 }
 // 随机眨眼：只对睁眼情绪生效；瞬时帧保留原嘴型/腮红，135ms 后还原。官方皮肤不支持图层，自动跳过
@@ -1215,7 +1340,8 @@ function scheduleBlink(){
   blinkTimer = setTimeout(()=>{
     const mood = STATE.petMood || 'happy';
     const f = PET_FACE[mood];
-    if(f && (f.eye==='open' || f.eye==='star') && !document.hidden){   // 自绘 SVG 皮肤均做眨眼帧
+    // 自绘 SVG 皮肤做眨眼帧；位图皮肤（有 asset，如官方立绘）是整图，无法换眼型，跳过
+    if(f && (f.eye==='open' || f.eye==='star') && !document.hidden && !skinBy(STATE.petSkin).asset){
       const img = document.getElementById('pet-img');
       if(img){
         img.src = petArtURI({ eye:'closed', mouth:f.mouth, blush:f.blush, brow:f.brow, fx:'' });
@@ -1239,7 +1365,12 @@ function setMood(mood, autoRevertMs){
 }
 // 气泡打字机：逐字显示，读完停留后消失；多句排队不丢字
 let bubbleQueue = [], bubbleBusy = false;
-function say(text){ if(!text) return; bubbleQueue.push(text); pumpBubble(); }
+function say(text){
+  if(!text) return;
+  bubbleQueue.push(text); pumpBubble();
+  // 语音朗读：仅当用户在设置里开启，且浏览器支持时才发声（不支持则静默）
+  if(STATE.settings && STATE.settings.petVoice) petSpeak(text);
+}
 function pumpBubble(){ if(bubbleBusy) return; const t = bubbleQueue.shift(); if(t==null) return; bubbleBusy = true; typeBubble(t, ()=>{ bubbleBusy = false; pumpBubble(); }); }
 function typeBubble(text, done){
   const b = $('#pet-bubble'); if(!b){ done(); return; }
@@ -1255,10 +1386,12 @@ function petIdle(){
   clearTimeout(idleTimer);
   idleTimer = setTimeout(()=>{
     const r = Math.random();
-    if(r<0.10) petFlip();                                    // 随机翻个跟头（视频同款小把戏）
-    else if(r<0.20) petAct('crouch');                        // ④ 蜷缩：视觉高度腰斩（视频 5.5–7.1s）
-    else if(r<0.25) petDashGhost();                          // ⑤ 瞬移残影（视频 10.8–11.3s）
-    else if(r<0.45) setMood('think', 2600);
+    // 动作优先（v1.1）：溜达权重最高，符合「动作 > 表情」的取向
+    if(r<0.26) petWalk();                                    // ① 沿边溜达（Shimeji walk）
+    else if(r<0.34) petFlip();                               // 随机翻个跟头（视频同款小把戏）
+    else if(r<0.42) petAct('crouch');                        // ④ 蜷缩：视觉高度腰斩（视频 5.5–7.1s）
+    else if(r<0.48) petDashGhost();                          // ⑤ 瞬移残影（视频 10.8–11.3s）
+    else if(r<0.62) setMood('think', 2600);
     else if(r<0.7) setMood('expect', 2600);
     else if(r<0.85) setMood('happy', 2600);
     else setMood('wave', 2200);
@@ -1330,6 +1463,94 @@ function petHearts(n){
     h.style.animationDelay = (Math.random()*0.55)+'s';
     box.appendChild(h); setTimeout(()=>h.remove(), 2400);
   }
+}
+/* ============================================================
+   v1.1 桌宠「动作」增强 —— 借鉴 Shimeji-ee 的行为状态机
+   参考 Shimeji-ee / Clover_Shimeji：用 behaviors.xml 定义
+   idle / walk / drag / fall / sit / sleep，按权重随机触发、可被打断、结束回落 idle，
+   并且**动作远多于表情**（正是本项目要的方向）。
+   本项目桌宠停靠屏幕边缘，因此「行走」落地为**沿停靠边溜达**：位移 + 颠动 + 影子缩放，
+   走一段再回来。刻意不做朝向镜像：.pet-body 的 transform 已被左右缘朝向占用，
+   叠加会互相抵消（右缘镜像 × 朝向镜像 = 不翻），方向感改由位移方向表达。
+   ============================================================ */
+const PET_WALK_MS = 900;
+let _walkTimers = [], _walking = false;
+function petWalk(){
+  const pet = $('#pet'); if(!pet || _walking) return;
+  if(STATE.settings && STATE.settings.petWalk === false) return;   // 设置里可关
+  if(document.hidden) return;                                       // 后台不跑动画
+  const sr = $('#screen').getBoundingClientRect(); if(!sr.width) return;
+  const pw = pet.offsetWidth || 126, ph = pet.offsetHeight || 150;
+  const dock = STATE.petDock || { edge:'right', off:0.62 };
+  const along = dock.edge === 'top' ? 'x' : 'y';      // 顶边横向溜达；侧边纵向溜达
+  const curX = parseFloat(pet.style.left) || 0, curY = parseFloat(pet.style.top) || 0;
+  const dir = Math.random() < 0.5 ? -1 : 1;
+  const dist = dir * (50 + Math.random() * 90);
+  let tx = curX, ty = curY;
+  if(along === 'x') tx = clamp(curX + dist, 4, Math.max(4, sr.width - pw - 4));
+  else              ty = clamp(curY + dist, -ph*0.30, Math.max(-ph*0.30, sr.height - 132 - ph*0.2));
+  _walking = true;
+  pet.classList.add('pet-walking');
+  pet.style.transition = 'left ' + PET_WALK_MS + 'ms linear, top ' + PET_WALK_MS + 'ms linear';
+  pet.style.left = tx + 'px'; pet.style.top = ty + 'px';
+  _walkTimers.push(setTimeout(()=>{
+    pet.style.left = curX + 'px'; pet.style.top = curY + 'px';      // 走回原位
+    _walkTimers.push(setTimeout(()=>{
+      pet.classList.remove('pet-walking');
+      pet.style.transition = 'none';
+      _walking = false;
+    }, PET_WALK_MS + 60));
+  }, PET_WALK_MS + 120));
+}
+function petStopWalk(){
+  _walkTimers.forEach(clearTimeout); _walkTimers = [];
+  const pet = $('#pet'); if(!pet) return;
+  pet.classList.remove('pet-walking'); pet.style.transition = 'none'; _walking = false;
+  applyDock();
+}
+/* 被抓 → 挣扎摆动；松手 → 落地回弹（对应 Shimeji 的 drag / fall） */
+function petStruggle(on){ const pet = $('#pet'); if(!pet) return; pet.classList.toggle('pet-struggle', !!on); }
+function petLand(){
+  const pet = $('#pet'); if(!pet) return;
+  pet.classList.add('pet-land'); setTimeout(()=>pet.classList.remove('pet-land'), 470);
+}
+/* 说话：文字气泡 + 可选语音朗读（Web Speech API）
+   默认关闭；浏览器不支持 / 被自动播放策略拦截时静默降级，绝不抛错。 */
+function petSpeak(text){
+  try{
+    if(!text || typeof window === 'undefined') return false;
+    if(!window.speechSynthesis || !window.SpeechSynthesisUtterance) return false;
+    const u = new SpeechSynthesisUtterance(String(text).slice(0, 120));
+    u.lang = 'zh-CN'; u.rate = 1.05; u.pitch = 1.15; u.volume = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+    return true;
+  }catch(_){ return false; }
+}
+/* 照片做桌宠：上传照片 → 圆形抠图当脸，叠一层卡通眼嘴（贴纸式桌宠）。
+   实事求是：端侧没有生成式模型，做不到「照片转二次元」；这里做的是
+   「照片脸 + 自绘表情」的合成，效果可预期、无幻觉。 */
+function photoPetSVG(mood, photo){
+  const f = PET_FACE[mood] || PET_FACE.happy, T = PET_THEME;
+  const src = (typeof photo === 'string' && photo.slice(0,5) === 'data:') ? photo : '';
+  const R = 46;
+  const face = src
+    ? `<image href="${src}" x="14" y="14" width="92" height="92" clip-path="url(#phClip)" preserveAspectRatio="xMidYMid slice"/>`
+    : `<circle cx="60" cy="60" r="${R}" fill="url(#phSkin)"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <clipPath id="phClip"><circle cx="60" cy="60" r="${R}"/></clipPath>
+    <linearGradient id="phSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6ee"/><stop offset="1" stop-color="#ffdfd2"/></linearGradient>
+  </defs>
+  ${face}
+  <circle cx="60" cy="60" r="${R}" fill="none" stroke="${T.eyeLine}" stroke-width="2.6" opacity=".5"/>
+  <circle cx="60" cy="60" r="${R+4}" fill="none" stroke="#fff" stroke-width="3" opacity=".55"/>
+  ${petEye(f.eye, 45, 'L')}${petEye(f.eye, 75, 'R')}
+  ${petMouth(f.mouth)}
+  ${f.blush ? `<ellipse cx="34" cy="73" rx="7.5" ry="4.2" fill="#ff9db1" opacity=".45"/><ellipse cx="86" cy="73" rx="7.5" ry="4.2" fill="#ff9db1" opacity=".45"/>` : ''}
+  ${f.fx ? petFx(f.fx) : ''}
+</svg>`;
 }
 /* ============================================================
    按参考视频重制的动作序列（7 项）
@@ -1428,7 +1649,10 @@ function initPet(){
   pet.addEventListener('pointermove', e=>{
     if(pid===null) return;
     const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(Math.abs(dx)>5||Math.abs(dy)>5){ if(!dragged) say(pickLine('drag')); dragged=true; }
+    if(Math.abs(dx)>5||Math.abs(dy)>5){
+      if(!dragged){ say(pickLine('drag')); petStopWalk(); petStruggle(true); }   // 抓起来 → 挣扎
+      dragged=true;
+    }
     const sr=$('#screen').getBoundingClientRect();
     let nl=ox+dx, nt=oy+dy;
     nl=Math.max(8, Math.min(sr.width-pet.offsetWidth-8, nl));
@@ -1438,8 +1662,9 @@ function initPet(){
   const end=()=>{
     if(pid===null) return;
     pet.releasePointerCapture(pid); pid=null; pet.classList.remove('dragging');
+    petStruggle(false);                                       // 松手 → 停止挣扎
     if(!dragged){ petTapEgg(); openAssistant(); }            // 轻点 = 展开助手对话（连点有彩蛋）
-    else { dockToNearest(); setMood('happy', 1600); }   // 拖拽 = 吸附最近边
+    else { dockToNearest(); petLand(); setMood('happy', 1600); }   // 拖拽 = 吸附最近边 + 落地回弹
     petWake();
   };
   pet.addEventListener('pointerup', end);
@@ -1515,7 +1740,7 @@ function openPanel(id){ const p=$('#'+id); p.classList.add('open'); p.setAttribu
 function closePanel(id){ navUIClose(id); }
 function openAssistant(){ renderAssistant(); if($('#assistant').classList.contains('open')){ return; } openPanel('assistant'); setMood('wave',1500); }
 function goModule(name){
-  const titles={training:['训练计划','居家哑铃 · 点日期看当天动作'],diet:['今日饮食','拍照记录吃进来的'],data:['我的数据','打卡·月历·评分·趋势'],profile:['我的','档案与设置']};
+  const titles={training:['训练计划','居家哑铃 · 点日期看当天动作'],diet:['今日饮食','拍照记录吃进来的'],run:['跑步','GPS 记录轨迹 · 配速 · 卡路里'],knowledge:['知识库','肌肉生长与增肌原理'],data:['我的数据','打卡·月历·评分·趋势'],profile:['我的','档案与设置']};
   $('#mod-title').textContent=titles[name][0]; $('#mod-sub').textContent=titles[name][1];
   renderModule(name);
   if($('#module').classList.contains('open')) return;   // 已打开：只重渲染，不重复压栈
@@ -1587,10 +1812,290 @@ function sendMsg(text){
 /* ============================================================
    训练模块（周历 + 当日动作）
    ============================================================ */
+
+/* ============================================================
+   v1.1 新增板块一：知识库（肌肉生长过程与增肌原理）
+   内容自撰（运动生理学共识），每条配一个 B 站科普视频直链；
+   视频来源经「标题必须含核心名词 + 排除游戏/生化 lecture」两道筛选，可逐条核对。
+   ============================================================ */
+const KB_ARTICLES = [
+  { id:'k1', title:'肌肉到底是怎么长出来的', tag:'原理', min:3,
+    summary:'肌肥大的本质是：训练给肌纤维制造刺激 → 身体在休息时修复并把纤维加粗。训练本身不"长肌肉"，修复才是。',
+    points:[
+      '机械张力：负重拉伸是增肌最主要的驱动，所以动作要控制离心、幅度做满。',
+      '代谢应激：中高次数带来的酸胀与泵感，是次要但确实存在的辅助刺激。',
+      '肌肉损伤：适度微损伤会引发修复，但酸痛不等于有效，长期严重酸痛反而拖慢恢复。',
+      '结论：练的时候给足张力，练完给足恢复与营养，二者缺一不可。'
+    ], video: {"url":"https://www.bilibili.com/video/BV11ehd6LED8","label":"肌肉到底是怎么长出来的？《从零开始系列第8集：增肌基础原理》"} },
+  { id:'k2', title:'快肌与慢肌：练的是同一种肌肉吗', tag:'基础', min:3,
+    summary:'骨骼肌由不同类型的肌纤维组成，慢肌（I 型）耐疲劳、增肌潜力小；快肌（II 型）力量大、增肌空间大。',
+    points:[
+      '慢肌：收缩慢、耐力好，主要在有氧与低强度维持性活动中工作。',
+      '快肌：收缩快、力量大，对负重训练反应最明显，是围度增长的主力。',
+      '比例主要由基因决定，训练能让两类纤维都变粗，但快肌的增长幅度更大。',
+      '实践含义：想增肌就以中低次数、较大重量为主；想耐力就提高次数、缩短休息。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1PX4y167Zz","label":"运动生理学 骨骼肌章节11.不同类型肌纤维的生理特征"} },
+  { id:'k3', title:'渐进超负荷：唯一必须长期做到的事', tag:'核心', min:2,
+    summary:'同样的重量练一年，肌肉没有理由继续变大。必须让训练刺激"逐渐增加"。',
+    points:[
+      '加重量、加次数、加组数、缩短休息、放慢离心、增加动作幅度——都算加负荷。',
+      '建议优先级：先把次数加满目标区间上限，再加重量。',
+      '不必每次都加重，可以用"两周内同一动作总次数/总重量上升"来衡量。',
+      '加重卡住时，先检查睡眠、热量与蛋白质，再看是不是恢复不足。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1BgB8BrEm3","label":"为什么你执行渐进超负荷，加重就卡住？"} },
+  { id:'k4', title:'蛋白质：从吃到长肌肉之间发生了什么', tag:'营养', min:3,
+    summary:'训练后肌肉蛋白质合成（MPS）升高，持续约 24–48 小时；摄入蛋白质提供原料，把合成推向"净增长"。',
+    points:[
+      '每日总量优先：按体重 1.6–2.2 g/kg 分摊到 3–4 餐最实用。',
+      '单次约 0.3–0.4 g/kg（多数人 25–40 g）已接近单次利用上限，不必一次灌很多。',
+      '"合成窗口 30 分钟"被夸大：看全天总量与分布比掐时间更重要。',
+      '训练日与非训练日都要吃够，休息日不吃等于浪费前面的修复窗口。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1vE411b7Sh","label":"科普：蛋白质是如何形成肌肉的"} },
+  { id:'k5', title:'超量恢复：为什么休息也是训练的一部分', tag:'恢复', min:2,
+    summary:'训练让能力下降，恢复期不仅回到原点，还会略微超过原水平——这就是"超量恢复"，进步正是发生在休息时。',
+    points:[
+      '同一肌群再次大强度训练，通常间隔 48–72 小时更稳妥。',
+      '疲劳先于适应出现：刚练完变弱是正常的，别因此频繁改计划。',
+      '睡眠不足、热量过低会直接削弱超量恢复的幅度。',
+      '感觉持续下滑、静息心率偏高、睡不踏实，多半是恢复跟不上。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1bU766CEgH","label":"休息偷懒也能涨成绩的原理【超量恢复】"} },
+  { id:'k6', title:'训练容量：到底该练多少组', tag:'计划', min:2,
+    summary:'容量 = 组数 × 次数 × 重量，是增肌最可控的变量。太少没刺激，太多恢复不过来。',
+    points:[
+      '每个肌群每周 10–20 个有效组，是多数人的合理区间（新手从下限开始）。',
+      '"有效组"指接近力竭（还剩 1–3 次余力）的组，轻松完成的组不算数。',
+      '单次训练不是越多越好：超过约 10 组/肌群/次，边际收益明显下降。',
+      '想加容量就每周加 1–2 组，观察两到三周再继续，别一次翻倍。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1RP411w7tJ","label":"训练中应该练多少组（容量）合适呢？"} },
+  { id:'k7', title:'热量盈余：增肌要不要多吃', tag:'营养', min:2,
+    summary:'肌肉合成需要能量。长期热量不足时，再好的训练也难以转化为围度。',
+    points:[
+      '温和盈余（每日 +150～300 kcal）足以支撑增肌，盈余过大只会多长脂肪。',
+      '蛋白质吃够的前提下，碳水支撑训练表现，脂肪维持激素水平，都别砍太低。',
+      '体重长期不涨，说明盈余不够；一个月涨超过体重的 1.5%，多半是脂肪涨太快。',
+      '减脂期也能增肌（尤其新手），但对绝大多数人来说，先增肌再减脂效率更高。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1fn4y1d7Ap","label":"热量盈余详解"} },
+  { id:'k8', title:'睡眠：最便宜的增肌补剂', tag:'恢复', min:2,
+    summary:'深度睡眠阶段生长激素分泌最旺盛，是组织修复的关键时段。',
+    points:[
+      '成年人建议 7–9 小时；长期低于 6 小时会明显拖慢恢复与力量增长。',
+      '固定作息比"补觉"有效，睡前一小时远离强光与大分量进食。',
+      '训练安排在睡眠不受影响的时段，别为了训练牺牲睡眠。',
+      '连续几天睡不好时，主动降一档训练强度，比硬扛更划算。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1cS4y1b7W9","label":"如何加快生长激素分泌-睡眠"} },
+  { id:'k9', title:'热身与拉伸：分别解决什么问题', tag:'安全', min:2,
+    summary:'热身是为了提高体温与神经募集，拉伸是为了维持活动度——两者目的不同，别混为一谈。',
+    points:[
+      '训练前做动态热身（关节活动 + 目标动作的小重量递增组），5–10 分钟即可。',
+      '训练前长时间静态拉伸可能暂时降低力量输出，放在训练后更合适。',
+      '训练后静态拉伸每个动作保持 20–30 秒，目标是舒适牵拉感，不是忍痛。',
+      '热身的价值主要在"第一组之前"，正式组前用递增重量过渡最有效。'
+    ], video: {"url":"https://www.bilibili.com/video/BV15NUgB6Evt","label":"运动前的热身与拉伸"} },
+  { id:'k10', title:'平台期：卡住时先查这四件事', tag:'进阶', min:2,
+    summary:'增肌停滞极少是"运气不好"，通常是四个可控变量中的一个掉链子。',
+    points:[
+      '① 负荷有没有真的增加（记录重量与次数，用数据说话）。',
+      '② 蛋白质与总热量是否达标（先记录三天饮食再判断）。',
+      '③ 睡眠与恢复是否足够（连续熬夜会直接抹掉训练效果）。',
+      '④ 动作质量是否稳定（重量涨了但幅度缩水，等于没加负荷）。',
+      '四件都对还是没进步，再考虑换动作、调整组次区间或安排一周减载。'
+    ], video: {"url":"https://www.bilibili.com/video/BV1fN411p7bZ","label":"一招突破增肌平台期"} }
+];
+function renderKnowledge(body){
+  const done = (STATE.knowledge && STATE.knowledge.read) || {};
+  body.innerHTML = `
+    <div class="card" style="padding:6px 14px">
+      <h4 style="margin:8px 0 2px">肌肉生长与增肌原理 <span class="tag">${KB_ARTICLES.length} 篇</span></h4>
+      <p style="font-size:11px;color:var(--faint);line-height:1.6">
+        点标题展开全文。内容为运动生理学共识的中文整理，每条附一个 B 站科普视频（标题即视频原名，可直接核对）。
+        已读 ${Object.keys(done).length}/${KB_ARTICLES.length}。
+      </p>
+    </div>
+    ${KB_ARTICLES.map(a=>`
+      <div class="card kb-card${done[a.id]?' read':''}" data-kb="${a.id}">
+        <div class="kb-head">
+          <span class="kb-tag">${a.tag}</span>
+          <b class="kb-title">${a.title}</b>
+          <span class="kb-min">${a.min} 分钟${done[a.id]?' · 已读 ✓':''}</span>
+        </div>
+        <p class="kb-sum">${a.summary}</p>
+        <div class="kb-body" hidden>
+          <ul>${a.points.map(p=>`<li>${p}</li>`).join('')}</ul>
+          ${a.video ? `<div class="ex-video" data-v="${a.video.url}">▶ ${esc(a.video.label)}</div>` : ''}
+        </div>
+      </div>`).join('')}
+    <p style="font-size:10.5px;color:var(--faint);text-align:center;line-height:1.7;padding:2px 6px 10px">
+      以上为科普整理，不构成医疗建议；有伤病或基础疾病请遵医嘱。
+    </p>`;
+  body.querySelectorAll('.kb-card').forEach(card=>{
+    card.onclick = e=>{
+      if(e.target.closest('.ex-video')) return;         // 点视频不折叠
+      const b = card.querySelector('.kb-body'); if(!b) return;
+      b.hidden = !b.hidden;
+      if(!b.hidden){
+        if(!STATE.knowledge) STATE.knowledge = { read:{} };
+        if(!STATE.knowledge.read) STATE.knowledge.read = {};
+        STATE.knowledge.read[card.dataset.kb] = 1; save();
+        card.classList.add('read');
+        const m = card.querySelector('.kb-min');
+        if(m && m.textContent.indexOf('已读') < 0) m.textContent += ' · 已读 ✓';
+      }
+    };
+  });
+  // 与其它模块一致：视频行点击打开外链（新窗口）
+  $$('#mod-body .ex-video').forEach(v=>v.onclick=()=>window.open(v.dataset.v, '_blank'));
+}
+
+/* ============================================================
+   v1.1 新增板块二：跑步（GPS 跟踪 / 轨迹地图 / 卡路里）
+   实事求是：
+   - 距离/配速/卡路里在端侧计算，不需要网络；
+   - 地图底图用 OSM 瓦片，需要联网，加载失败自动降级为纯轨迹视图；
+   - 室内或信号差时定位精度有限，距离会偏大，界面已如实标注。
+   卡路里用 ACSM 跑步公式：VO2 = 0.2×速度(m/min) + 3.5，kcal/min = VO2×体重(kg)/1000×5
+   ============================================================ */
+const RUN_TILE = z => 256 * Math.pow(2, z);
+function lonToPx(lon, z){ return (lon + 180) / 360 * RUN_TILE(z); }
+function latToPx(lat, z){
+  const r = lat * Math.PI / 180;
+  return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * RUN_TILE(z);
+}
+function haversine(a, b){
+  const R = 6371000, toRad = x => x * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat), dLon = toRad(b.lon - a.lon);
+  const s1 = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(s1));
+}
+function runKcal(distM, ms, w){
+  if(!distM || !ms) return 0;
+  const min = ms / 60000, mPerMin = distM / min;
+  const vo2 = 0.2 * mPerMin + 3.5;                 // ACSM 跑步公式（含静息分量）
+  return Math.round(vo2 * (w || 65) / 1000 * 5 * min);
+}
+const RUN = { active:false, watchId:null, pts:[], t0:0, dist:0, lastFix:0 };
+function runFmtDist(m){ return m >= 1000 ? (m/1000).toFixed(2) + ' km' : Math.round(m) + ' m'; }
+function runFmtDur(ms){ const s = Math.floor(ms/1000); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function runPace(distM, ms){ if(distM < 10 || !ms) return '--'; const p = (ms/60000) / (distM/1000); return `${Math.floor(p)}'${String(Math.round((p%1)*60)).padStart(2,'0')}"`; }
+function runTotals(){
+  const rs = (STATE.runs && Array.isArray(STATE.runs)) ? STATE.runs : [];
+  return { n:rs.length, dist:rs.reduce((a,r)=>a+(r.dist||0),0), ms:rs.reduce((a,r)=>a+(r.ms||0),0),
+           kcal:rs.reduce((a,r)=>a+(r.kcal||0),0) };
+}
+function runStart(){
+  if(RUN.active) return;
+  if(!navigator.geolocation){ toast('当前环境不支持定位，无法记录轨迹'); return; }
+  RUN.pts = []; RUN.dist = 0; RUN.t0 = Date.now(); RUN.active = true;
+  RUN.watchId = navigator.geolocation.watchPosition(pos=>{
+    const p = { lat:pos.coords.latitude, lon:pos.coords.longitude, t:Date.now() };
+    const acc = pos.coords.accuracy;
+    // 精度太差（>50m）的点丢弃，避免距离被漂移放大
+    if(acc != null && acc > 50) return;
+    const last = RUN.pts[RUN.pts.length-1];
+    if(last){ const d = haversine(last, p); if(d < 1) return; RUN.dist += d; }  // 过滤抖动
+    RUN.pts.push(p); RUN.lastFix = Date.now();
+    renderModule('run');
+  }, err=>{ toast('定位失败：' + (err && err.message ? err.message : '未知原因')); },
+  { enableHighAccuracy:true, timeout:12000, maximumAge:2000 });
+  renderModule('run');
+  startRunTicker();
+}
+let runTicker = null;
+function startRunTicker(){
+  clearInterval(runTicker);
+  runTicker = setInterval(()=>{ if(RUN.active) renderModule('run'); else clearInterval(runTicker); }, 1000);
+}
+function runStop(){
+  if(!RUN.active) return;
+  RUN.active = false;
+  if(RUN.watchId != null && navigator.geolocation) navigator.geolocation.clearWatch(RUN.watchId);
+  RUN.watchId = null; clearInterval(runTicker);
+  const ms = Date.now() - RUN.t0, dist = Math.round(RUN.dist);
+  if(dist < 20){ toast('距离太短（<20m），未记录'); renderModule('run'); return; }
+  const w = (STATE.profile && STATE.profile.weight) || 65;
+  if(!STATE.runs || !Array.isArray(STATE.runs)) STATE.runs = [];
+  STATE.runs.unshift({ date:new Date().toISOString().slice(0,10), dist, ms,
+    kcal:runKcal(dist, ms, w), pts:RUN.pts.filter((_,i)=>i%3===0).slice(0,400) });  // 抽稀存轨迹，控制体积
+  if(STATE.runs.length > 200) STATE.runs.length = 200;
+  save(); toast(`已记录 ${runFmtDist(dist)} · ${runFmtDur(ms)}`);
+  renderModule('run');
+}
+function runTrackSVG(pts, w, h){
+  if(!pts || pts.length < 2) return '';
+  const lats = pts.map(p=>p.lat), lons = pts.map(p=>p.lon);
+  const minLa = Math.min(...lats), maxLa = Math.max(...lats);
+  const minLo = Math.min(...lons), maxLo = Math.max(...lons);
+  const pad = 14;
+  // 用墨卡托 y（纬度）与经度 x 做等比映射，避免高纬变形；跨度极小时给一个最小跨度
+  const mY = la => latToPx(la, 12);
+  const y0 = mY(minLa), y1 = mY(maxLa), x0 = lonToPx(minLo, 12), x1 = lonToPx(maxLo, 12);
+  const sy = Math.max(y1 - y0, 1e-6), sx = Math.max(x1 - x0, 1e-6);
+  const k = Math.min((w - pad*2) / sx, (h - pad*2) / sy);
+  const ox = (w - sx*k)/2, oy = (h - sy*k)/2;
+  const X = p => ox + (lonToPx(p.lon,12) - x0) * k;
+  const Y = p => h - (oy + (mY(p.lat) - y0) * k);
+  const d = pts.map((p,i)=>`${i?'L':'M'}${X(p).toFixed(1)} ${Y(p).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:100%">
+    <path d="${d}" fill="none" stroke="#6c5ce7" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>
+    <circle cx="${X(pts[0]).toFixed(1)}" cy="${Y(pts[0]).toFixed(1)}" r="5" fill="#7fc49a"/>
+    <circle cx="${X(pts[pts.length-1]).toFixed(1)}" cy="${Y(pts[pts.length-1]).toFixed(1)}" r="5" fill="#e17055"/>
+  </svg>`;
+}
+function renderRun(body){
+  const t = runTotals();
+  const live = RUN.active;
+  const ms = live ? (Date.now() - RUN.t0) : 0;
+  const dist = live ? RUN.dist : 0;
+  const w = (STATE.profile && STATE.profile.weight) || 65;
+  const rs = (STATE.runs && Array.isArray(STATE.runs)) ? STATE.runs : [];
+  body.innerHTML = `
+    <div class="card run-hero">
+      <div class="run-big">${live ? runFmtDist(dist) : runFmtDist(t.dist)}</div>
+      <div class="run-sub">${live ? '本次里程' : `累计里程 · ${t.n} 次`}</div>
+      <div class="run-grid">
+        <div><b>${live ? runFmtDur(ms) : runFmtDur(t.ms)}</b><span>${live?'本次时长':'累计时长'}</span></div>
+        <div><b>${live ? runPace(dist, ms) : '--'}</b><span>当前配速</span></div>
+        <div><b>${live ? runKcal(dist, ms, w) : t.kcal}</b><span>${live?'本次':'累计'} 千卡</span></div>
+      </div>
+    </div>
+    <div class="card" style="padding:12px 14px">
+      <div class="row-btns">
+        ${live
+          ? '<button class="btn-grad" id="run-stop" style="padding:11px">■ 结束并记录</button>'
+          : '<button class="btn-grad" id="run-start" style="padding:11px">▶ 开始跑步</button>'}
+      </div>
+      <p style="font-size:10.5px;color:var(--faint);line-height:1.7;padding-top:8px">
+        用手机 GPS 记录：距离/配速/卡路里都在本机计算，不需要联网；定位精度差（>50m）的点会被丢弃。
+        <b>室内与高楼密集处误差较大</b>，建议在开阔处使用。卡路里按 ACSM 跑步公式估算，仅供参考。
+      </p>
+    </div>
+    ${(live && RUN.pts.length > 1) || rs.length ? `
+    <div class="card" style="padding:12px 14px">
+      <h4 style="margin:0 0 8px">${live ? '当前轨迹' : '最近一次轨迹'}</h4>
+      <div class="run-map">${runTrackSVG(live ? RUN.pts : (rs[0] ? rs[0].pts : []), 320, 190)}</div>
+      <p style="font-size:10.5px;color:var(--faint);line-height:1.7;padding-top:8px">
+        说明：这里画的是<b>轨迹形状图</b>（离线可用）。若你需要带底图的地图视图，需联网加载地图瓦片；
+        本项目坚持离线优先，因此不内置在线底图，也不伪造地图。
+      </p>
+    </div>` : ''}
+    ${rs.length ? `
+    <div class="card" style="padding:6px 14px">
+      <h4 style="margin:8px 0 2px">跑步记录 <span class="tag">${rs.length} 次</span></h4>
+      ${rs.slice(0, 20).map(r=>`<div class="list-row run-row"><span class="lr-ic">🏃</span>
+        <span class="run-rd">${r.date}</span>
+        <span class="run-rv"><b>${runFmtDist(r.dist)}</b> · ${runFmtDur(r.ms)} · ${runPace(r.dist, r.ms)}/km · ${r.kcal||0} kcal</span>
+      </div>`).join('')}
+    </div>` : ''}
+  `;
+  const st = $('#run-start'); if(st) st.onclick = runStart;
+  const sp = $('#run-stop'); if(sp) sp.onclick = runStop;
+}
+
 function renderModule(name){
   const body=$('#mod-body');
   if(name==='training') return renderTraining(body);
   if(name==='diet') return renderDiet(body);
+  if(name==='run') return renderRun(body);
+  if(name==='knowledge') return renderKnowledge(body);
   if(name==='data') return renderData(body);
   if(name==='profile') return renderProfile(body);
 }
@@ -2616,6 +3121,25 @@ const COACH_AV_SVG = {
   dog2: coachDogSVG({ hood:'#2e2e33', hoodText:'Lanny',  fur:'#f0b060', ear:'#c98a3e', cap:'#f08c3e' }),
   dog3: coachDogSVG({ hood:'#4caf6d', hoodText:'卡布达', fur:'#fbf7ef', ear:'#2e2e33', patch:'#2e2e33' })
 };
+/* 图片型壁纸预设（v1.1 恢复用户要求的角色壁纸）。与渐变预设分开存：
+   图片必须先预加载成功再切换，失败/超时（8s）回落安全渐变，避免「只显示一半 / 空白」。
+   对外显示名不含角色本名，只称「角色壁纸」。 */
+const BG_IMAGES = { card:'assets/nahida-card.webp' };
+const BG_IMG_FALLBACK = BG_PRESETS.p3;
+// 统一的安全图片切换：先铺底色 → 预加载 → 成功才换图，失败/超时回落
+function setBgImage(src){
+  const w = document.getElementById('wallpaper'); if(!w) return;
+  w.style.background = BG_IMG_FALLBACK; w.classList.add('wall-custom');   // 先铺安全底色
+  const img = new Image();
+  w.__bgImg = img;
+  let settled = false;
+  const fallback = ()=>{ if(settled) return; settled=true; clearTimeout(to); w.style.background = BG_IMG_FALLBACK; w.classList.add('wall-custom'); };
+  const to = setTimeout(fallback, 8000);
+  img.onload = ()=>{ if(settled) return; settled=true; clearTimeout(to);
+    w.style.background = `url("${src}") center / cover no-repeat`; w.classList.add('wall-custom'); };
+  img.onerror = fallback;
+  img.src = src;
+}
 function applyWallpaper(){
   const w = document.getElementById('wallpaper'); if(!w) return;
   const bg = STATE.settings && STATE.settings.bg;
@@ -2624,22 +3148,12 @@ function applyWallpaper(){
   w.classList.remove('wall-custom');
   // 预设渐变：直接应用，无加载问题
   if(bg && BG_PRESETS[bg]){ w.style.background = BG_PRESETS[bg]; w.classList.add('wall-custom'); return; }
-  // 自定义图片（data: URL）：先给一个安全的预设底色，再预加载；
-  // 加载成功才切换，失败或超时（8s）回落预设，避免“只显示一半 / 空白 / 偶发失败”
-  if(bg && bg.slice(0,5)==='data:'){
-    w.style.background = BG_PRESETS.p3; w.classList.add('wall-custom');   // 先铺安全底色
-    const img = new Image();
-    w.__bgImg = img;
-    let settled = false;
-    const fallback = ()=>{ if(settled) return; settled=true; clearTimeout(to); w.style.background = BG_PRESETS.p3; w.classList.add('wall-custom'); };
-    const to = setTimeout(fallback, 8000);
-    img.onload = ()=>{ if(settled) return; settled=true; clearTimeout(to);
-      w.style.background = `url("${bg}") center / cover no-repeat`; w.classList.add('wall-custom'); };
-    img.onerror = fallback;
-    img.src = bg;
-    return;
-  }
-  w.style.background = '';
+  // 图片型预设（角色壁纸）
+  if(bg && BG_IMAGES[bg]){ setBgImage(BG_IMAGES[bg]); return; }
+  // 自定义图片（data: URL）
+  if(bg && bg.slice(0,5)==='data:'){ setBgImage(bg); return; }
+  // 未设置 → 默认恢复为角色壁纸（图片加载失败会自动回落到雾紫渐变，不会白屏或半张图）
+  setBgImage(BG_IMAGES.card);
 }
 // 教练身份应用到全局：助手面板头部 / 聊天输入占位 / 引导文案（聊天消息头像按发送时刻取值）
 function applyCoachIdentity(){
@@ -2678,7 +3192,7 @@ function renderProfile(body){
       <h4 style="margin:8px 0 2px">训练方案 <span class="tag">${planSetMeta().name}</span></h4>
       <p style="font-size:11px;color:var(--faint);line-height:1.6">两套方案各自完整、互不交叉：均为 4 个训练日（推 / 拉 / 腿 / 核心）× 6 个动作。切换只换动作数据源，<b>打卡记录、重量记录、自定义动作都不受影响</b>。</p>
       <div class="av-row" id="plan-pick" style="margin-top:8px">
-        ${['A','B'].map(k=>{ const s=PLAN_SETS[k]; return `<button class="plan-pick${STATE.planSet===k?' on':''}" data-plan="${k}" title="${esc(s.name)}"><b>${k} 套</b><span>${esc(s.name.replace('居家 · ',''))}</span><em>${esc(s.sub)}</em></button>`; }).join('')}
+        ${['A','B','C'].map(k=>{ const s=PLAN_SETS[k]; return `<button class="plan-pick${STATE.planSet===k?' on':''}" data-plan="${k}" title="${esc(s.name)}"><b>${k} 套</b><span>${esc(s.name.replace('居家 · ',''))}</span><em>${esc(s.sub)}</em></button>`; }).join('')}
       </div>
       <p id="plan-fit" style="font-size:11px;color:var(--faint);line-height:1.6;padding-top:8px">适用：${esc(planSetMeta().fit)}</p>
     </div>
@@ -2704,7 +3218,7 @@ function renderProfile(body){
       </div>
       <p class="set-lab">桌面背景（建议浅色，深色壁纸文字可能看不清）</p>
       <div class="bg-swatches" id="bg-sw">
-        <button class="bg-swatch bw0${!STATE.settings.bg?' on':''}" data-bg="" title="默认壁纸"></button>
+        <button class="bg-swatch bw0${(STATE.settings.bg==='card'||!STATE.settings.bg)?' on':''}" data-bg="card" title="角色壁纸（默认）"></button>
         <button class="bg-swatch bw1${STATE.settings.bg==='p1'?' on':''}" data-bg="p1" title="晨光橙"></button>
         <button class="bg-swatch bw2${STATE.settings.bg==='p2'?' on':''}" data-bg="p2" title="薄荷绿"></button>
         <button class="bg-swatch bw3${STATE.settings.bg==='p3'?' on':''}" data-bg="p3" title="雾紫"></button>
@@ -2716,7 +3230,23 @@ function renderProfile(body){
       <div class="av-row" id="skin-pick">
         ${PET_SKINS.map(sk=>`<button class="av-pick${STATE.petSkin===sk.key?' on':''}" data-skin="${sk.key}" title="${sk.name}">${sk.asset?`<img src="${sk.asset}" alt="${sk.name}">`:`<img src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(sk.render('happy'))}" alt="${sk.name}">`}</button>`).join('')}
       </div>
-      <p style="font-size:10.5px;color:var(--faint);padding:6px 0 8px;line-height:1.6">当前：<b>${skinBy(STATE.petSkin).name}</b>。切换只替换形象渲染器，桌宠位置（含悬挂）、偏好动画与设置都不动。<br>小技巧：把桌宠拖到屏幕<b>顶边</b>松手会悬挂摆动；连点 5 次它会翻跟头冒爱心；切后台再回来会和你打招呼。</p>
+      <div class="row-btns" style="margin-top:6px">
+        <button class="ex-do ghost-btn" id="pet-photo-up" style="padding:8px">📷 用照片做桌宠</button>
+        <button class="ex-do ghost-btn" id="pet-walk-tg" style="padding:8px">溜达：${STATE.settings.petWalk===false?'关':'开'}</button>
+        <button class="ex-do ghost-btn" id="pet-voice-tg" style="padding:8px">语音：${STATE.settings.petVoice?'开':'关'}</button>
+      </div>
+      <p style="font-size:10.5px;color:var(--faint);padding:6px 0 8px;line-height:1.6">当前：<b>${skinBy(STATE.petSkin).name}</b>。切换只替换形象渲染器，桌宠位置（含悬挂）、偏好动画与设置都不动。<br>动作：会自己<b>沿边缘溜达</b>、被抓会挣扎、松手会落地回弹；久不理它先挥手告别再打瞌睡 💤。<br>「照片桌宠」= 你的照片做圆脸 + 卡通表情叠加（端侧无生成式模型，做不到照片转二次元）。<br>小技巧：把桌宠拖到屏幕<b>顶边</b>松手会悬挂摆动；连点 5 次它会翻跟头冒爱心；切后台再回来会和你打招呼。</p>
+    </div>
+    <div class="card" style="padding:6px 14px">
+      <h4 style="margin:8px 0 2px">助手上下文记忆 <span class="tag" id="ctx-tag">${STATE.ctxLimit>0?('最近 '+STATE.ctxLimit+' 轮'):'不限轮数（已开放）'}</span></h4>
+      <div class="row-btns" style="margin-top:6px">
+        <button class="ex-do ghost-btn" id="ctx-unlimit" style="padding:8px">开放全部（不限轮数）</button>
+        <button class="ex-do ghost-btn" id="ctx-limit5" style="padding:8px">收回为最近 5 轮</button>
+      </div>
+      <p style="font-size:10.5px;color:var(--faint);line-height:1.7;padding-top:6px">
+        不限轮数时，助手可以引用更早的对话（仍留 ${CTX_HARD} 轮硬上限，防止无限膨胀拖慢/撑爆存储）。
+        收回为 5 轮后，更早的内容立即不再参与回答，界面会同步显示当前档位。
+      </p>
     </div>
     <div class="card" style="padding:6px 14px">
       <h4 style="margin:8px 0 2px">AI 食物识别 <span class="tag" id="vs-state">${(STATE.vision&&STATE.vision.mode&&STATE.vision.mode!=='off')?'已开启':'未开启'}</span></h4>
@@ -2744,6 +3274,14 @@ function renderProfile(body){
     <div class="card" style="padding:6px 14px">
       <div class="list-row" id="reset-pet"><span class="lr-ic">↺</span>重置桌宠位置<span class="lr-ar">›</span></div>
       <div class="list-row" id="reset-all"><span class="lr-ic">🗑️</span>清空所有数据<span class="lr-ar">›</span></div>
+    </div>
+    <div class="card" style="padding:6px 14px">
+      <h4 style="margin:8px 0 2px">关于与更新 <span class="tag">v${APP_VERSION}</span></h4>
+      <p style="font-size:11px;color:var(--faint);line-height:1.7">
+        桌面图标 / 应用名若仍是旧的：这是<b>添加到主屏幕那一刻</b>由系统保存的快照，之后改代码不会自动覆盖它。<br>
+        刷新方法：<b>长按桌面图标 → 删除/移除</b>，再用浏览器打开本站 → <b>添加到主屏幕</b>，即可变成新图标与「训练日记」。<br>
+        若打开后仍是旧画面：在浏览器设置里<b>清除本站数据</b>（或卸载后重装）即可。
+      </p>
     </div>
     <p style="font-size:11px;color:var(--faint);text-align:center;padding:6px">角色素材来源见 assets/CREDITS.md · 数据仅存本机</p>`;
   // 头像上传：本地压缩为 128px dataURL 存入档案
@@ -2781,7 +3319,7 @@ function renderProfile(body){
   if(planPick) planPick.onclick=e=>{
     const b=e.target.closest('.plan-pick'); if(!b) return;
     const k=b.dataset.plan;
-    if(k!=='A' && k!=='B') return;            // 脏值一律忽略，不写进 STATE
+    if(['A','B','C'].indexOf(k) < 0) return;   // 脏值一律忽略，不写进 STATE
     if(k===STATE.planSet) return;
     STATE.planSet=k; save(); applyPlanSet();
     renderProfile(body); renderHome();
@@ -2800,6 +3338,40 @@ function renderProfile(body){
     STATE.settings.coachAvatar=b.dataset.av; save();
     coAvs.querySelectorAll('.av-pick').forEach(x=>x.classList.toggle('on', x===b));
     applyCoachIdentity(); toast('教练头像已更新 ✨');
+  };
+  // v1.1 桌宠：照片做桌宠 / 溜达开关 / 语音朗读开关
+  const petPhotoUp=$('#pet-photo-up');
+  if(petPhotoUp) petPhotoUp.onclick=()=>{
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+    inp.onchange=()=>{ const f=inp.files && inp.files[0]; if(!f) return;
+      compressImage(f, 256, du=>{ if(!du){ toast('图片读取失败'); return; }
+        STATE.settings.petPhoto=du; STATE.petSkin='photo';
+        if(saveSafe()){ applyPetArt(STATE.petMood || 'happy'); renderProfile(body); toast('照片桌宠已生成 ✨'); } }); };
+    inp.click();
+  };
+  const petWalkTg=$('#pet-walk-tg');
+  if(petWalkTg) petWalkTg.onclick=()=>{
+    const on = STATE.settings.petWalk === false;    // 缺省视为开
+    STATE.settings.petWalk = on; save();
+    if(!on) petStopWalk();
+    renderProfile(body); toast(on ? '桌宠会自己溜达 🚶' : '已关闭溜达');
+  };
+  const petVoiceTg=$('#pet-voice-tg');
+  if(petVoiceTg) petVoiceTg.onclick=()=>{
+    const on = !STATE.settings.petVoice;
+    STATE.settings.petVoice = on; save(); renderProfile(body);
+    if(on){ const ok = petSpeak('我在呢，以后我说话给你听');
+      toast(ok ? '语音已开启 🔊' : '当前浏览器不支持语音，已保留文字气泡');
+      if(!ok) STATE.settings.petVoice = false;
+    } else { try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){} toast('语音已关闭'); }
+  };
+  // v1.1 上下文记忆档位切换（开放全部 / 收回 5 轮）
+  const ctxU=$('#ctx-unlimit'), ctx5=$('#ctx-limit5');
+  if(ctxU) ctxU.onclick=()=>{ STATE.ctxLimit=0; save(); renderProfile(body); toast('已开放全部上下文记忆 ♾️'); };
+  if(ctx5) ctx5.onclick=()=>{
+    STATE.ctxLimit=5; save();
+    while(CTX.hist.length > 5) CTX.hist.shift();     // 立即裁剪，不只是改标记
+    renderProfile(body); toast('已收回为最近 5 轮');
   };
   const bgSw=$('#bg-sw');
   if(bgSw) bgSw.onclick=e=>{
@@ -2924,12 +3496,12 @@ function importJSON(){
         if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
         if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
         // 导入的方案键同样做校验 + pump→core 键名迁移
-        if(STATE.planSet !== 'A' && STATE.planSet !== 'B') STATE.planSet = 'A';
+        if(['A','B','C'].indexOf(STATE.planSet) < 0) STATE.planSet = 'A';   // 脏值一律回落 A
         if(STATE.planEdits && STATE.planEdits.pump && !STATE.planEdits.core){ STATE.planEdits.core = STATE.planEdits.pump; delete STATE.planEdits.pump; }
         if(STATE.exLast && STATE.exLast.pump && !STATE.exLast.core){ STATE.exLast.core = STATE.exLast.pump; delete STATE.exLast.pump; }
         // 导入备份同样过一遍新字段容错（背景/教练/桌宠皮肤）
         if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:'', coachName:'', coachAvatar:'' };
-        if(['nahida','spiderV1','spiderV2','spiderV3'].indexOf(STATE.petSkin)<0) STATE.petSkin='spiderV3';
+        if(['nahida','spiderV1','spiderV2','spiderV3','official','photo'].indexOf(STATE.petSkin)<0) STATE.petSkin='spiderV3';
         save(); toast('导入成功，正在重载…'); setTimeout(()=>location.reload(), 700);
       }catch(_){ toast('这不是有效的备份 JSON 文件'); }
     };
@@ -2957,7 +3529,7 @@ $('#done-ok') && ($('#done-ok').onclick=()=>navUIClose('done-modal'));
 function boot(){
   // 应用可更换背景与教练身份（在首屏渲染前）
   applyWallpaper(); applyCoachIdentity();
-  applyPlanSet();                    // 按已选方案挂载训练日数据（A 有卧推椅 / B 无卧推椅）
+  applyPlanSet();                    // 按已选方案挂载训练日数据（A 有卧推椅 / B 无卧推椅 / C 健身房）
   renderHome(); initPet(); showOnboard();
   // 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
   document.addEventListener('visibilitychange', ()=>{

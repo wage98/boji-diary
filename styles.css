@@ -161,6 +161,31 @@ body{
 .pet.dragging .pet-img{ animation:none !important; transform:scale(.93) rotate(-2deg); }
 .pet.hover-pulse{ filter:drop-shadow(0 0 12px rgba(167,220,196,.55)); }
 
+/* ===== v1.1 桌宠动作增强（借鉴 Shimeji-ee「行为状态机」：以动作为主）=====
+   ① 溜达 walk：沿停靠边缘位移 + 身体上下颠动（写在 .pet-img 上，覆盖情绪动画）
+   ② 被抓 struggle：拖拽中轻微挣扎摆动
+   ③ 落地 land：松手落地时的压缩回弹
+   注：走路朝向不额外做镜像翻转 —— .pet-body 的 transform 已被左右缘朝向占用，
+   叠加会互相覆盖（右缘镜像 + 朝向镜像 = 抵消），故方向感只由位移方向表达。 */
+.pet.pet-walking .pet-img{ animation:walkBob .34s ease-in-out infinite !important; }
+@keyframes walkBob{
+  0%,100%{transform:translateY(0) rotate(-2.5deg)}
+  50%{transform:translateY(-7px) rotate(2.5deg)}}
+.pet.pet-walking .pet-shadow{ animation:shadowPulse .68s ease-in-out infinite; }
+@keyframes shadowPulse{0%,100%{transform:translateX(-50%) scaleX(1); opacity:.5}
+  50%{transform:translateX(-50%) scaleX(.78); opacity:.34}}
+.pet.pet-struggle .pet-img{ animation:struggle .5s ease-in-out infinite !important; }
+@keyframes struggle{
+  0%,100%{transform:scale(.93) rotate(-5deg)}
+  50%{transform:scale(.93) rotate(5deg)}}
+.pet.pet-land .pet-img{ animation:land .42s cubic-bezier(.34,1.56,.64,1) 1 !important; }
+@keyframes land{
+  0%{transform:scaleY(.82) scaleX(1.12)}
+  60%{transform:scaleY(1.06) scaleX(.96)}
+  100%{transform:scaleY(1) scaleX(1)}}
+/* 照片桌宠：圆形头像 + 自绘身体，头像带柔光描边 */
+.pet.skin-photo .pet-img{ border-radius:50%; }
+
 /* 桌宠“活起来”：招牌发饰宝珠浮动 + 草元素粒子上升（轻量 Live2D 等效，主题化） */
 .pet-akuma{position:absolute; width:10px; height:10px; border-radius:50%; top:10px; z-index:3; pointer-events:none;
   background:radial-gradient(circle at 35% 30%, #fff, var(--mint)); box-shadow:0 0 9px rgba(167,220,196,.85);
@@ -493,9 +518,10 @@ body{
   .pet-img{width:86px; height:86px;}
   .pet-ring{width:100px; height:100px;}
   .pet-bubble{max-width:172px; font-size:12.5px; padding:9px 13px;}
-  .dock{bottom:calc(8px + env(safe-area-inset-bottom)); gap:2px; padding:6px;}
-  .dock-item{width:54px; padding:5px 6px; font-size:10.5px;}
-  .dock-item .di{font-size:19px;}
+  /* v1.1：dock 由 5 项增至 7 项（新增跑步 / 知识），窄屏收窄单项宽度避免换行 */
+  .dock{bottom:calc(8px + env(safe-area-inset-bottom)); gap:1px; padding:5px 4px;}
+  .dock-item{width:47px; padding:5px 3px; font-size:10px;}
+  .dock-item .di{font-size:18px;}
   .panel{padding-top:calc(4px + env(safe-area-inset-top));}
   .panel-head{padding:10px 12px;}
   .mod-body{padding:12px; gap:10px;}
@@ -587,7 +613,8 @@ body{
 .bg-swatches{display:flex;gap:8px;flex-wrap:wrap;}
 .bg-swatch{width:46px;height:46px;border-radius:12px;border:2px solid var(--line);cursor:pointer;padding:0;}
 .bg-swatch.on{border-color:#7fc49a;box-shadow:0 0 0 2px rgba(127,196,154,.22);}
-.bw0{background:linear-gradient(165deg,#eaf2ff,#e9ecfb 55%,#f5e9fb);}
+/* 角色壁纸缩略图（图片型预设；图片缺失时由后面的渐变兜底，选中态依然可见） */
+.bw0{background:url("assets/nahida-card.webp") center/cover no-repeat,linear-gradient(165deg,#eaf2ff,#e9ecfb 55%,#f5e9fb);}
 .bw1{background:linear-gradient(165deg,#ffe9d6,#ffd3c0 45%,#ffb7c5);}
 .bw2{background:linear-gradient(165deg,#e0f5e9,#c8e6d5 50%,#a8d8c0);}
 .bw3{background:linear-gradient(165deg,#efe9fb,#ddd2f2 55%,#c9b8e6);}
@@ -658,3 +685,30 @@ body{
   .pet-ghost,.pet-bubble.round.show b{animation:none !important;}
   *{transition-duration:.01ms !important;}
 }
+
+/* ===== v1.1 新增板块：知识库 / 跑步 ===== */
+.kb-card{padding:12px 14px; cursor:pointer;}
+.kb-card.read{opacity:.92;}
+.kb-head{display:flex; align-items:center; gap:8px;}
+.kb-tag{flex:none; font-size:10px; padding:2px 7px; border-radius:999px;
+  background:linear-gradient(180deg,var(--mint),var(--mint2)); color:#1f4733; font-weight:600;}
+.kb-title{font-size:13.5px; font-weight:700; flex:1; line-height:1.4;}
+.kb-min{flex:none; font-size:10.5px; color:var(--faint);}
+.kb-sum{margin:6px 0 0; font-size:11.5px; color:var(--faint); line-height:1.7;}
+.kb-body{margin-top:8px;}
+.kb-body ul{margin:0; padding-left:18px;}
+.kb-body li{font-size:12px; line-height:1.85; color:var(--ink);}
+.run-hero{padding:16px 14px; text-align:center;}
+.run-big{font-size:36px; font-weight:800; letter-spacing:-.5px;
+  background:linear-gradient(180deg,var(--mint),var(--mint2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.run-sub{font-size:11.5px; color:var(--faint); margin-top:2px;}
+.run-grid{display:flex; gap:6px; margin-top:12px;}
+.run-grid>div{flex:1; background:var(--glass); border-radius:12px; padding:8px 4px;}
+.run-grid b{display:block; font-size:15px; font-weight:700;}
+.run-grid span{font-size:10px; color:var(--faint);}
+.run-map{width:100%; height:190px; border-radius:14px; background:var(--glass);
+  border:1px solid var(--line); overflow:hidden;}
+.run-row{align-items:center;}
+.run-rd{flex:none; font-size:11px; color:var(--faint);}
+.run-rv{flex:1; text-align:right; font-size:11.5px;}
+.run-rv b{font-weight:700;}

@@ -9,8 +9,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F3F0FB">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="assets/icon.svg">
+<!-- iOS/Android 对 SVG 图标支持不一致：一律给 PNG，避免安装后仍是旧图标 -->
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
 <title>训练日记 · 居家哑铃训练记录</title>
+<meta name="apple-mobile-web-app-title" content="训练日记">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -60,6 +65,8 @@
             <button class="dock-item" data-go="training"><span class="di">🏋️</span><b>训练</b></button>
             <button class="dock-item" data-go="diet"><span class="di">🍱</span><b>饮食</b></button>
             <button class="dock-item pet-talk" id="pet-talk"><span class="di">💬</span><b>聊天</b></button>
+            <button class="dock-item" data-go="run"><span class="di">🏃</span><b>跑步</b></button>
+            <button class="dock-item" data-go="knowledge"><span class="di">📚</span><b>知识</b></button>
             <button class="dock-item" data-go="data"><span class="di">📈</span><b>数据</b></button>
             <button class="dock-item" data-go="profile"><span class="di">👤</span><b>我的</b></button>
           </nav>

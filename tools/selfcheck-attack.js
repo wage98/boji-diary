@@ -477,7 +477,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -554,12 +554,14 @@ function v710Checks() {
       && w.eval('spiderSVG')(m,'v2').indexOf('<svg') >= 0
       && w.eval('spiderSVG')(m,'v3').indexOf('<svg') >= 0));
     const w2 = boot(J({ profile: { weight: 70 }, petSkin: 'svg' }));
-    check('J4 旧值迁移：svg→nahida、spider→spiderV3、spiderV2→spiderV3、官方值→spiderV3（默认）',
+    // v1.1：official（立绘位图）恢复为合法皮肤，不再回落到 spiderV3
+    check('J4 旧值迁移：svg→nahida、spider→spiderV3、spiderV2→spiderV3、official→official、脏值→spiderV3',
       () => w2.__S.petSkin === 'nahida'
         && boot(J({ profile:{weight:70}, petSkin:'spider' })).__S.petSkin === 'spiderV3'
         && boot(J({ profile:{weight:70}, petSkin:'spiderV2' })).__S.petSkin === 'spiderV3'
-        && boot(J({ profile:{weight:70}, petSkin:'official' })).__S.petSkin === 'spiderV3'
-        && boot(J({ profile:{weight:70}, petSkin:'spiderV1' })).__S.petSkin === 'spiderV1');
+        && boot(J({ profile:{weight:70}, petSkin:'official' })).__S.petSkin === 'official'
+        && boot(J({ profile:{weight:70}, petSkin:'spiderV1' })).__S.petSkin === 'spiderV1'
+        && boot(J({ profile:{weight:70}, petSkin:'__dirty__' })).__S.petSkin === 'spiderV3');
   }
   // J5–J7 桌宠行为
   {
@@ -585,13 +587,20 @@ function v710Checks() {
       return inp && inp.placeholder.indexOf('阿铁') >= 0 && ob && ob.innerHTML.indexOf('阿铁') >= 0;
     });
     w.eval('applyWallpaper')();
-    check('J11 背景预设 p3 → wallpaper 渐变生效；脏 bg 回落默认', () => {
+    // v1.1：默认背景恢复为角色壁纸（图片），加载失败/脏值一律回落到安全渐变，不再出现空白或半张图
+    check('J11 背景预设 p3 → wallpaper 渐变生效；脏 bg 回落安全渐变而非空白', () => {
       const el = w.document.getElementById('wallpaper');
       const okP3 = el.style.background.indexOf('linear-gradient') >= 0 && el.classList.contains('wall-custom');
       w.__S.settings.bg = 'not-a-preset';
       w.eval('applyWallpaper')();
-      const okFall = el.style.background === '' && !el.classList.contains('wall-custom');
+      const okFall = el.style.background.indexOf('linear-gradient') >= 0 && el.classList.contains('wall-custom');
       return okP3 && okFall;
+    });
+    check('J11b 默认（未设置 bg）走角色壁纸预加载，图片路径为 nahida-card.webp', () => {
+      const w3 = boot(J({ profile: { weight: 70 } }));
+      w3.eval('applyWallpaper')();
+      const img = w3.document.getElementById('wallpaper').__bgImg;
+      return !!img && String(img.src).indexOf('nahida-card.webp') >= 0;
     });
   }
   // J12–J14 识别优化联动
@@ -620,8 +629,11 @@ function v711Checks() {
   {
     const w = boot(J({ profile: { weight: 70 } }));
     const keys = w.eval('PET_SKINS.map(x=>x.key)');
-    check('K1 皮肤注册表四键齐全（nahida/spiderV1/V2/V3）',
-      () => JSON.stringify(keys) === JSON.stringify(['nahida','spiderV1','spiderV2','spiderV3']));
+    // v1.1：恢复立绘位图皮肤 official（对外名「官方立绘」，不含角色本名）+ 新增照片桌宠 photo
+    check('K1 皮肤注册表六键齐全（nahida/spiderV1/V2/V3/official/photo）',
+      () => JSON.stringify(keys) === JSON.stringify(['nahida','spiderV1','spiderV2','spiderV3','official','photo']));
+    check('K1b 位图皮肤有 asset 且对外名不含角色本名',
+      () => { const o = w.eval('skinBy')('official'); return !!o.asset && o.name.indexOf('纳西') < 0; });
     check('K2 skinBy 脏键回落第一项而非崩溃', () => w.eval('skinBy')('bad-key').key === 'nahida');
     // 切换保留停靠与情绪状态
     w.__S.petDock = { edge:'top', off:0.5 }; w.__S.petMood = 'sleep';
@@ -630,12 +642,22 @@ function v711Checks() {
     check('K3 切换皮肤不丢状态（悬挂类保留 + 情绪保留）',
       () => w.document.getElementById('pet').classList.contains('edge-t') && w.__S.petMood === 'sleep');
   }
-  // K4–K6 上下文窗口 5 轮
+  // K4–K6 上下文窗口（v1.1：默认不限轮数，可收回为 5 轮）
   {
     const w = boot(J({ profile: { weight: 70 } }));
     const reply = w.eval('nahidaReply');
     ['卧推肩疼怎么办','深蹲膝盖响','鸡蛋吃几个','奶茶能喝吗','今天吃什么','随便聊聊','谢谢'].forEach(q => reply(q));
-    check('K4 上下文窗口封顶 5 轮（多问不膨胀）', () => w.eval('window.__CTX').hist.length === 5);
+    // 默认开放全部：7 轮全部保留（不再是 5），但不得超过硬上限
+    check('K4 上下文默认不限轮数（7 轮全留，且不超硬上限）', () => {
+      const h = w.eval('window.__CTX').hist.length, hard = w.eval('CTX_HARD');
+      return h === 7 && hard > 0 && h <= hard;
+    });
+    check('K4b 收回为 5 轮后立即裁剪到 5', () => {
+      const w2 = boot(J({ profile: { weight: 70 }, ctxLimit: 5 }));
+      const r2 = w2.eval('nahidaReply');
+      ['卧推肩疼怎么办','深蹲膝盖响','鸡蛋吃几个','奶茶能喝吗','今天吃什么','随便聊聊','谢谢'].forEach(q => r2(q));
+      return w2.eval('window.__CTX').hist.length === 5;
+    });
     const w2 = boot(J({ profile: { weight: 70 } }));
     const r2 = w2.eval('nahidaReply');
     r2('引体向上做不了'); const a = r2('它怎么练');
@@ -669,16 +691,17 @@ function v81Checks() {
   {
     const w = boot(J({ profile: { weight: 70 } }));
     const sets = w.eval('PLAN_SETS');
-    check('M1 两套方案齐全（A 有卧推椅 / B 无卧推椅），各含推/拉/腿/核心 4 天',
-      () => !!sets.A && !!sets.B && DAYS.every(d => sets.A.days[d] && sets.B.days[d]));
+    // v1.1：新增 C 套（健身房 · 器械齐全），三套共存
+    check('M1 三套方案齐全（A 有卧推椅 / B 无卧推椅 / C 健身房器械），各含推/拉/腿/核心 4 天',
+      () => !!sets.A && !!sets.B && !!sets.C && DAYS.every(d => sets.A.days[d] && sets.B.days[d] && sets.C.days[d]));
     check('M2 每套动作数量充分（≥24，即 4 天 × ≥6 动作）', () => {
       const n = s => DAYS.reduce((a, d) => a + s.days[d].ex.length, 0);
-      return n(sets.A) >= 24 && n(sets.B) >= 24
-        && DAYS.every(d => sets.A.days[d].ex.length >= 6 && sets.B.days[d].ex.length >= 6);
+      return ['A','B','C'].every(k => n(sets[k]) >= 24)
+        && DAYS.every(d => ['A','B','C'].every(k => sets[k].days[d].ex.length >= 6));
     });
     check('M3 两套互不交叉引用（动作对象不共享，改一套不影响另一套）', () => {
       const objs = [];
-      ['A', 'B'].forEach(k => DAYS.forEach(d => sets[k].days[d].ex.forEach(e => objs.push(e))));
+      ['A', 'B', 'C'].forEach(k => DAYS.forEach(d => sets[k].days[d].ex.forEach(e => objs.push(e))));
       for (let i = 0; i < objs.length; i++)                 // 同一对象引用出现两次即为交叉引用
         for (let j = i + 1; j < objs.length; j++) if (objs[i] === objs[j]) return false;
       const before = sets.B.days.push.ex[0].name;
@@ -690,14 +713,28 @@ function v81Checks() {
     check('M4 每个动作字段齐全（名称/肌群/组数/次数/节奏/呼吸/休息/标准/易错/视频）', () => {
       const need = ['name', 'muscle', 'sets', 'reps', 'tempo', 'breath', 'rest', 'standard', 'note', 'video'];
       let okAll = true;
-      ['A', 'B'].forEach(k => DAYS.forEach(d => sets[k].days[d].ex.forEach(e => {
+      ['A', 'B', 'C'].forEach(k => DAYS.forEach(d => sets[k].days[d].ex.forEach(e => {
         if (!need.every(f => e[f] !== undefined && e[f] !== null && e[f] !== '')) okAll = false;
       })));
       return okAll;
     });
-    check('M5 动作视频链接均为合法 https（合集未收录时用站内搜索兜底，不伪造时间戳）',
-      () => DAYS.every(d => sets.A.days[d].ex.concat(sets.B.days[d].ex)
-        .every(e => /^https:\/\//.test(e.video.url) && !!e.video.label)));
+    check('M5 动作视频链接均为合法 https',
+      () => DAYS.every(d => ['A','B','C'].every(k => sets[k].days[d].ex
+        .every(e => /^https:\/\//.test(e.video.url) && !!e.video.label))));
+    // v1.1 用户要求：每个动作配「唯一对应视频」，不得再出现搜索页兜底
+    check('M5b 三套全部动作均为 B 站单视频直链（含 BV 号），无搜索页兜底', () => {
+      let ok = true, bad = 0;
+      DAYS.forEach(d => ['A','B','C'].forEach(k => sets[k].days[d].ex.forEach(e => {
+        // 允许合集时间戳形态（.../BVxxx/?t=139），两者都指向唯一视频；禁止 search.bilibili.com 搜索页
+        if (!/^https:\/\/www\.bilibili\.com\/video\/BV[0-9A-Za-z]{10}(\/\?t=\d+)?$/.test(e.video.url)) { ok = false; bad++; }
+      })));
+      if (!ok) console.log('    非直链数量:', bad);
+      return ok;
+    });
+    check('M5c C 套（健身房）动作齐全且起始建议按体重计算（kgBase）', () => {
+      const ex = DAYS.reduce((a, d) => a.concat(sets.C.days[d].ex), []);
+      return ex.length >= 24 && ex.filter(e => e.kgBase === 'bw').length >= 10;
+    });
   }
   // M6–M9 切换与数据兼容
   {
@@ -831,8 +868,10 @@ function v80Checks() {
       const need = ['pet-idle', 'pet-wave', 'pet-crouch', 'pet-exit', 'ghost-fade-1', 'ghost-fade-2', 'pet-bubble-pop'];
       return need.every(n => CSS.indexOf('@keyframes ' + n) >= 0);
     });
-    check('L17 不实现行走 / 跳跃动画（视频逐帧已否证）',
-      () => !/@keyframes\s+(pet-)?(walk|jump|run|hop)/i.test(CSS) && !/act-(walk|jump|run)/i.test(CSS));
+    // v1.1：用户明确要求「以动作为主」（参照 Shimeji 行为状态机），行走已实现为沿边溜达；
+    // 跳跃仍未实现（无参考价值，保持否证结论）。故此处改为：有溜达动画、无跳跃动画。
+    check('L17 v1.1 已实现溜达动作（walkBob）；仍不实现跳跃',
+      () => /@keyframes\s+walkBob/.test(CSS) && !/@keyframes\s+(pet-)?(jump|run|hop)/i.test(CSS));
     const w = boot(J({ profile: { weight: 70 } }));
     check('L18 动作函数可调用且不崩（wave / crouch / exit / idle / 残影 / 圆气泡）', () => {
       w.eval('bubbleBusy = false; bubbleQueue.length = 0;');   // 清掉 boot 时的问候台词队列
@@ -845,6 +884,139 @@ function v80Checks() {
       w.eval('petRoundBubble')('hi');
       const bub = w.document.getElementById('pet-bubble');
       return a && b && c && d && bub.classList.contains('round') && bub.innerHTML.indexOf('hi') >= 0;
+    });
+  }
+}
+
+// ===== v1.1 增量：桌宠动作增强 / 语音 / 照片桌宠 / 健身房方案 / 视频直链 =====
+function v110Checks() {
+  // N1–N3 动作（Shimeji 式：沿边溜达 / 挣扎 / 落地）
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    const pet = w.document.getElementById('pet');
+    // jsdom 无布局，getBoundingClientRect 全 0；桩出真实屏幕尺寸才能触发位移逻辑
+    w.document.getElementById('screen').getBoundingClientRect =
+      () => ({ width: 390, height: 780, left: 0, top: 0, right: 390, bottom: 780, x: 0, y: 0 });
+    check('N1 溜达：petWalk 加 pet-walking 类并产生位移', () => {
+      // 默认停靠右缘 → 沿纵向溜达（改 top）；顶边停靠才沿横向（改 left）。故两者之一变化即可
+      pet.style.left = '10px'; pet.style.top = '200px';
+      const bl = pet.style.left, bt = pet.style.top;
+      w.eval('petWalk')();
+      return pet.classList.contains('pet-walking')
+        && (pet.style.left !== bl || pet.style.top !== bt);
+    });
+    check('N2 关闭溜达后 petWalk 不再触发（设置项生效）', () => {
+      w.__S.settings.petWalk = false;
+      const p2 = w.document.getElementById('pet');
+      p2.classList.remove('pet-walking');
+      w.eval('petWalk')();
+      const off = !p2.classList.contains('pet-walking');
+      w.__S.settings.petWalk = true;
+      return off;
+    });
+    check('N3 挣扎 / 落地：petStruggle 与 petLand 可切换且不崩', () => {
+      w.eval('petStruggle')(true);
+      const a = pet.classList.contains('pet-struggle');
+      w.eval('petStruggle')(false);
+      const b = !pet.classList.contains('pet-struggle');
+      w.eval('petLand')();
+      const c = pet.classList.contains('pet-land');
+      w.eval('petStopWalk')();
+      return a && b && c && !pet.classList.contains('pet-walking');
+    });
+  }
+  // N4 语音：不支持时静默降级，不抛错
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('N4 petSpeak 在无 speechSynthesis 环境下返回 false 且不抛', () => {
+      let r = null, threw = false;
+      try { r = w.eval('petSpeak')('你好'); } catch (e) { threw = true; }
+      return !threw && (r === false || r === true || r == null);
+    });
+  }
+  // N5–N6 照片桌宠
+  {
+    const w = boot(J({ profile: { weight: 70 }, settings: { petPhoto: 'data:image/png;base64,AAAA' } }));
+    check('N5 photoPetSVG：有照片时输出圆形裁切 image，无照片时回落到自绘脸', () => {
+      const withPhoto = w.eval('photoPetSVG')('happy', 'data:image/png;base64,AAAA');
+      const noPhoto = w.eval('photoPetSVG')('happy', '');
+      return withPhoto.indexOf('<svg') === 0 && withPhoto.indexOf('<image') >= 0
+        && withPhoto.indexOf('phClip') >= 0
+        && noPhoto.indexOf('<svg') === 0 && noPhoto.indexOf('<image') < 0;
+    });
+    check('N6 照片皮肤在注册表内且可渲染（切到 photo 不崩）', () => {
+      const sk = w.eval('skinBy')('photo');
+      w.__S.petSkin = 'photo';
+      let ok = true;
+      try { w.eval('applyPetArt')('happy'); } catch (e) { ok = false; }
+      return !!sk && sk.photo === true && ok;
+    });
+  }
+  // N7 视频唯一性（三套全部为 B 站单视频直链，无搜索兜底）
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('N7 源码内已无 bsearch 搜索兜底调用', () => {
+      const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+      return src.indexOf('bsearch(') < 0;
+    });
+  }
+}
+
+// ===== v1.1 增量二：知识库板块 / 跑步板块 =====
+function v110bChecks() {
+  // P1–P2 知识库
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('P1 知识库文章齐全（≥10 篇，字段完整，均带视频直链）', () => {
+      const A = w.eval('KB_ARTICLES');
+      if (!Array.isArray(A) || A.length < 10) return false;
+      return A.every(a => a.id && a.title && a.summary && Array.isArray(a.points) && a.points.length >= 3
+        && a.video && /^https:\/\/www\.bilibili\.com\/video\/BV[0-9A-Za-z]{10}$/.test(a.video.url));
+    });
+    check('P2 renderKnowledge 渲染不崩且含文章标题与视频行', () => {
+      let ok = true;
+      try { w.eval('renderKnowledge')(w.document.getElementById('mod-body')); } catch (e) { ok = false; }
+      const html = w.document.getElementById('mod-body').innerHTML;
+      return ok && html.indexOf('肌肉到底是怎么长出来的') >= 0 && html.indexOf('ex-video') >= 0;
+    });
+    check('P3 点开文章写入已读标记（STATE.knowledge.read）', () => {
+      const card = w.document.querySelector('.kb-card');
+      if (!card) return false;
+      card.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+      const read = w.__S.knowledge && w.__S.knowledge.read;
+      return !!read && !!read[card.getAttribute('data-kb')];
+    });
+  }
+  // P4–P6 跑步
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('P4 haversine 距离正确（1° 纬度 ≈ 111.2 km）', () => {
+      const d = w.eval('haversine')({ lat: 0, lon: 0 }, { lat: 1, lon: 0 });
+      return Math.abs(d - 111195) < 400;
+    });
+    check('P5 卡路里按 ACSM 公式计算（1km/10min/65kg ≈ 76 kcal）', () => {
+      const k = w.eval('runKcal')(1000, 600000, 65);
+      return k >= 70 && k <= 85;
+    });
+    check('P6 renderRun 渲染不崩（含开始按钮 + 累计统计）', () => {
+      let ok = true;
+      try { w.eval('renderRun')(w.document.getElementById('mod-body')); } catch (e) { ok = false; }
+      const html = w.document.getElementById('mod-body').innerHTML;
+      return ok && html.indexOf('run-start') >= 0 && html.indexOf('累计里程') >= 0;
+    });
+    check('P7 轨迹 SVG：两点以上生成 path，点不足时返回空（不崩）', () => {
+      const f = w.eval('runTrackSVG');
+      const two = f([{ lat: 39.9, lon: 116.4 }, { lat: 39.91, lon: 116.41 }], 320, 190);
+      const one = f([{ lat: 39.9, lon: 116.4 }], 320, 190);
+      const none = f(null, 320, 190);
+      return two.indexOf('<path') >= 0 && one === '' && none === '';
+    });
+    check('P8 短距离（<20m）不会被记入跑步记录', () => {
+      const w2 = boot(J({ profile: { weight: 70 } }));
+      w2.eval('RUN').active = true; w2.eval('RUN').dist = 5; w2.eval('RUN').t0 = Date.now();
+      w2.eval('runStop')();
+      const rs = w2.__S.runs || [];
+      return rs.length === 0;
     });
   }
 }

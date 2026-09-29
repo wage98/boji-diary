@@ -1,6 +1,6 @@
 // 训练日记 · Service Worker（离线缓存 app shell）
 // 让“桌面常驻桌宠”在断网/二次打开时也能秒开
-const CACHE = 'boji-1-0-0';
+const CACHE = 'boji-1-1-0';
 const ASSETS = [
   './',
   './index.html',
@@ -8,6 +8,11 @@ const ASSETS = [
   './styles.css',
   './manifest.json',
   './assets/icon.svg',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  // v1.1 恢复：角色壁纸 + 立绘位图桌宠皮肤（离线也要能显示）
+  './assets/nahida-card.webp',
+  './assets/nahida-icon.webp',
 ];
 
 self.addEventListener('install', e => {
