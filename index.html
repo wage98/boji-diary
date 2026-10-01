@@ -16,9 +16,70 @@
 <title>训练日记 · 居家哑铃训练记录</title>
 <meta name="apple-mobile-web-app-title" content="训练日记">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<!-- 首屏样式内联：网络再慢也能立刻画出启动画面，杜绝白屏/黑屏 -->
+<style>
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px;
+    background:linear-gradient(165deg,#efe9fb,#ddd2f2 55%,#c9b8e6); color:#3a3350;
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;}
+  #boot .bt-logo{width:74px;height:74px;border-radius:22px;
+    background:rgba(255,255,255,.72); box-shadow:0 10px 26px -12px rgba(80,55,120,.5);
+    display:flex;align-items:center;justify-content:center;}
+  #boot .bt-name{font-size:16px;font-weight:700;letter-spacing:.5px;}
+  #boot .bt-bar{width:132px;height:4px;border-radius:99px;background:rgba(255,255,255,.55);overflow:hidden;}
+  #boot .bt-bar i{display:block;height:100%;width:38%;border-radius:99px;
+    background:linear-gradient(90deg,#a7dcc4,#7fd8c4); animation:btSlide 1.05s ease-in-out infinite;}
+  @keyframes btSlide{0%{margin-left:-42%}100%{margin-left:104%}}
+  #boot .bt-tip{font-size:11.5px;opacity:.72;}
+  #boot .bt-slow{display:none;max-width:250px;text-align:center;font-size:11.5px;line-height:1.7;
+    padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.6);margin-top:2px;}
+  #boot.slow .bt-bar{display:none;} #boot.slow .bt-slow{display:block;}
+  #boot button{margin-top:4px;border:0;border-radius:999px;padding:8px 18px;font-size:12.5px;font-weight:600;
+    color:#fff;background:linear-gradient(180deg,#8fd9bf,#5fc2a4);cursor:pointer;}
+  #boot.done{opacity:0;pointer-events:none;transition:opacity .32s ease;}
+</style>
 <link rel="stylesheet" href="styles.css">
+<!-- 预加载关键静态资源，缩短首屏等待 -->
+<link rel="preload" href="styles.css" as="style">
+<link rel="preload" href="app.js" as="script">
 </head>
 <body>
+<!-- 启动画面（内联，立即可见；由 app.js 就绪后淡出） -->
+<div id="boot" role="status" aria-live="polite">
+  <div class="bt-logo">
+    <svg width="42" height="42" viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M7 48 C7 36.5 14 30.5 24 30.5 C34 30.5 41 36.5 41 48Z" fill="#2e2e33"/>
+      <circle cx="24" cy="22" r="13" fill="#f6efe6" stroke="#2b2320" stroke-width="1.6"/>
+      <ellipse cx="24" cy="27.5" rx="6.4" ry="4.6" fill="#fff" stroke="#2b2320" stroke-width="1.3"/>
+      <circle cx="19" cy="20.5" r="2.1" fill="#2b2320"/><circle cx="29" cy="20.5" r="2.1" fill="#2b2320"/>
+      <circle cx="24" cy="26.4" r="1.5" fill="#2b2320"/>
+    </svg>
+  </div>
+  <div class="bt-name">训练日记</div>
+  <div class="bt-bar"><i></i></div>
+  <div class="bt-tip" id="bt-tip">正在准备你的桌面…</div>
+  <div class="bt-slow" id="bt-slow">加载有点慢，可能是网络不通畅。<br>你的数据都存在本机，不会丢。</div>
+  <button id="bt-retry" style="display:none" onclick="location.reload()">重新加载</button>
+</div>
+<script>
+/* 启动看门狗：4.5s 未就绪 → 明确告知；9s → 给重试按钮（不再无限转圈） */
+window.__T0 = Date.now();
+(function () {
+  var b = document.getElementById('boot');
+  setTimeout(function () {
+    if (!window.__READY && b) {
+      b.classList.add('slow');
+      var t = document.getElementById('bt-tip'); if (t) t.textContent = '还在加载…';
+    }
+  }, 4500);
+  setTimeout(function () {
+    if (!window.__READY && b) {
+      var r = document.getElementById('bt-retry'); if (r) r.style.display = 'block';
+      var t2 = document.getElementById('bt-tip'); if (t2) t2.textContent = '网络似乎不通';
+    }
+  }, 9000);
+})();
+</script>
 <div class="stage">
   <!-- 手机外壳 mockup -->
   <div class="phone" id="phone">
@@ -62,10 +123,12 @@
 
           <!-- 底部 dock：从桌宠展开的各模块入口 -->
           <nav class="dock" id="dock">
+            <!-- v1.2 动线重排：高频「训练/饮食」靠左、记录类「跑步/知识」居中两侧、
+                 低频「数据/我的」靠右；聊天固定正中，作为桌宠入口最显眼 -->
             <button class="dock-item" data-go="training"><span class="di">🏋️</span><b>训练</b></button>
             <button class="dock-item" data-go="diet"><span class="di">🍱</span><b>饮食</b></button>
-            <button class="dock-item pet-talk" id="pet-talk"><span class="di">💬</span><b>聊天</b></button>
             <button class="dock-item" data-go="run"><span class="di">🏃</span><b>跑步</b></button>
+            <button class="dock-item pet-talk" id="pet-talk"><span class="di">💬</span><b>聊天</b></button>
             <button class="dock-item" data-go="knowledge"><span class="di">📚</span><b>知识</b></button>
             <button class="dock-item" data-go="data"><span class="di">📈</span><b>数据</b></button>
             <button class="dock-item" data-go="profile"><span class="di">👤</span><b>我的</b></button>
@@ -146,9 +209,25 @@
   <button id="rt-skip">跳过</button>
 </div>
 
+<!-- v1.2 动作视频：App 内直接播放（B 站官方嵌入播放器），不再跳转外站 -->
+<div class="modal-mask vpop" id="video-pop" aria-hidden="true">
+  <div class="vpop-box">
+    <header class="vpop-head">
+      <b id="vpop-title">动作示范</b>
+      <div class="vpop-act">
+        <button id="vpop-local" title="播放你本机已保存的视频">📁 本地视频</button>
+        <a id="vpop-open" href="#" target="_blank" rel="noopener">原站 ↗</a>
+        <button id="vpop-close">✕</button>
+      </div>
+    </header>
+    <div class="vpop-stage" id="vpop-stage"></div>
+    <p class="vpop-tip" id="vpop-tip"></p>
+  </div>
+</div>
+
 <!-- toast -->
 <div class="toast hidden" id="toast"></div>
 
-<script src="app.js"></script>
+<script src="app.js" defer></script>
 </body>
 </html>

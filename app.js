@@ -12,7 +12,7 @@
    历史版本流水见 docs/轮次总结.md，此处不再罗列。
    ============================================================ */
 'use strict';
-const APP_VERSION = '1.1.0';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
+const APP_VERSION = '1.2.0';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const el = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
@@ -35,8 +35,6 @@ function coachAvatarSrc(){
 const svgURI = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(String(s == null ? '' : s));
 
 /* ---------- 视频深链（卓叔 B站合集，章节时间戳可点开自验） ---------- */
-const BV = 'https://www.bilibili.com/video/BV1FY4y1y7Vh';
-const vid = (t, label) => ({ url: `${BV}/?t=${t}`, label });
 /* v1.1：B 站单视频直链（每个动作唯一对应一个视频，label 用真实视频标题，便于核对）。
    来源：B 站搜索结果，按「标题必须含该动作核心名词 + 教学信号」筛选，见 docs/视频来源核对.md */
 const blink = (bvid, label) => ({ url: 'https://www.bilibili.com/video/' + bvid, label });
@@ -68,16 +66,16 @@ const PLAN_SETS = {
     fit: '家里已有卧推椅 / 可调长凳，想让胸背动作更贴近健身房版（平板与上斜卧推、手撑椅划船、肩撑椅臀桥）。',
     days: {
       push: { name:'推日 · 胸肩三头', greeting:'今天练胸肩，把手机放下，胸肌支棱起来！', ex:[
-        { name:'哑铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:vid(139,'哑铃卧推 02:19'),
+        { name:'哑铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:blink('BV1mD421J7o3','哑铃平板卧推详解'),
           standard:'肩胛后缩下沉贴住椅面，哑铃下放至胸侧乳线高度，推起时胸肌主动收缩。',
           note:'别耸肩借力；小臂保持垂直地面，手腕中立不翻。' },
-        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:60, base:0.6, video:vid(230,'上斜哑铃推举'),
+        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:60, base:0.6, video:blink('BV1aa4y1o7XA','上斜哑铃卧推详解'),
           standard:'椅背调到 30° 左右，推举轨迹略向锁骨方向聚拢。',
           note:'角度别太高，超过 45° 就变成肩推，压肩膀。' },
-        { name:'坐姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:vid(420,'哑铃肩推'),
+        { name:'坐姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:blink('BV1uw411N7MC','坐姿哑铃推肩详解'),
           standard:'靠背支撑，核心收紧，推至顶端不锁死肘，肩胛稳定。',
           note:'腰别反弓代偿，重量宁轻勿借。' },
-        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:blink('BV18o4y147RH','哑铃侧平举——正确做法（全程无废话）'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿 1 秒。',
           note:'别甩重量，用肩中束发力而不是斜方。' },
         { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1Cz421i79n', "对握哑铃仰卧臂屈伸详解"),
@@ -88,47 +86,47 @@ const PLAN_SETS = {
           note:'脖子放松别耸肩，重量轻一点更找得到后束。' },
       ]},
       pull: { name:'拉日 · 背二头', greeting:'练背啦，想象把世界拉向你(｡･ω･｡)', ex:[
-        { name:'单臂哑铃划船（手撑椅）', muscle:'背阔肌 · 大圆肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:vid(300,'单臂哑铃划船'),
+        { name:'单臂哑铃划船（手撑椅）', muscle:'背阔肌 · 大圆肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:blink('BV1Vh411775b','单臂哑铃划船——正确做法（全程无废话）'),
           standard:'一手一膝撑椅，脊柱中立，肘贴身体向后上方拉，背阔主导。',
           note:'别用惯性甩，顶峰夹背停 1 秒。' },
         { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1ij411H773', "哑铃划船详解"),
           standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
           note:'腰别塌、别圆背，起身时不要用腰硬拽。' },
-        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:vid(620,'哑铃耸肩'),
+        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:blink('BV1t441187BT','哑铃耸肩 | 斜方肌训练01| 新手教程'),
           standard:'直上直下耸肩，顶峰停顿 1 秒。',
           note:'别转肩画圈，斜方发力。' },
-        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:vid(700,'面拉'),
+        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:blink('BV19D421j7jV','【干货】精确打击肩后束！反向飞鸟？面拉？'),
           standard:'俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。',
           note:'居家哑铃版面拉，改善圆肩，别耸肩。' },
-        { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:vid(900,'锤式弯举'),
+        { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:blink('BV1uE411R7qv','每日一练:哑铃交替锤式弯举教学'),
           standard:'中立握（锤式），肘固定于身体两侧做弯举。',
           note:'别借力摆动身体。' },
-        { name:'集中弯举', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:vid(980,'集中弯举'),
+        { name:'集中弯举', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1x6ChBBExH','阿诺施瓦辛格最喜欢的二头肌训练动作，哑铃集中弯举'),
           standard:'坐姿，肘抵同侧大腿内侧，顶峰主动收缩二头。',
           note:'慢起慢落，别用手腕带。' },
       ]},
       legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
-        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:vid(832,'高脚杯深蹲 13:52'),
+        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:blink('BV1TT4y1p7YR','高脚杯深蹲详解'),
           standard:'哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。',
           note:'膝盖跟脚尖同向，别内扣。' },
-        { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
+        { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:blink('BV1Q44y1Z7Xq','30秒教会你如何做一个标准的罗马尼亚硬拉'),
           standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
           note:'靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。' },
         { name:'保加利亚分腿蹲（后脚搭椅）', muscle:'股四头肌 · 臀大肌', sets:3, reps:'10-12/腿', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV12Hpez1EVv', "别再把保加利亚分腿蹲搞砸了（正确姿势！）"),
           standard:'后脚背搭在椅面上，前腿下蹲至约 90°，躯干略前倾。',
           note:'核心收紧别晃。' },
-        { name:'哑铃箭步蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:vid(860,'哑铃箭步蹲'),
+        { name:'哑铃箭步蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1Et42187nB','箭步蹲详解'),
           standard:'向前迈步下蹲，前后腿各约 90°，后膝接近地面。',
           note:'躯干保持稳定，膝盖不内扣。' },
-        { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:vid(1000,'站姿提踵'),
+        { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:blink('BV1gJfyBsEtf','1.站姿提踵'),
           standard:'踮到顶端停顿 1 秒，慢速落下充分拉伸。',
           note:'全程控制，别靠弹震借力。' },
-        { name:'臀桥（肩撑椅）', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12-15', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:vid(950,'臀桥'),
+        { name:'臀桥（肩撑椅）', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12-15', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:blink('BV1kF411F7YG','臀腿塑形王牌动作，臀桥教学。拒绝无效训练！'),
           standard:'肩胛撑在椅面，髋顶起至肩-髋-膝成一条直线。',
           note:'顶峰主动夹臀停顿，别用腰顶。' },
       ]},
       core: { name:'核心日 · 腰腹', greeting:'核心稳了，全身都听话~', ex:[
-        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:vid(1150,'卷腹'),
+        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:blink('BV1mN4y1M7ko','慢动作卷腹教程来了，大家记得一起来打卡'),
           standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
           note:'别用脖子拉，手别抱头使劲。' },
         { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:blink('BV1wvcozSEyJ', "反向卷腹-紧致下腹，新手友好不伤腰"),
@@ -160,13 +158,13 @@ const PLAN_SETS = {
         { name:'地板哑铃卧推', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:blink('BV1mD421J7o3', "哑铃平板卧推详解"),
           standard:'仰卧地面屈膝，肘触地即停，推起时胸肌主动收缩。',
           note:'肘别外展 90° 直角，约 45° 更护肩。' },
-        { name:'地板哑铃飞鸟', muscle:'胸大肌（拉伸位刺激）', sets:3, reps:'12-15', tempo:'2-1-1', breath:'展开吸气，合拢呼气', rest:45, base:0.3, video:vid(250,'哑铃飞鸟'),
+        { name:'地板哑铃飞鸟', muscle:'胸大肌（拉伸位刺激）', sets:3, reps:'12-15', tempo:'2-1-1', breath:'展开吸气，合拢呼气', rest:45, base:0.3, video:blink('BV1TjEEzFEyY','第一天（胸）：地板哑铃飞鸟'),
           standard:'微屈肘画弧下放至肘接近地面，再靠胸肌合拢。',
           note:'别用太大重量，感受胸肌拉伸与收缩。' },
-        { name:'站姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:vid(420,'哑铃肩推'),
+        { name:'站姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:blink('BV1Ze411J7zs','肩部健身动作  站姿哑铃肩推'),
           standard:'站姿核心收紧，推至顶端不锁死肘，肩胛稳定。',
           note:'腰别反弓代偿，站姿比坐姿更考验核心。' },
-        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:vid(686,'哑铃侧平举 11:26'),
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:blink('BV18o4y147RH','哑铃侧平举——正确做法（全程无废话）'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿。',
           note:'别甩重量，用肩中束发力。' },
         { name:'哑铃俯身臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1sw411G7jY', "俯身哑铃臂屈伸详解"),
@@ -177,30 +175,30 @@ const PLAN_SETS = {
           note:'脖子放松别耸肩。' },
       ]},
       pull: { name:'拉日 · 背二头', greeting:'没有椅子也能练背，拉起来！', ex:[
-        { name:'单臂哑铃划船（扶墙/凳）', muscle:'背阔肌 · 大圆肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:vid(300,'单臂哑铃划船'),
+        { name:'单臂哑铃划船（扶墙/凳）', muscle:'背阔肌 · 大圆肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:blink('BV1ij411H773','哑铃划船详解'),
           standard:'一手扶墙或稳固凳面，身体前倾，肘贴身体向后上方拉。',
           note:'别用惯性甩，顶峰夹背停 1 秒。' },
         { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1ij411H773', "哑铃划船详解"),
           standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
           note:'腰别塌、别圆背。' },
-        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:vid(620,'哑铃耸肩'),
+        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:blink('BV1t441187BT','哑铃耸肩 | 斜方肌训练01| 新手教程'),
           standard:'直上直下耸肩，顶峰停顿 1 秒。',
           note:'别转肩画圈。' },
-        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:vid(700,'面拉'),
+        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:blink('BV19D421j7jV','【干货】精确打击肩后束！反向飞鸟？面拉？'),
           standard:'俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。',
           note:'改善圆肩，别耸肩。' },
-        { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:vid(900,'锤式弯举'),
+        { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:blink('BV1uE411R7qv','每日一练:哑铃交替锤式弯举教学'),
           standard:'中立握，肘固定于身体两侧做弯举。',
           note:'别借力摆动身体。' },
-        { name:'集中弯举（坐姿）', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:vid(980,'集中弯举'),
+        { name:'集中弯举（坐姿）', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1bRDgYCEgm','手臂教程：哑铃弯举的动作模式、常见错误、发力技巧'),
           standard:'坐地上或凳上，肘抵同侧大腿内侧，顶峰收缩二头。',
           note:'慢起慢落，别用手腕带。' },
       ]},
       legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
-        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:vid(832,'高脚杯深蹲 13:52'),
+        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:blink('BV1TT4y1p7YR','高脚杯深蹲详解'),
           standard:'哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。',
           note:'膝盖跟脚尖同向，别内扣。' },
-        { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:vid(520,'哑铃罗马尼亚硬拉'),
+        { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:blink('BV1Q44y1Z7Xq','30秒教会你如何做一个标准的罗马尼亚硬拉'),
           standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
           note:'靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。' },
         { name:'哑铃相扑深蹲', muscle:'股四头肌内侧 · 臀大肌 · 大腿内收肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.7, video:blink('BV1ga4y1Z717', "哑铃相扑深蹲讲解"),
@@ -209,7 +207,7 @@ const PLAN_SETS = {
         { name:'原地哑铃分腿蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1fs4y1k7BP', "分腿蹲教学，教你找对分腿蹲重心，两个技…"),
           standard:'前后分腿站定，原地下降至前后腿各约 90°。',
           note:'躯干稳定，别左右晃。' },
-        { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:vid(1000,'站姿提踵'),
+        { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:blink('BV1gJfyBsEtf','1.站姿提踵'),
           standard:'踮到顶端停顿 1 秒，慢速落下充分拉伸。',
           note:'全程控制，别靠弹震借力。' },
         { name:'单腿臀桥', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12/侧', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:blink('BV1cW421d7kj', "肌骨重建｜如何正确完成臀桥动作The …"),
@@ -217,7 +215,7 @@ const PLAN_SETS = {
           note:'骨盆别歪，顶峰夹臀。' },
       ]},
       core: { name:'核心日 · 腰腹', greeting:'核心稳了，全身都听话~', ex:[
-        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:vid(1150,'卷腹'),
+        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:blink('BV1mN4y1M7ko','慢动作卷腹教程来了，大家记得一起来打卡'),
           standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
           note:'别用脖子拉，手别抱头使劲。' },
         { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:blink('BV1wvcozSEyJ', "反向卷腹-紧致下腹，新手友好不伤腰"),
@@ -848,6 +846,12 @@ if(!STATE.settings || typeof STATE.settings !== 'object') STATE.settings = { bg:
 if(typeof STATE.settings.bg !== 'string') STATE.settings.bg = '';
 if(typeof STATE.settings.coachName !== 'string') STATE.settings.coachName = '';
 if(typeof STATE.settings.coachAvatar !== 'string') STATE.settings.coachAvatar = '';
+// v1.2 照片桌宠：取景参数与五官模式（脏值一律回落到「不裁切 / 保留原图」）
+if(!STATE.settings.petPhotoFit || typeof STATE.settings.petPhotoFit !== 'object') STATE.settings.petPhotoFit = { z:1, dx:0, dy:0 };
+if(!isFinite(+STATE.settings.petPhotoFit.z) || +STATE.settings.petPhotoFit.z <= 0) STATE.settings.petPhotoFit.z = 1;
+if(!isFinite(+STATE.settings.petPhotoFit.dx)) STATE.settings.petPhotoFit.dx = 0;
+if(!isFinite(+STATE.settings.petPhotoFit.dy)) STATE.settings.petPhotoFit.dy = 0;
+if(STATE.settings.petPhotoFx !== 'sticker') STATE.settings.petPhotoFx = 'natura';
 /* 训练方案迁移（可逆：脏值一律落到 A 套，不丢任何训练数据）
    ① 方案键：'A' / 'B'，其他值（含旧版本没有此字段）统一为 'A'。
    ② 训练日键重命名：老版本的 pump（泵感日·手臂胸）→ core（核心日·腰腹），
@@ -1368,8 +1372,8 @@ let bubbleQueue = [], bubbleBusy = false;
 function say(text){
   if(!text) return;
   bubbleQueue.push(text); pumpBubble();
-  // 语音朗读：仅当用户在设置里开启，且浏览器支持时才发声（不支持则静默）
-  if(STATE.settings && STATE.settings.petVoice) petSpeak(text);
+  // 语音朗读：仅在设置开启 + 处于桌宠主界面时才发声（不支持 / 不在主界面则静默）
+  if(STATE.settings && STATE.settings.petVoice) petSpeak(text, { mood: STATE.petMood });
 }
 function pumpBubble(){ if(bubbleBusy) return; const t = bubbleQueue.shift(); if(t==null) return; bubbleBusy = true; typeBubble(t, ()=>{ bubbleBusy = false; pumpBubble(); }); }
 function typeBubble(text, done){
@@ -1514,42 +1518,196 @@ function petLand(){
   const pet = $('#pet'); if(!pet) return;
   pet.classList.add('pet-land'); setTimeout(()=>pet.classList.remove('pet-land'), 470);
 }
-/* 说话：文字气泡 + 可选语音朗读（Web Speech API）
-   默认关闭；浏览器不支持 / 被自动播放策略拦截时静默降级，绝不抛错。 */
-function petSpeak(text){
+/* ============================================================
+   语音朗读 v1.2：情感韵律引擎（Web Speech API，端侧零依赖）
+   —— 对照成熟方案后的取舍 ——
+   · W3C Web Speech API：一个 utterance 只能带一组 rate/pitch/volume，且没有 SSML；
+     所以要做出「有情绪、有个性」，只能靠「按标点切段 → 每段独立韵律 → 段间停顿」来模拟。
+   · andresayac/ssml-builder / AACTools/js-tts-wrapper：用 <prosody rate/pitch> + <break>
+     表达情绪，表达力更强，但全部依赖云端引擎（Azure / Google / Polly）与密钥，
+     与本项目「离线优先、数据不出本机」冲突，故未接入；主方案走本地韵律引擎。
+     （代价要如实说明：端侧引擎的「情感」只能到「语气起伏」这一层，
+       达不到云端神经语音的细腻度。）
+   —— 生命周期（本次硬性要求）——
+   · 只在桌宠主界面发声；进入任何其它面板/页面立即 stop 并释放资源；
+   · 回到主界面后，若刚才被中断，会把没说完的部分接着说完。
+   ============================================================ */
+const VOICE_MOOD = {
+  happy:  { rate:1.14, pitch:1.24, vol:1.00 },
+  cheer:  { rate:1.28, pitch:1.36, vol:1.00 },
+  proud:  { rate:1.08, pitch:1.18, vol:1.00 },
+  wave:   { rate:1.16, pitch:1.24, vol:0.98 },
+  expect: { rate:1.12, pitch:1.32, vol:0.96 },
+  think:  { rate:0.94, pitch:1.02, vol:0.92 },
+  sad:    { rate:0.84, pitch:0.87, vol:0.86 },
+  sleep:  { rate:0.78, pitch:0.85, vol:0.72 }
+};
+// 音色偏好：优先中文女声（小练的设定是元气女教练），逐级回落
+const VOICE_PREF = [/tingting/i, /meijia/i, /yaoyao/i, /huihui/i, /xiaoxiao/i, /yunxi/i, /female/i, /女/i, /zh/i];
+function vc(v, a, b){ v = +v; if(!isFinite(v)) return a; return v < a ? a : (v > b ? b : v); }
+function voicePick(){
   try{
-    if(!text || typeof window === 'undefined') return false;
-    if(!window.speechSynthesis || !window.SpeechSynthesisUtterance) return false;
-    const u = new SpeechSynthesisUtterance(String(text).slice(0, 120));
-    u.lang = 'zh-CN'; u.rate = 1.05; u.pitch = 1.15; u.volume = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
+    const vs = (window.speechSynthesis && window.speechSynthesis.getVoices) ? window.speechSynthesis.getVoices() : [];
+    if(!vs || !vs.length) return null;
+    const zh = vs.filter(v => /^zh|cmn|chinese|中文/i.test(String(v.lang) + ' ' + String(v.name)));
+    const pool = zh.length ? zh : vs;
+    for(const re of VOICE_PREF){ for(const v of pool){ if(re.test(String(v.name)) || re.test(String(v.voiceURI))) return v; } }
+    return pool.find(v => v.default) || pool[0];
+  }catch(_){ return null; }
+}
+/* 按标点切段并逐段定韵律：等价于 SSML 的 <prosody> + <break> */
+function voiceSegments(text, base){
+  const raw = String(text == null ? '' : text).slice(0, 120).trim();
+  if(!raw) return [];
+  const parts = raw.match(/[^。！？!?；;，,、…]+[。！？!?；;，,、…]?/g) || [raw];
+  const out = [];
+  parts.slice(0, 6).forEach(p => {
+    const t = String(p || '').trim(); if(!t) return;
+    const last = t.charAt(t.length - 1);
+    let r = base.rate, pi = base.pitch, pause = 90;
+    if(/[！!]/.test(last)){ r *= 1.12; pi *= 1.18; pause = 210; }        // 感叹：更亮更冲
+    else if(/[？?]/.test(last)){ pi *= 1.30; pause = 230; }               // 疑问：句尾上扬
+    else if(/[。]/.test(last)){ pause = 190; }                            // 陈述：正常收尾
+    else if(/[…]/.test(last)){ r *= 0.90; pi *= 0.96; pause = 340; }      // 省略：放慢留白
+    else if(/[，,、；;]/.test(last)){ pause = 170; }
+    out.push({ t, rate: vc(r, 0.6, 1.9), pitch: vc(pi, 0.5, 1.95), pause });
+  });
+  return out.length ? out : [{ t: raw, rate: base.rate, pitch: base.pitch, pause: 0 }];
+}
+const VOICE = { seq:0, speaking:false, pending:'', leftAt:0, lastErr:'' };
+function voiceSupported(){ try{ return !!(window.speechSynthesis && window.SpeechSynthesisUtterance); }catch(_){ return false; } }
+/* 是否处于桌宠主界面：无面板打开且页面可见 */
+function voiceOnHome(){
+  try{
+    if(document.hidden) return false;
+    const ids = ['module', 'assistant'];
+    for(const id of ids){ const el = document.getElementById(id); if(el && el.classList.contains('open')) return false; }
+    return true;
+  }catch(_){ return true; }
+}
+/* 停止并释放：cancel + 作废序号 + 记录未说完的部分 */
+function stopVoice(reason){
+  try{
+    VOICE.seq++;                                   // 作废正在进行的朗读序列
+    if(voiceSupported()){ window.speechSynthesis.cancel(); }
+    if(VOICE.speaking && reason === 'leave') VOICE.leftAt = Date.now();
+  }catch(_){}
+  VOICE.speaking = false;
+}
+/* 切页/回桌面时的统一入口 */
+function voiceSync(){
+  if(!voiceOnHome()){ stopVoice('leave'); return false; }
+  if(VOICE.pending && (Date.now() - VOICE.leftAt) < 60000){
+    const t = VOICE.pending; VOICE.pending = '';   // 回到桌面接着说完
+    setTimeout(()=>petSpeak(t), 420);
+  }
+  return true;
+}
+function voicePause(){ try{ if(voiceSupported() && VOICE.speaking) window.speechSynthesis.pause(); }catch(_){} }
+function voiceResume(){ try{ if(voiceSupported() && window.speechSynthesis.paused) window.speechSynthesis.resume(); }catch(_){} }
+/* 朗读主入口：返回 true 表示真的发声（浏览器不支持 / 不在主界面 / 未开启 → false） */
+function petSpeak(text, opt){
+  try{
+    opt = opt || {};
+    if(typeof window === 'undefined') return false;
+    if(!voiceSupported()) return false;
+    if(!(STATE.settings && STATE.settings.petVoice)) return false;
+    if(!voiceOnHome()){ VOICE.pending = String(text || '').slice(0, 120); VOICE.leftAt = Date.now(); return false; }
+    const raw = String(text == null ? '' : text).slice(0, 120).trim();
+    if(!raw) return false;
+    const mood = opt.mood || STATE.petMood || 'happy';
+    const base = VOICE_MOOD[mood] || VOICE_MOOD.happy;
+    const segs = voiceSegments(raw, base);
+    if(!segs.length) return false;
+    const synth = window.speechSynthesis;
+    const voice = voicePick();
+    const my = ++VOICE.seq;
+    VOICE.speaking = true;
+    try{ synth.cancel(); }catch(_){}
+    let i = 0;
+    const next = () => {
+      if(my !== VOICE.seq) return;                        // 已被 stopVoice 作废
+      if(i >= segs.length){ VOICE.speaking = false; return; }
+      const s = segs[i++];
+      let u;
+      try{ u = new window.SpeechSynthesisUtterance(s.t); }catch(_){ VOICE.speaking = false; return; }
+      u.lang = 'zh-CN'; u.rate = s.rate; u.pitch = s.pitch; u.volume = base.vol;
+      if(voice){ try{ u.voice = voice; }catch(_){} }
+      u.onend = () => { if(my !== VOICE.seq) return; setTimeout(next, s.pause); };
+      u.onerror = () => { VOICE.lastErr = 'tts-error'; VOICE.speaking = false; };
+      try{ synth.speak(u); }catch(_){ VOICE.speaking = false; }
+    };
+    next();
     return true;
   }catch(_){ return false; }
 }
 /* 照片做桌宠：上传照片 → 圆形抠图当脸，叠一层卡通眼嘴（贴纸式桌宠）。
    实事求是：端侧没有生成式模型，做不到「照片转二次元」；这里做的是
    「照片脸 + 自绘表情」的合成，效果可预期、无幻觉。 */
+/* 取景参数：缩放 z + 水平/垂直偏移（用户可调，保证脸在圆里居中、比例协调） */
+function photoFit(){
+  const o = (STATE.settings && STATE.settings.petPhotoFit) || {};
+  const z  = (+o.z  > 0.5 && +o.z  <= 3)  ? +o.z  : 1;
+  const dx = isFinite(+o.dx) ? Math.max(-45, Math.min(45, +o.dx)) : 0;
+  const dy = isFinite(+o.dy) ? Math.max(-45, Math.min(45, +o.dy)) : 0;
+  return { z, dx, dy };
+}
 function photoPetSVG(mood, photo){
   const f = PET_FACE[mood] || PET_FACE.happy, T = PET_THEME;
   const src = (typeof photo === 'string' && photo.slice(0,5) === 'data:') ? photo : '';
-  const R = 46;
+  const fit = photoFit();
+  // 表情模式：natura（默认，保留照片本人的五官，绝不叠假眼睛——这正是此前「表情异常」的根因）
+  //          ／sticker（叠加卡通五官，可在设置里手动开启）
+  const sticker = !!(STATE.settings && STATE.settings.petPhotoFx === 'sticker');
+  const CX = 60, CY = 54, R = 44;
+  const half = 48 * fit.z;
+  const ix = (CX - half + fit.dx).toFixed(1), iy = (CY - half + fit.dy).toFixed(1),
+        iw = (half * 2).toFixed(1), ih = (half * 2).toFixed(1);
+
   const face = src
-    ? `<image href="${src}" x="14" y="14" width="92" height="92" clip-path="url(#phClip)" preserveAspectRatio="xMidYMid slice"/>`
-    : `<circle cx="60" cy="60" r="${R}" fill="url(#phSkin)"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+    ? `<g clip-path="url(#phClip)">
+         <image href="${src}" x="${ix}" y="${iy}" width="${iw}" height="${ih}"
+                preserveAspectRatio="xMidYMid slice" image-rendering="auto" decoding="sync"/>
+         <circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#phVig)"/>
+       </g>`
+    : `<circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#phSkin)"/>`;
+
+  // 自然模式：靠腮红 / 睡意薄纱传达情绪，不覆盖照片本人的五官
+  let expr = '';
+  if(sticker){
+    // 自绘五官按 0.82 缩放并重新定位到照片人脸的常规比例（眼≈0.45 头高、嘴≈0.72）
+    const sc = (ax, ay, dy) => `translate(0,${dy}) translate(${ax},${ay}) scale(0.82) translate(${-ax},${-ay})`;
+    expr = `<g transform="${sc(60, 63, -13)}">${petEye(f.eye, 45, 'L')}${petEye(f.eye, 75, 'R')}</g>
+            <g transform="${sc(60, 77.4, -4)}">${petMouth(f.mouth)}</g>`;
+  }else if(mood === 'sleep'){
+    expr = `<g clip-path="url(#phClip)"><rect x="16" y="10" width="88" height="88" fill="#3a2f52" opacity=".34"/></g>
+            <text x="80" y="34" font-size="13" font-weight="700" fill="#fff" opacity=".9">z</text>
+            <text x="90" y="23" font-size="9" font-weight="700" fill="#fff" opacity=".72">z</text>`;
+  }else if(f.blush){
+    expr = `<ellipse cx="31" cy="66" rx="8" ry="4.4" fill="${T.blush}" opacity=".26"/>
+            <ellipse cx="89" cy="66" rx="8" ry="4.4" fill="${T.blush}" opacity=".26"/>`;
+  }
+  // 底部小领结：给圆形头像一个「桌宠」身份锚点，视觉上也稳住头身比例
+  const bow = `<g><ellipse cx="51" cy="102" rx="9.5" ry="6.8" fill="#8fd9bf" stroke="${T.trimB}" stroke-width="1.2"/>
+    <ellipse cx="69" cy="102" rx="9.5" ry="6.8" fill="#8fd9bf" stroke="${T.trimB}" stroke-width="1.2"/>
+    <circle cx="60" cy="102" r="3.6" fill="${T.gold}" stroke="${T.trimB}" stroke-width="1"/></g>`;
+
+  // 关键修复：<svg> 必须带 width/height —— 之前只有 viewBox，浏览器按默认尺寸
+  // 栅格化 dataURI，头像必糊。给到 240（实际显示 104，约 2.3×，高清屏也够用）。
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240">
   <defs>
-    <clipPath id="phClip"><circle cx="60" cy="60" r="${R}"/></clipPath>
+    <clipPath id="phClip"><circle cx="${CX}" cy="${CY}" r="${R}"/></clipPath>
     <linearGradient id="phSkin" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#fff6ee"/><stop offset="1" stop-color="#ffdfd2"/></linearGradient>
+    <radialGradient id="phVig" cx="50%" cy="42%" r="62%">
+      <stop offset="62%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#2b1f3a" stop-opacity=".20"/></radialGradient>
   </defs>
   ${face}
-  <circle cx="60" cy="60" r="${R}" fill="none" stroke="${T.eyeLine}" stroke-width="2.6" opacity=".5"/>
-  <circle cx="60" cy="60" r="${R+4}" fill="none" stroke="#fff" stroke-width="3" opacity=".55"/>
-  ${petEye(f.eye, 45, 'L')}${petEye(f.eye, 75, 'R')}
-  ${petMouth(f.mouth)}
-  ${f.blush ? `<ellipse cx="34" cy="73" rx="7.5" ry="4.2" fill="#ff9db1" opacity=".45"/><ellipse cx="86" cy="73" rx="7.5" ry="4.2" fill="#ff9db1" opacity=".45"/>` : ''}
-  ${f.fx ? petFx(f.fx) : ''}
+  <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#fff" stroke-width="3.4" opacity=".92"/>
+  <circle cx="${CX}" cy="${CY}" r="${R-1.6}" fill="none" stroke="#fff" stroke-width="1.1" opacity=".38"/>
+  ${expr}
+  ${bow}
 </svg>`;
 }
 /* ============================================================
@@ -1694,6 +1852,9 @@ const CLOSERS = {
   onboard:     ()=>{ $('#onboard').classList.remove('show'); },
   'done-modal':()=>{ $('#done-modal').classList.remove('show'); },
   'food-sheet':()=>{ const s=$('#food-sheet'); s.classList.remove('show'); s.setAttribute('aria-hidden','true'); },
+  // v1.2 视频弹层：关闭时务必清空 iframe/video，释放解码资源
+  'video-pop': ()=>{ const p=$('#video-pop'); if(p) p.classList.remove('show');
+    const st=$('#vpop-stage'); if(st) st.innerHTML=''; },
 };
 function navPush(tag){
   try { history.pushState({ boji:tag }, '', location.href); NAV.g++; return true; } catch(_){ return false; }
@@ -1737,14 +1898,15 @@ function navExitAttempt(){
    面板路由
    ============================================================ */
 function openPanel(id){ const p=$('#'+id); p.classList.add('open'); p.setAttribute('aria-hidden','false'); navOpen(id); }
-function closePanel(id){ navUIClose(id); }
-function openAssistant(){ renderAssistant(); if($('#assistant').classList.contains('open')){ return; } openPanel('assistant'); setMood('wave',1500); }
+function closePanel(id){ navUIClose(id); voiceSync(); }   // 回到桌面：语音恢复（有未说完的会接着说）
+function openAssistant(){ renderAssistant(); voiceSync(); if($('#assistant').classList.contains('open')){ return; } openPanel('assistant'); setMood('wave',1500); voiceSync(); }
 function goModule(name){
   const titles={training:['训练计划','居家哑铃 · 点日期看当天动作'],diet:['今日饮食','拍照记录吃进来的'],run:['跑步','GPS 记录轨迹 · 配速 · 卡路里'],knowledge:['知识库','肌肉生长与增肌原理'],data:['我的数据','打卡·月历·评分·趋势'],profile:['我的','档案与设置']};
   $('#mod-title').textContent=titles[name][0]; $('#mod-sub').textContent=titles[name][1];
   renderModule(name);
+  voiceSync();                                          // 离开桌面：立即停语音并释放
   if($('#module').classList.contains('open')) return;   // 已打开：只重渲染，不重复压栈
-  openPanel('module');
+  openPanel('module'); voiceSync();
 }
 
 /* ============================================================
@@ -1942,8 +2104,8 @@ function renderKnowledge(body){
       }
     };
   });
-  // 与其它模块一致：视频行点击打开外链（新窗口）
-  $$('#mod-body .ex-video').forEach(v=>v.onclick=()=>window.open(v.dataset.v, '_blank'));
+  // v1.2：App 内直接播放（B 站官方嵌入播放器），不再跳转外部网页
+  $$('#mod-body .ex-video').forEach(v=>v.onclick=()=>openVideo(v.dataset.v, String(v.textContent||'').replace(/^▶\s*/,'')));
 }
 
 /* ============================================================
@@ -2225,7 +2387,8 @@ function renderTraining(body){
   body.innerHTML=html;
   // 绑定
   $$('#mod-body .wday').forEach(b=>b.onclick=()=>{ STATE.selDate=b.dataset.day; save(); renderTraining(body); });
-  $$('#mod-body .ex-video').forEach(v=>v.onclick=()=>window.open(v.dataset.v,'_blank'));
+  // v1.2：App 内直接播放（B 站官方嵌入播放器），不再跳转外部网页
+  $$('#mod-body .ex-video').forEach(v=>v.onclick=()=>openVideo(v.dataset.v, String(v.textContent||'').replace(/^▶\s*/,'')));
   $$('#mod-body .ex-do:not(.myex-do):not(.myex-del)').forEach(b=>b.onclick=()=>{ const i=+b.dataset.ex; STATE.checkins[sel]=STATE.checkins[sel]||{ex:{}}; const now=!STATE.checkins[sel].ex[i]; STATE.checkins[sel].ex[i]=now; save(); renderTraining(body);
     if(now){ setMood('cheer',1500); toast('动作完成 +1 (｡･ω･｡)'); startRest((PLANS[t] && PLANS[t].ex[i] && PLANS[t].ex[i].rest) || 60); } else stopRest(); });
   $$('#mod-body .ex-weight input[data-w]').forEach(inp=>inp.onchange=()=>{ const i=+inp.dataset.w; STATE.weights[sel]=STATE.weights[sel]||{}; STATE.weights[sel][i]=inp.value; save(); });
@@ -2410,7 +2573,9 @@ function changeQty(mi,i,d,body){
    / 在线库 / 你的历史记录 / 本地库 四级来源，每级给出明确置信度与依据，低置信度强制提示校正
    ============================================================ */
 /* ---------- 图片压缩（异步优先：createImageBitmap + OffscreenCanvas，主线程不被大图解码卡住） ---------- */
-function compressImage(file, maxPx, cb){
+function compressImage(file, maxPx, cb, q){
+  // q：可选画质（0-1）。默认 0.72（饮食照片走这条）；照片桌宠传更高值以保证清晰
+  const qt = (typeof q === 'number' && q > 0 && q <= 1) ? q : 0.72;
   let settled=false;
   const fin=v=>{ if(!settled){ settled=true; try{ cb(v||null); }catch(_){} } };
   if(!file || !/^image\//.test(file.type||'')){ fin(null); return; }        // 输入校验：非图片直接失败
@@ -2422,8 +2587,9 @@ function compressImage(file, maxPx, cb){
           const sc=Math.min(1, maxPx/Math.max(img.width, img.height));
           const wv=Math.max(1, Math.round(img.width*sc)), hv=Math.max(1, Math.round(img.height*sc));
           const cv=document.createElement('canvas'); cv.width=wv; cv.height=hv;
-          cv.getContext('2d').drawImage(img, 0, 0, wv, hv);
-          URL.revokeObjectURL(url); fin(cv.toDataURL('image/jpeg', 0.72));
+          const cx=cv.getContext('2d'); cx.imageSmoothingEnabled=true; cx.imageSmoothingQuality='high';
+          cx.drawImage(img, 0, 0, wv, hv);
+          URL.revokeObjectURL(url); fin(cv.toDataURL('image/jpeg', qt));
         }catch(_){ URL.revokeObjectURL(url); fin(null); } };
       img.onerror=()=>{ URL.revokeObjectURL(url); fin(null); };
       img.src=url;
@@ -2438,14 +2604,16 @@ function compressImage(file, maxPx, cb){
         let cv;
         if(typeof OffscreenCanvas==='function') cv=new OffscreenCanvas(wv, hv);
         else { cv=document.createElement('canvas'); cv.width=wv; cv.height=hv; }
-        cv.getContext('2d').drawImage(bmp, 0, 0, wv, hv);
+        const cx2=cv.getContext('2d');
+        if(cx2){ cx2.imageSmoothingEnabled=true; cx2.imageSmoothingQuality='high'; }
+        cx2.drawImage(bmp, 0, 0, wv, hv);
         const done=du=>{ try{ bmp.close && bmp.close(); }catch(_){} fin(du); };
         if(cv.convertToBlob){
-          cv.convertToBlob({ type:'image/jpeg', quality:0.72 }).then(b=>{
+          cv.convertToBlob({ type:'image/jpeg', quality:qt }).then(b=>{
             try{ const r=new FileReader(); r.onload=()=>done(r.result); r.onerror=()=>done(null); r.readAsDataURL(b); }
             catch(_){ done(null); }
           }).catch(()=>done(null));
-        } else { try{ done(cv.toDataURL('image/jpeg',0.72)); }catch(_){ done(null); } }
+        } else { try{ done(cv.toDataURL('image/jpeg', qt)); }catch(_){ done(null); } }
       }catch(_){ fin(null); }
     }).catch(()=>legacy());
   }catch(_){ legacy(); }
@@ -3178,14 +3346,17 @@ const BG_IMG_FALLBACK = BG_PRESETS.p3;
 // 统一的安全图片切换：先铺底色 → 预加载 → 成功才换图，失败/超时回落
 function setBgImage(src){
   const w = document.getElementById('wallpaper'); if(!w) return;
-  w.style.background = BG_IMG_FALLBACK; w.classList.add('wall-custom');   // 先铺安全底色
+  w.style.background = BG_IMG_FALLBACK; w.classList.add('wall-custom');   // 先铺安全底色（永不黑屏）
   const img = new Image();
   w.__bgImg = img;
   let settled = false;
   const fallback = ()=>{ if(settled) return; settled=true; clearTimeout(to); w.style.background = BG_IMG_FALLBACK; w.classList.add('wall-custom'); };
-  const to = setTimeout(fallback, 8000);
-  img.onload = ()=>{ if(settled) return; settled=true; clearTimeout(to);
+  // v1.2：等待上限 8s → 3.5s。网络不通时快速回落到预设渐变，避免长时间空白
+  const to = setTimeout(fallback, 3500);
+  const apply = ()=>{ if(settled) return; settled=true; clearTimeout(to);
     w.style.background = `url("${src}") center / cover no-repeat`; w.classList.add('wall-custom'); };
+  img.onload = ()=>{ // 先解码再切换，避免切换瞬间出现半张图
+    if(img.decode && typeof img.decode === 'function') img.decode().then(apply).catch(apply); else apply(); };
   img.onerror = fallback;
   img.src = src;
 }
@@ -3284,7 +3455,17 @@ function renderProfile(body){
         <button class="ex-do ghost-btn" id="pet-walk-tg" style="padding:8px">溜达：${STATE.settings.petWalk===false?'关':'开'}</button>
         <button class="ex-do ghost-btn" id="pet-voice-tg" style="padding:8px">语音：${STATE.settings.petVoice?'开':'关'}</button>
       </div>
-      <p style="font-size:10.5px;color:var(--faint);padding:6px 0 8px;line-height:1.6">当前：<b>${skinBy(STATE.petSkin).name}</b>。切换只替换形象渲染器，桌宠位置（含悬挂）、偏好动画与设置都不动。<br>动作：会自己<b>沿边缘溜达</b>、被抓会挣扎、松手会落地回弹；久不理它先挥手告别再打瞌睡 💤。<br>「照片桌宠」= 你的照片做圆脸 + 卡通表情叠加（端侧无生成式模型，做不到照片转二次元）。<br>小技巧：把桌宠拖到屏幕<b>顶边</b>松手会悬挂摆动；连点 5 次它会翻跟头冒爱心；切后台再回来会和你打招呼。</p>
+      ${(STATE.settings.petPhoto) ? `<div class="photo-fit" id="photo-fit">
+        <div class="pf-prev"><img id="pf-prev-img" src="${'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(photoPetSVG('happy', STATE.settings.petPhoto))}" alt="预览"></div>
+        <div class="pf-ctl">
+          <label>缩放 <input type="range" id="pf-z" min="0.6" max="2.4" step="0.05" value="${photoFit().z}"></label>
+          <label>左右 <input type="range" id="pf-dx" min="-40" max="40" step="1" value="${photoFit().dx}"></label>
+          <label>上下 <input type="range" id="pf-dy" min="-40" max="40" step="1" value="${photoFit().dy}"></label>
+          <button class="ex-do ghost-btn" id="pf-reset" style="padding:6px">复位</button>
+          <button class="ex-do ghost-btn" id="pf-fx" style="padding:6px">五官：${(STATE.settings.petPhotoFx==='sticker')?'卡通叠加':'保留原图'}</button>
+        </div>
+      </div>` : ''}
+      <p style="font-size:10.5px;color:var(--faint);padding:6px 0 8px;line-height:1.6">当前：<b>${skinBy(STATE.petSkin).name}</b>。切换只替换形象渲染器，桌宠位置（含悬挂）、偏好动画与设置都不动。<br>动作：会自己<b>沿边缘溜达</b>、被抓会挣扎、松手会落地回弹；久不理它先挥手告别再打瞌睡 💤。<br>「照片桌宠」= 你的照片高清抠成圆脸 + 自绘领结（默认<b>保留你本人的五官</b>，不会叠假眼睛；想玩贴纸风可切「卡通叠加」）。端侧没有生成式模型，做不到照片转二次元。<br>小技巧：把桌宠拖到屏幕<b>顶边</b>松手会悬挂摆动；连点 5 次它会翻跟头冒爱心；切后台再回来会和你打招呼。</p>
     </div>
     <div class="card" style="padding:6px 14px">
       <h4 style="margin:8px 0 2px">助手上下文记忆 <span class="tag" id="ctx-tag">${STATE.ctxLimit>0?('最近 '+STATE.ctxLimit+' 轮'):'不限轮数（已开放）'}</span></h4>
@@ -3393,11 +3574,29 @@ function renderProfile(body){
   if(petPhotoUp) petPhotoUp.onclick=()=>{
     const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
     inp.onchange=()=>{ const f=inp.files && inp.files[0]; if(!f) return;
-      compressImage(f, 256, du=>{ if(!du){ toast('图片读取失败'); return; }
+      // v1.2：512px + 画质 0.9（原 256/0.72 是「模糊」的主因之一），并重置取景
+      compressImage(f, 512, du=>{ if(!du){ toast('图片读取失败'); return; }
         STATE.settings.petPhoto=du; STATE.petSkin='photo';
-        if(saveSafe()){ applyPetArt(STATE.petMood || 'happy'); renderProfile(body); toast('照片桌宠已生成 ✨'); } }); };
+        STATE.settings.petPhotoFit={z:1,dx:0,dy:0};
+        if(saveSafe()){ applyPetArt(STATE.petMood || 'happy'); renderProfile(body); toast('照片桌宠已生成，可在下方微调取景 ✨'); } }, 0.9); };
     inp.click();
   };
+  // 照片取景微调：实时改参数 → 立刻重渲染预览与桌面桌宠
+  const syncPhotoFit = ()=>{
+    const o = STATE.settings.petPhotoFit || (STATE.settings.petPhotoFit={z:1,dx:0,dy:0});
+    const gz=$('#pf-z'), gx=$('#pf-dx'), gy=$('#pf-dy');
+    o.z = gz ? +gz.value : o.z; o.dx = gx ? +gx.value : o.dx; o.dy = gy ? +gy.value : o.dy;
+    const pv=$('#pf-prev-img');
+    if(pv && STATE.settings.petPhoto) pv.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(photoPetSVG('happy', STATE.settings.petPhoto));
+    applyPetArt(STATE.petMood || 'happy');
+  };
+  ['#pf-z','#pf-dx','#pf-dy'].forEach(id=>{ const el=$(id); if(el) el.oninput=()=>{ syncPhotoFit(); save(); }; });
+  const pfReset=$('#pf-reset');
+  if(pfReset) pfReset.onclick=()=>{ STATE.settings.petPhotoFit={z:1,dx:0,dy:0}; save(); renderProfile(body); applyPetArt(STATE.petMood||'happy'); };
+  const pfFx=$('#pf-fx');
+  if(pfFx) pfFx.onclick=()=>{ STATE.settings.petPhotoFx = (STATE.settings.petPhotoFx==='sticker') ? 'natura' : 'sticker';
+    save(); renderProfile(body); applyPetArt(STATE.petMood||'happy');
+    toast(STATE.settings.petPhotoFx==='sticker' ? '已切换：卡通五官叠加' : '已切换：保留原图五官'); };
   const petWalkTg=$('#pet-walk-tg');
   if(petWalkTg) petWalkTg.onclick=()=>{
     const on = STATE.settings.petWalk === false;    // 缺省视为开
@@ -3409,10 +3608,14 @@ function renderProfile(body){
   if(petVoiceTg) petVoiceTg.onclick=()=>{
     const on = !STATE.settings.petVoice;
     STATE.settings.petVoice = on; save(); renderProfile(body);
-    if(on){ const ok = petSpeak('我在呢，以后我说话给你听');
-      toast(ok ? '语音已开启 🔊' : '当前浏览器不支持语音，已保留文字气泡');
-      if(!ok) STATE.settings.petVoice = false;
-    } else { try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(_){} toast('语音已关闭'); }
+    if(on){
+      let supported = false;
+      try{ supported = !!(window.speechSynthesis && window.SpeechSynthesisUtterance); }catch(_){}
+      if(!supported){ STATE.settings.petVoice = false; save(); renderProfile(body);
+        toast('当前浏览器不支持语音，已保留文字气泡'); }
+      else { VOICE.pending = '我在呢，以后我说话给你听'; VOICE.leftAt = Date.now();
+        toast('语音已开启 🔊 · 回到桌面我就开口'); }
+    } else { stopVoice('off'); toast('语音已关闭'); }
   };
   // v1.1 上下文记忆档位切换（开放全部 / 收回 5 轮）
   const ctxU=$('#ctx-unlimit'), ctx5=$('#ctx-limit5');
@@ -3560,6 +3763,66 @@ function importJSON(){
 }
 
 /* ============================================================
+   v1.2 动作视频：App 内直接播放（不再跳转外部网页）
+   —— 方案取舍，如实说明 ——
+   · 采用 B 站官方嵌入播放器：player.bilibili.com/player.html?bvid=...
+     （已实测响应头无 X-Frame-Options / frame-ancestors 限制，可安全内嵌）
+     点开即在 App 内播放，不离开应用、不跳外站。
+   · 为什么不做「把 38 条视频全量下载到仓库」：
+     ① 版权 —— 这些是 UP 主原创内容，随包二次分发不合规；
+     ② 体积 —— 数百 MB，远超 GitHub 仓库与手机缓存的合理范围；
+     ③ 技术 —— B 站无公开下载接口，高清晰度普遍需要登录态。
+   · 因此提供两条降级：①「原站 ↗」在浏览器打开；
+     ②「本地视频」选你手机里已保存的 mp4，在同一弹层内离线播放。
+   ============================================================ */
+function bilibiliEmbed(url){
+  const m = String(url || '').match(/(BV[0-9A-Za-z]{10})/);
+  if(!m) return '';
+  return 'https://player.bilibili.com/player.html?bvid=' + m[1] +
+         '&page=1&high_quality=1&danmaku=0&autoplay=1&as_wide=1';
+}
+function openVideo(url, label){
+  try{
+    const pop = $('#video-pop'); if(!pop) return;
+    const u = String(url || '');
+    const t = $('#vpop-title'); if(t) t.textContent = label || '动作示范';
+    const a = $('#vpop-open'); if(a) a.href = u || '#';
+    const stage = $('#vpop-stage'), tip = $('#vpop-tip');
+    const emb = bilibiliEmbed(u);
+    if(emb){
+      stage.innerHTML = '<iframe src="' + emb + '" allowfullscreen scrolling="no" frameborder="0" referrerpolicy="no-referrer"></iframe>';
+      if(tip) tip.innerHTML = 'App 内直接播放（B 站官方嵌入播放器）。个别作者禁止嵌入时请用「原站 ↗」；也可以点「本地视频」播你手机里已保存的 mp4。';
+    }else{
+      stage.innerHTML = '<video controls autoplay playsinline src="' + esc(u) + '"></video>';
+      if(tip) tip.textContent = '正在播放本机视频。';
+    }
+    pop.classList.add('show'); navOpen('video-pop'); voiceSync();   // 打开播放层即离开主界面 → 停语音
+  }catch(_){ try{ window.open(String(url||''), '_blank'); }catch(__){} }
+}
+function closeVideo(){
+  try{
+    const pop = $('#video-pop'); if(!pop) return;
+    const stage = $('#vpop-stage'); if(stage) stage.innerHTML = '';   // 卸载 iframe/video，释放解码资源
+    pop.classList.remove('show'); navUIClose('video-pop'); voiceSync();
+  }catch(_){}
+}
+/* 本地视频（离线可用）：只在本弹层内用 objectURL 播放，不写入本机存储 */
+function pickLocalVideo(){
+  try{
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='video/*';
+    inp.onchange=()=>{ const f = inp.files && inp.files[0]; if(!f) return;
+      const stage = $('#vpop-stage'); if(!stage) return;
+      const v = document.createElement('video');
+      v.src = URL.createObjectURL(f); v.controls = true; v.autoplay = true; v.playsInline = true;
+      stage.innerHTML = ''; stage.appendChild(v);
+      const t = $('#vpop-title'); if(t) t.textContent = String(f.name || '本机视频').slice(0,40);
+      const tip = $('#vpop-tip'); if(tip) tip.textContent = '正在播放你手机里的视频（离线可用，不上传、不占仓库）。';
+    };
+    inp.click();
+  }catch(_){ toast('无法读取本机视频'); }
+}
+
+/* ============================================================
    引导 / 完成 / 计时 / toast
    ============================================================ */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2200); }
@@ -3575,21 +3838,48 @@ $('#done-ok') && ($('#done-ok').onclick=()=>navUIClose('done-modal'));
 /* ============================================================
    启动
    ============================================================ */
+/* 启动画面收起：由 boot 首屏关键路径调用，随后置 __READY 停掉看门狗 */
+function hideBoot(){
+  try{
+    window.__READY = true;
+    const b = document.getElementById('boot');
+    if(!b) return;
+    b.classList.add('done');
+    setTimeout(()=>{ if(b && b.parentNode) b.parentNode.removeChild(b); }, 380);
+  }catch(_){}
+}
+/* 预取关键图片到浏览器缓存（空闲时做，不抢首屏带宽） */
+function prewarmAssets(){
+  const list = ['assets/icon.svg'];
+  try{
+    if(BG_IMAGES && BG_IMAGES.card) list.push(BG_IMAGES.card);
+    const sk = skinBy(STATE.petSkin);
+    if(sk && sk.asset) list.push(sk.asset);
+  }catch(_){}
+  list.forEach(src=>{ try{ const i = new Image(); i.decoding = 'async'; i.src = src; }catch(_){} });
+}
 function boot(){
-  // 应用可更换背景与教练身份（在首屏渲染前）
+  /* ---- ① 首屏关键路径：只做「必须立刻看得见」的事 ---- */
   applyWallpaper(); applyCoachIdentity();
   applyPlanSet();                    // 按已选方案挂载训练日数据（A 有卧推椅 / B 无卧推椅 / C 健身房）
-  renderHome(); initPet(); showOnboard();
-  // 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
-  document.addEventListener('visibilitychange', ()=>{
-    if(document.hidden) petRoundBubble('bye');
-    else { petWake(); if(!$('#pet').classList.contains('mood-sleep')){ petGreet(); setMood('wave', 2200); } }
-  });
+  renderHome(); initPet();
+  hideBoot();                        // 首屏已成型 → 立刻收启动画面（不再转圈）
+  bindUI();                          // 事件绑定很轻，随首屏完成，保证点得动
+  /* ---- ② 非关键：下一帧 / 空闲再做，避免拖慢首屏 ---- */
+  const later = ()=>{ showOnboard(); prewarmAssets(); };
+  if(typeof requestIdleCallback === 'function') requestIdleCallback(later, { timeout: 600 });
+  else setTimeout(later, 0);
   // 真实 PWA：注册 Service Worker（仅 https/localhost 生效，file:// 静默跳过）
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+  // 提前到首屏后立刻注册（不等 window.load），让第二次打开走本地缓存
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
   }
   setInterval(renderHome, 30000);
+  // 5 分钟后若未打卡，桌宠委屈提醒（仅今日且未打卡）
+  setTimeout(()=>{ if(!STATE.checkins[todayKey()] && getDayType(wd())!=='rest') setMood('sad',6000); }, 300000);
+}
+/* 事件绑定集中一处（首屏后调用；抽出便于 boot 保持精简） */
+function bindUI(){
   // dock
   $$('#dock .dock-item[data-go]').forEach(b=>b.onclick=()=>goModule(b.dataset.go));
   $('#pet-talk').onclick=()=>openAssistant();
@@ -3598,7 +3888,14 @@ function boot(){
   // 聊天
   $('#chat-send').onclick=()=>sendMsg();
   $('#chat-text').addEventListener('keydown',e=>{ if(e.key==='Enter') sendMsg(); });
-  // 5 分钟后若未打卡，桌宠委屈提醒（仅今日且未打卡）
-  setTimeout(()=>{ if(!STATE.checkins[todayKey()] && getDayType(wd())!=='rest') setMood('sad',6000); }, 300000);
+  // v1.2 视频弹层
+  const vpC=$('#vpop-close'); if(vpC) vpC.onclick=closeVideo;
+  const vpL=$('#vpop-local'); if(vpL) vpL.onclick=pickLocalVideo;
+  const vpM=$('#video-pop'); if(vpM) vpM.onclick=e=>{ if(e.target===vpM) closeVideo(); };
+  // 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){ petRoundBubble('bye'); voicePause(); }
+    else { petWake(); if(!$('#pet').classList.contains('mood-sleep')){ petGreet(); setMood('wave', 2200); } voiceResume(); }
+  });
 }
 document.addEventListener('DOMContentLoaded', boot);

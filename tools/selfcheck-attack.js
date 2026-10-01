@@ -477,7 +477,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -1032,6 +1032,162 @@ function v110bChecks() {
       w3.eval('renderRun')(w3.document.getElementById('mod-body'));
       const on = w3.document.getElementById('mod-body').innerHTML.indexOf('run-tile') >= 0;
       return off && on;
+    });
+  }
+}
+
+// ===== v1.2 增量：启动体验 / 情感语音 / 动作视频内嵌 / 导航重排 / 照片桌宠 =====
+function v120Checks() {
+  // —— ① 启动体验 ——
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('Q1 index.html 内联首屏启动层 #boot，且三份入口文件均无 GitHub 域名引用', () => {
+      const html = fs.readFileSync(path.join(PROJ, 'index.html'), 'utf8');
+      const clean = html.indexOf('id="boot"') >= 0 && html.indexOf('bt-retry') >= 0
+        && !/github\.com|githubusercontent/.test(html);
+      const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+      const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
+      return clean && !/github\.com|githubusercontent/.test(src) && !/github\.com|githubusercontent/.test(sw);
+    });
+    check('Q2 hideBoot 置 __READY 并淡出移除启动层（不再无限转圈）', () => {
+      const b = w.document.getElementById('boot');
+      if (!b) return false;
+      w.eval('hideBoot')();
+      return w.__READY === true && b.classList.contains('done');
+    });
+    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-0', () => {
+      const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
+      return /CACHE\s*=\s*'boji-1-2-0'/.test(sw)
+        && sw.indexOf('c.match(req)') >= 0
+        && sw.indexOf('staleWhileRevalidate') >= 0
+        && sw.indexOf("c.match('./index.html')") >= 0;
+    });
+    check('Q4 背景图等待上限收紧到 3.5s（网络不通快速回落底色）', () => {
+      const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+      return /setTimeout\(fallback,\s*3500\)/.test(src) && !/setTimeout\(fallback,\s*8000\)/.test(src);
+    });
+  }
+  // —— ② 情感语音 ——
+  {
+    const w = boot(J({ profile: { weight: 70 }, settings: { petVoice: true } }));
+    // jsdom 没有 Web Speech：装上桩，才能走到真实分支（否则只会短路返回 false）
+    w.speechSynthesis = { cancel: function () {}, speak: function () {}, paused: false, getVoices: function () { return []; } };
+    w.SpeechSynthesisUtterance = function (t) { this.text = t; };
+    check('V1 按标点切段并给不同韵律：感叹更亮更快、疑问句尾上扬、省略放慢', () => {
+      const segs = w.eval('voiceSegments')('今天练胸！加油？慢慢来…', { rate: 1.1, pitch: 1.2 });
+      if (!Array.isArray(segs) || segs.length < 3) return false;
+      const ex = segs[0], qu = segs[1], el = segs[2];
+      return ex.rate > el.rate && ex.pitch > el.pitch && qu.pitch > el.pitch;
+    });
+    check('V2 情绪影响基频：cheer 比 sad 更快更高', () => {
+      const c = w.eval('VOICE_MOOD').cheer, s = w.eval('VOICE_MOOD').sad;
+      return c.rate > s.rate && c.pitch > s.pitch;
+    });
+    check('V3 只在桌宠主界面发声：面板打开时返回 false 并挂起待播', () => {
+      w.document.getElementById('module').classList.add('open');
+      w.eval('VOICE').pending = '';
+      const r = w.eval('petSpeak')('你好呀');
+      const pend = w.eval('VOICE').pending;
+      w.document.getElementById('module').classList.remove('open');
+      return r === false && pend === '你好呀';
+    });
+    check('V4 回到主界面可发声（返回 true）', () => {
+      const r = w.eval('petSpeak')('我在呢');
+      return r === true;
+    });
+    check('V5 离开主界面立即停止并释放（seq 作废 + speaking=false）', () => {
+      const before = w.eval('VOICE').seq;
+      w.document.getElementById('assistant').classList.add('open');
+      w.eval('voiceSync')();
+      const v = w.eval('VOICE');
+      w.document.getElementById('assistant').classList.remove('open');
+      return v.seq > before && v.speaking === false;
+    });
+    check('V6 voiceOnHome：面板打开判否，关闭后判是', () => {
+      const m = w.document.getElementById('module');
+      m.classList.add('open'); const a = w.eval('voiceOnHome')();
+      m.classList.remove('open'); const b = w.eval('voiceOnHome')();
+      return a === false && b === true;
+    });
+  }
+  // —— ③ 动作视频 ——
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('W1 生成 B 站官方嵌入播放器地址（内嵌播放，不跳外站）', () => {
+      const u = w.eval('bilibiliEmbed')('https://www.bilibili.com/video/BV1mD421J7o3');
+      return u.indexOf('player.bilibili.com/player.html') >= 0 && u.indexOf('bvid=BV1mD421J7o3') >= 0;
+    });
+    check('W2 全库已无「合集时间戳 / 搜索兜底」链接', () => {
+      const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+      return src.indexOf('?t=') < 0 && src.indexOf('bsearch(') < 0 && src.indexOf('BV1FY4y1y7Vh') < 0;
+    });
+    check('W3 每个动作都是唯一 BV 直链（三套合计 >=60 条）', () => {
+      const sets = w.eval('PLAN_SETS');
+      const DAYS = ['push', 'pull', 'legs', 'core'];
+      const bvs = [];
+      ['A', 'B', 'C'].forEach(k => DAYS.forEach(d => (sets[k].days[d].ex || []).forEach(e => {
+        const m = String((e.video && e.video.url) || '').match(/(BV[0-9A-Za-z]{10})/);
+        if (m) bvs.push(m[1]);
+      })));
+      return bvs.length >= 60 && bvs.every(b => /^BV[0-9A-Za-z]{10}$/.test(b));
+    });
+    check('W4 openVideo 在弹层内注入 iframe；closeVideo 清空释放', () => {
+      w.eval('openVideo')('https://www.bilibili.com/video/BV1mD421J7o3', '哑铃平板卧推详解');
+      const st = w.document.getElementById('vpop-stage');
+      const okOpen = !!st && st.innerHTML.indexOf('<iframe') >= 0 && st.innerHTML.indexOf('player.bilibili.com') >= 0;
+      let okClose = true;
+      try { w.eval('closeVideo')(); } catch (e) { okClose = false; }
+      return okOpen && okClose && w.document.getElementById('vpop-stage').innerHTML === '';
+    });
+  }
+  // —— ④ 底部导航 ——
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('X1 底部 7 个入口，聊天固定正中（索引 3）', () => {
+      const items = Array.from(w.document.querySelectorAll('#dock .dock-item'));
+      return items.length === 7 && items[3] && items[3].id === 'pet-talk';
+    });
+    check('X2 动线顺序：训练/饮食/跑步 · 聊天 · 知识/数据/我的', () => {
+      const keys = Array.from(w.document.querySelectorAll('#dock .dock-item'))
+        .map(b => b.dataset.go || (b.id === 'pet-talk' ? 'chat' : ''));
+      return keys.join(',') === 'training,diet,run,chat,knowledge,data,profile';
+    });
+  }
+  // —— ⑤ 照片桌宠 ——
+  {
+    const PH = 'data:image/png;base64,AAAA';
+    const w = boot(J({ profile: { weight: 70 }, settings: { petPhoto: PH, petPhotoFx: 'natura' } }));
+    check('Y1 SVG 带显式 width/height（此前只有 viewBox，栅格化默认尺寸导致糊）', () => {
+      const s = w.eval('photoPetSVG')('happy', PH);
+      return /<svg[^>]*width="240"/.test(s) && /height="240"/.test(s);
+    });
+    check('Y2 默认保留原图五官：不叠加卡通眼睛与嘴（异常表情根因）', () => {
+      const s = w.eval('photoPetSVG')('happy', PH);
+      return s.indexOf('translate(0,-13)') < 0 && s.indexOf('<image') >= 0;
+    });
+    check('Y3 切到「卡通叠加」后才出现自绘五官', () => {
+      w.__S.settings.petPhotoFx = 'sticker';
+      const s = w.eval('photoPetSVG')('happy', PH);
+      w.__S.settings.petPhotoFx = 'natura';
+      return s.indexOf('translate(0,-13)') >= 0;
+    });
+    check('Y4 取景参数生效：缩放 1.8 → image 宽 = 2*48*1.8 = 172.8', () => {
+      w.__S.settings.petPhotoFit = { z: 1.8, dx: 10, dy: -6 };
+      const s = w.eval('photoPetSVG')('happy', PH);
+      w.__S.settings.petPhotoFit = { z: 1, dx: 0, dy: 0 };
+      return s.indexOf('width="172.8"') >= 0;
+    });
+    check('Y5 取景参数脏值（NaN/字符串/null）回落默认且不崩', () => {
+      w.__S.settings.petPhotoFit = { z: NaN, dx: 'x', dy: null };
+      let ok = true;
+      try { w.eval('photoPetSVG')('happy', PH); } catch (e) { ok = false; }
+      const f = w.eval('photoFit')();
+      w.__S.settings.petPhotoFit = { z: 1, dx: 0, dy: 0 };
+      return ok && f.z === 1 && f.dx === 0 && f.dy === 0;
+    });
+    check('Y6 照片上传走高清参数（512px / 画质 0.9，不再是 256 / 0.72）', () => {
+      const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+      return /compressImage\(f,\s*512/.test(src) && /0\.9\)/.test(src);
     });
   }
 }

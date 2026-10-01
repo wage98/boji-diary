@@ -18,7 +18,16 @@ const seed = {
   profile: { height: 172, weight: 70, dumbbell: 10, name: '训练者' },
   isFirstLaunch: false,
   water: 3,
-  checkins: { [dayKey(0)]: { ex: { 0: true, 1: true }, at: Date.now() }, [dayKey(-1)]: { ex: { 0: true }, at: Date.now() }, [dayKey(-2)]: { ex: { 0: true, 1: true, 2: true }, at: Date.now() } },
+  // 「月历本月 ✓ 天数」断言要求 3 天都落在同一个日历月内：
+  // 月初跑测试时 0/-1/-2 会跨到上个月，故按当前日号选择偏移方向（夹具也要防跨月）
+  checkins: (function () {
+    const offs = (new Date().getDate() >= 3) ? [0, -1, -2] : [0, 1, 2];
+    const c = {};
+    c[dayKey(offs[0])] = { ex: { 0: true, 1: true }, at: Date.now() };
+    c[dayKey(offs[1])] = { ex: { 0: true }, at: Date.now() };
+    c[dayKey(offs[2])] = { ex: { 0: true, 1: true, 2: true }, at: Date.now() };
+    return c;
+  })(),
 };
 const dom = new JSDOM(html, { url: 'http://localhost/', runScripts: 'dangerously', pretendToBeVisual: true });
 const w = dom.window;
@@ -141,13 +150,15 @@ click($('#score-save'));
 const scSaved = w.__S.scores[tk()];
 ok(scSaved && scSaved.feel === 4 && scSaved.energy === 3 && scSaved.sat === 5, '评分保存成功（4/3/5）');
 
-// 18. 月历补录历史评分：选昨天
-const yKey = dayKey(-1);
+// 18. 月历补录评分：选月历内除今天外的某一天
+// （月初跑测试时「昨天」在上个月，月历里根本没这一格 → 夹具需按日号选方向）
+const yOff = (new Date().getDate() >= 2) ? -1 : 1;
+const yKey = dayKey(yOff);
 const yCell = $(`[data-cal="${yKey}"]`);
 click(yCell);
 click($$('#mod-body .stars')[0].querySelector('[data-star="2"]'));
 click($('#score-save'));
-ok(w.__S.scores[yKey] && w.__S.scores[yKey].feel === 2, '月历点历史日期可补录评分');
+ok(w.__S.scores[yKey] && w.__S.scores[yKey].feel === 2, '月历点其它日期可补录评分');
 
 // 19. 清除评分
 click($('#score-del'));
