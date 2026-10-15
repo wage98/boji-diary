@@ -748,3 +748,12 @@ body{
 .pf-ctl label{display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--ink2); margin:0;}
 .pf-ctl input[type=range]{flex:1; accent-color:#5fc2a4; height:18px;}
 .pf-ctl .ex-do{padding:5px 8px; font-size:10.5px;}
+
+/* ===== v1.2.1 版本更新条：发现新版本时悬浮提示，点击一键刷新 ===== */
+#upd-bar{position:fixed; left:50%; bottom:86px; transform:translateX(-50%); z-index:1200;
+  max-width:calc(100vw - 32px); padding:9px 16px; border-radius:999px;
+  background:linear-gradient(135deg,#5b6cff,#8a5bff); color:#fff; font-size:12.5px; font-weight:600;
+  box-shadow:0 8px 24px rgba(91,108,255,.45); cursor:pointer; text-align:center;
+  animation:updIn .35s cubic-bezier(.2,.9,.3,1.2);}
+#upd-bar:active{transform:translateX(-50%) scale(.96);}
+@keyframes updIn{from{opacity:0; transform:translateX(-50%) translateY(14px);} to{opacity:1; transform:translateX(-50%) translateY(0);}}

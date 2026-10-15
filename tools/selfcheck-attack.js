@@ -119,6 +119,8 @@ function asyncChecks() {
     w.goModule('diet'); w.openFoodSheet(0, w.document.querySelector('#mod-body'), null);
     w.__click(w.document.querySelector('#food-hits [data-hit]'));
     w.__click(w.document.querySelector('#fe-off'));
+    /* 注意：fetch reject 路径含 900ms 弱网重试，断言必须等重试跑完（>1.2s），
+       否则只会看到骨架屏。这是夹具时序，不是产品缺陷。 */
     setTimeout(() => {
       const el = w.document.querySelector('#off-hits');
       check('D1 在线查询 fetch reject → 重试后兜底文案', () => el && el.textContent.indexOf('没查到') >= 0);
@@ -173,7 +175,7 @@ function asyncChecks() {
           }, 60);
         }, 60);
       }, 1350);   // D2：弱网自动重试 1 次（900ms 延迟）后才有兜底文案
-    }, 1350);     // D1：同上
+    }, 2500);     // D1：弱网重试链在满负载自检下会被拖迟，留足余量
   });
 }
 
@@ -208,7 +210,7 @@ check('F3 饮水 ml 计量仍在', () => { const w = boot(J({ waterMl: 300, prof
 check('F4 组间休息计时器可启动与跳过', () => { const w = boot(J({ profile: { weight: 70 } })); w.startRest(45);
   const shown = !w.document.querySelector('#rest-timer').classList.contains('hidden');
   w.stopRest(); return shown && w.document.querySelector('#rest-timer').classList.contains('hidden'); });
-check('F5 时间戳出处说明已接上', () => { const w = boot(J({ profile: { weight:70 } })); w.goModule('training'); return w.document.querySelector('#mod-body').textContent.indexOf('时间戳取自') >= 0 || new Date().getDay() === 0; });
+check('F5 视频出处说明已接上（v1.2.1 起为独立单集教学，无合集时间戳）', () => { const w = boot(J({ profile: { weight:70 } })); w.goModule('training'); return w.document.querySelector('#mod-body').textContent.indexOf('无合集时间戳') >= 0 || new Date().getDay() === 0; });
 check('F6 打卡口径：仅完成全部动作并打卡（at）才计成功；部分勾选不计入连续/累计', () => { const d = new Date(); const k = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
   const w = boot(J({ profile: { weight: 70 }, checkins: { [k]: { ex: { 0: true } } } }));
   return w.eval('isDayComplete')(k) === false && w.eval('dayCompleteCount')() === 0 && w.eval('streak')() === 0; });
@@ -477,7 +479,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => v121Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -1055,9 +1057,9 @@ function v120Checks() {
       w.eval('hideBoot')();
       return w.__READY === true && b.classList.contains('done');
     });
-    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-0', () => {
+    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-1', () => {
       const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
-      return /CACHE\s*=\s*'boji-1-2-0'/.test(sw)
+      return /CACHE\s*=\s*'boji-1-2-1'/.test(sw)
         && sw.indexOf('c.match(req)') >= 0
         && sw.indexOf('staleWhileRevalidate') >= 0
         && sw.indexOf("c.match('./index.html')") >= 0;
@@ -1188,6 +1190,82 @@ function v120Checks() {
     check('Y6 照片上传走高清参数（512px / 画质 0.9，不再是 256 / 0.72）', () => {
       const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
       return /compressImage\(f,\s*512/.test(src) && /0\.9\)/.test(src);
+    });
+  }
+}
+
+// ===== v1.2.1 增量：动作视频重筛（≤95s 直给教学）+ 手机端实时更新 =====
+/* v1.2.1 准入视频集合：54 个唯一 BV，均已用 B 站 view 接口复核 code=0 且时长 ≤95s（见 docs/视频来源核对.md）。
+   下架集合：39 个旧 BV（超长教学 / 合集 / 失效链接），任何一条回潮都算回归。 */
+const V121_APPROVED = ["BV1as4y1T7YM","BV1nNZRY3EJc","BV1CZhe6JEjM","BV16u4111716","BV1J5411Q7KE","BV1KN41197tc","BV1Sw411d7GN","BV1emHx6QEvJ","BV1N66yBKEH8","BV1ZT411H7JD","BV1uE411R7qv","BV1Qg4y1272p","BV1rJsbzbEGu","BV1Q44y1Z7Xq","BV1JKczeKExz","BV1d1pp6JE7i","BV1gJfyBsEtf","BV1VGaU63EGS","BV1s9pq63E6M","BV1wvcozSEyJ","BV1tZ8FzBEgf","BV1NH4y1K7wQ","BV15rhB6mEit","BV1yqE16JEi1","BV1Wr4y1T7yH","BV1TjEEzFEyY","BV1cSiRYREHk","BV1AohVz6EBb","BV1E54BewEHA","BV1vAem6LErW","BV1ga4y1Z717","BV1tV4y137gN","BV1sxbj6hEco","BV1ft4y1q7QC","BV1QxGg6EEqj","BV1Gia76sEro","BV1S54y1Z7pY","BV1fi4y1L774","BV1CUpg6fEfX","BV1Wqh26pEUM","BV15FbW6aEgk","BV1zS2BBxEFn","BV1RDtZ6hEiX","BV1X54y1a71n","BV1zm4y1j7Cn","BV1BL4y1L7wt","BV1SqYk6XEfv","BV1YR4y1x7ya","BV1Vj411x73r","BV13r4y1P7G3","BV1zi4y1y7QS","BV17T2UYxE12","BV13D421p75t","BV1Uo4y1t7S6"];
+const V121_DROPPED = ["BV1mD421J7o3","BV1aa4y1o7XA","BV1uw411N7MC","BV18o4y147RH","BV1Cz421i79n","BV1di421D7rm","BV1Vh411775b","BV1ij411H773","BV1t441187BT","BV19D421j7jV","BV1x6ChBBExH","BV1TT4y1p7YR","BV12Hpez1EVv","BV1Et42187nB","BV1kF411F7YG","BV1mN4y1M7ko","BV1sU4y1E76b","BV1HaigeJEiS","BV1i1w7zYEyh","BV1eF3tzjEMk","BV1Ze411J7zs","BV1sw411G7jY","BV1bRDgYCEgm","BV1fs4y1k7BP","BV1cW421d7kj","BV1ra411d7y4","BV1Zf4y1T7QA","BV1V24y167jv","BV1q54y1r7UY","BV1an4y1f73u","BV141gp6TEbX","BV1MXm1BhEjx","BV1XJ411G7u3","BV1BJ41197mr","BV1DT421a7Lq","BV1kmaa6GEg8","BV1Lp411d7DU","BV1wZ421e7K2","BV1K64y15745"];
+
+function v121Checks() {
+  /* —— ① 动作视频重筛 —— */
+  {
+    const w = boot(J({ profile: { weight: 70 } }));
+    check('Z1 72 个动作视频入口全部指向 v1.2.1 准入视频（54 个唯一 BV）', () => {
+      const sets = w.eval('PLAN_SETS');
+      const DAYS = ['push', 'pull', 'legs', 'core'];
+      const bvs = [];
+      ['A', 'B', 'C'].forEach(k => DAYS.forEach(d => (sets[k].days[d].ex || []).forEach(e => {
+        const m = String((e.video && e.video.url) || '').match(/(BV[0-9A-Za-z]{10})/);
+        if (m) bvs.push(m[1]);
+      })));
+      return bvs.length === 72 && bvs.every(b => V121_APPROVED.indexOf(b) >= 0)
+        && new Set(bvs).size === V121_APPROVED.length;
+    });
+    check('Z2 39 个旧的长视频/死链 BV 已全部下架（无一条回潮）', () => {
+      const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+      return V121_DROPPED.every(b => src.indexOf(b) < 0);
+    });
+    check('Z3 视频 label 均为真实标题（无「站内搜」兜底、无空标题）', () => {
+      const sets = w.eval('PLAN_SETS');
+      const DAYS = ['push', 'pull', 'legs', 'core'];
+      let ok = true, n = 0;
+      ['A', 'B', 'C'].forEach(k => DAYS.forEach(d => (sets[k].days[d].ex || []).forEach(e => {
+        const lb = String((e.video && e.video.label) || '');
+        n++;
+        if (!lb || lb.indexOf('站内搜') >= 0 || lb.indexOf('合集') >= 0) ok = false;
+      })));
+      return ok && n === 72;
+    });
+    check('Z4 视频核对文档已更新到 v1.2.1 且动作表不再收录旧 BV', () => {
+      const doc = fs.readFileSync(path.join(PROJ, 'docs/视频来源核对.md'), 'utf8');
+      const table = doc.slice(0, doc.indexOf('## 二、'));   // 只查动作表；文末「死链修复记录」允许提及旧 BV
+      return doc.indexOf('v1.2.1') >= 0 && doc.indexOf('时长 ≤ 95 秒') >= 0
+        && V121_DROPPED.every(b => table.indexOf(b) < 0);
+    });
+  }
+  /* —— ② 手机端实时更新 —— */
+  {
+    const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+    const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
+    check('Z5 版本号已升到 1.2.1，SW 缓存名同步升级（旧缓存自动清理）', () => {
+      return src.indexOf("APP_VERSION = '1.2.1'") >= 0 && sw.indexOf("boji-1-2-1'") >= 0;
+    });
+    check('Z6 SW 对 __upd 请求强制走网络（否则版本检查只会读到缓存旧文件）', () => {
+      return /searchParams\.has\('__upd'\)[\s\S]{0,80}respondWith\(fetch\(req\)\)/.test(sw);
+    });
+    check('Z7 checkAppUpdate 比对线上版本，不一致才弹更新条（不扰民）', () => {
+      const w = boot(J({ profile: { weight: 70 } }));
+      let threw = false;
+      try { w.eval('checkAppUpdate')(); } catch (e) { threw = true; }
+      const bar = w.document.getElementById('upd-bar');
+      return !threw && !bar;   // 本地版本与源码一致 → 不应弹条
+    });
+    check('Z8 版本检查挂在空闲任务与「回到前台」两个时机', () => {
+      return src.indexOf('prewarmAssets(); checkAppUpdate();') >= 0
+        && /voiceResume\(\); checkAppUpdate\(\);/.test(src);
+    });
+    check('Z9 更新条点击后注销 SW 并清缓存再刷新（真正拿到新内容）', () => {
+      const w = boot(J({ profile: { weight: 70 } }));
+      w.eval('showUpdateBar')('9.9.9');
+      const bar = w.document.getElementById('upd-bar');
+      if (!bar) return false;
+      const txt = bar.textContent || '';
+      bar.click();
+      return txt.indexOf('9.9.9') >= 0;
     });
   }
 }

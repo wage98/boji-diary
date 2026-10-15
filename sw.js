@@ -7,7 +7,7 @@
 //  2) install 阶段逐条 put（单条失败不影响整体），并缓存 index.html 作为导航兜底，
 //     确保任何情况下都能渲染出自己的页面，而不是托管方的错误页。
 //  3) 跳过等待 + 立即接管，避免旧 SW 卡住导致更新后仍加载旧资源。
-const CACHE = 'boji-1-2-0';
+const CACHE = 'boji-1-2-1';
 const ASSETS = [
   './',
   './index.html',
@@ -59,6 +59,11 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;   // 跨域资源（外链/瓦片）不接管
+
+  // —— 版本检查旁路：__upd 请求强制走网络、不进缓存 ——
+  // app.js 的 checkAppUpdate() 用它拿「线上真实版本号」，与本地 APP_VERSION 比对，
+  // 不一致就弹「一键更新」条。若不走旁路，SW 会返回缓存的旧 app.js，永远发现不了新版本。
+  if (url.searchParams.has('__upd')) { e.respondWith(fetch(req)); return; }
 
   const isPage = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
 

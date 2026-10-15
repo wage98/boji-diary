@@ -12,7 +12,7 @@
    历史版本流水见 docs/轮次总结.md，此处不再罗列。
    ============================================================ */
 'use strict';
-const APP_VERSION = '1.2.0';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
+const APP_VERSION = '1.2.1';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const el = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
@@ -34,11 +34,16 @@ function coachAvatarSrc(){
 }
 const svgURI = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(String(s == null ? '' : s));
 
-/* ---------- 视频深链（卓叔 B站合集，章节时间戳可点开自验） ---------- */
-/* v1.1：B 站单视频直链（每个动作唯一对应一个视频，label 用真实视频标题，便于核对）。
-   来源：B 站搜索结果，按「标题必须含该动作核心名词 + 教学信号」筛选，见 docs/视频来源核对.md */
+/* ---------- 视频深链（App 内嵌 B 站播放器，不跳转） ---------- */
+/* v1.2.1：视频全部重筛为「直给教学」形态——每个动作一条唯一视频，label 用真实视频标题。
+   选片标准（v1.2.1 起，逐条经 B 站 view 接口复核活性与秒级时长）：
+     1) 时长 ≤ 95 秒，只教该动作本身，去掉铺垫、寒暄、训练计划等冗余内容；
+     2) 标题含该动作核心名词 + 教学信号（教学/动作/做法/标准/保姆级/拆解/纠错等）；
+     3) 变体精确：地板版不混入椅子版、哑铃版不混入杠铃版、单臂/双手不混用；
+     4) 排除合集、跟练、系列、多动作混剪与「第 N 天」式训练日志。
+   选片与核对过程见 docs/视频来源核对.md */
 const blink = (bvid, label) => ({ url: 'https://www.bilibili.com/video/' + bvid, label });
-const TIMESTAMP_NOTE = '时间戳取自卓叔《30个家庭哑铃增肌动作教学》合集章节，属最佳可得映射，点开可自验。';
+const TIMESTAMP_NOTE = 'v1.2.1 起每个动作均为独立单集教学视频，无合集时间戳。';
 
 /* ---------- 训练计划：两套独立方案（A 有卧推椅 / B 无卧推椅）----------
    两套均覆盖 推 / 拉 / 腿 / 核心 四大肌群，各 4 训练日 × 6 动作 = 24 个动作；
@@ -66,82 +71,82 @@ const PLAN_SETS = {
     fit: '家里已有卧推椅 / 可调长凳，想让胸背动作更贴近健身房版（平板与上斜卧推、手撑椅划船、肩撑椅臀桥）。',
     days: {
       push: { name:'推日 · 胸肩三头', greeting:'今天练胸肩，把手机放下，胸肌支棱起来！', ex:[
-        { name:'哑铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:blink('BV1mD421J7o3','哑铃平板卧推详解'),
+        { name:'哑铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:blink('BV1as4y1T7YM', '一分钟学会一个健身动作：哑铃平板卧推'),
           standard:'肩胛后缩下沉贴住椅面，哑铃下放至胸侧乳线高度，推起时胸肌主动收缩。',
           note:'别耸肩借力；小臂保持垂直地面，手腕中立不翻。' },
-        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:60, base:0.6, video:blink('BV1aa4y1o7XA','上斜哑铃卧推详解'),
+        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:60, base:0.6, video:blink('BV1nNZRY3EJc', '上斜哑铃卧推动作全解析'),
           standard:'椅背调到 30° 左右，推举轨迹略向锁骨方向聚拢。',
           note:'角度别太高，超过 45° 就变成肩推，压肩膀。' },
-        { name:'坐姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:blink('BV1uw411N7MC','坐姿哑铃推肩详解'),
+        { name:'坐姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:blink('BV1CZhe6JEjM', '坐姿哑铃推肩教学｜避免脖子痛与斜方肌代偿'),
           standard:'靠背支撑，核心收紧，推至顶端不锁死肘，肩胛稳定。',
           note:'腰别反弓代偿，重量宁轻勿借。' },
-        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:blink('BV18o4y147RH','哑铃侧平举——正确做法（全程无废话）'),
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:blink('BV16u4111716', '没有废话！1分钟哑铃侧平举教学，干货满满'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿 1 秒。',
           note:'别甩重量，用肩中束发力而不是斜方。' },
-        { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1Cz421i79n', "对握哑铃仰卧臂屈伸详解"),
+        { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1J5411Q7KE', '三头肌训练教学：哑铃仰卧臂屈伸'),
           standard:'仰卧在椅上，上臂保持垂直于地面，仅小臂做屈伸。',
           note:'肘别外撇，动作放慢，别用手腕甩。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1di421D7rm', "俯身哑铃侧平举详解"),
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1KN41197tc', '俯身哑铃侧平举'),
           standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
           note:'脖子放松别耸肩，重量轻一点更找得到后束。' },
       ]},
       pull: { name:'拉日 · 背二头', greeting:'练背啦，想象把世界拉向你(｡･ω･｡)', ex:[
-        { name:'单臂哑铃划船（手撑椅）', muscle:'背阔肌 · 大圆肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:blink('BV1Vh411775b','单臂哑铃划船——正确做法（全程无废话）'),
+        { name:'单臂哑铃划船（手撑椅）', muscle:'背阔肌 · 大圆肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:blink('BV1Sw411d7GN', '新手一分钟学会练背黄金动作-哑铃划船'),
           standard:'一手一膝撑椅，脊柱中立，肘贴身体向后上方拉，背阔主导。',
           note:'别用惯性甩，顶峰夹背停 1 秒。' },
-        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1ij411H773', "哑铃划船详解"),
+        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1emHx6QEvJ', '俯身哑铃划船动作教学'),
           standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
           note:'腰别塌、别圆背，起身时不要用腰硬拽。' },
-        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:blink('BV1t441187BT','哑铃耸肩 | 斜方肌训练01| 新手教程'),
+        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:blink('BV1N66yBKEH8', '居家哑铃耸肩练斜方肌教学'),
           standard:'直上直下耸肩，顶峰停顿 1 秒。',
           note:'别转肩画圈，斜方发力。' },
-        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:blink('BV19D421j7jV','【干货】精确打击肩后束！反向飞鸟？面拉？'),
+        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:blink('BV1ZT411H7JD', '绳索面拉的哑铃替代动作教学'),
           standard:'俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。',
           note:'居家哑铃版面拉，改善圆肩，别耸肩。' },
         { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:blink('BV1uE411R7qv','每日一练:哑铃交替锤式弯举教学'),
           standard:'中立握（锤式），肘固定于身体两侧做弯举。',
           note:'别借力摆动身体。' },
-        { name:'集中弯举', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1x6ChBBExH','阿诺施瓦辛格最喜欢的二头肌训练动作，哑铃集中弯举'),
+        { name:'集中弯举', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1Qg4y1272p', '哑铃集中弯举讲解'),
           standard:'坐姿，肘抵同侧大腿内侧，顶峰主动收缩二头。',
           note:'慢起慢落，别用手腕带。' },
       ]},
       legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
-        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:blink('BV1TT4y1p7YR','高脚杯深蹲详解'),
+        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:blink('BV1rJsbzbEGu', '一个视频教会你高脚杯深蹲'),
           standard:'哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。',
           note:'膝盖跟脚尖同向，别内扣。' },
         { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:blink('BV1Q44y1Z7Xq','30秒教会你如何做一个标准的罗马尼亚硬拉'),
           standard:'微屈膝固定，髋向后推，腘绳主导，背全程挺直。',
           note:'靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。' },
-        { name:'保加利亚分腿蹲（后脚搭椅）', muscle:'股四头肌 · 臀大肌', sets:3, reps:'10-12/腿', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV12Hpez1EVv', "别再把保加利亚分腿蹲搞砸了（正确姿势！）"),
+        { name:'保加利亚分腿蹲（后脚搭椅）', muscle:'股四头肌 · 臀大肌', sets:3, reps:'10-12/腿', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1JKczeKExz', '保加利亚分腿蹲：一分钟教会精准练臀'),
           standard:'后脚背搭在椅面上，前腿下蹲至约 90°，躯干略前倾。',
           note:'核心收紧别晃。' },
-        { name:'哑铃箭步蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1Et42187nB','箭步蹲详解'),
+        { name:'哑铃箭步蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1d1pp6JE7i', '哑铃箭步蹲动作详解'),
           standard:'向前迈步下蹲，前后腿各约 90°，后膝接近地面。',
           note:'躯干保持稳定，膝盖不内扣。' },
         { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:blink('BV1gJfyBsEtf','1.站姿提踵'),
           standard:'踮到顶端停顿 1 秒，慢速落下充分拉伸。',
           note:'全程控制，别靠弹震借力。' },
-        { name:'臀桥（肩撑椅）', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12-15', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:blink('BV1kF411F7YG','臀腿塑形王牌动作，臀桥教学。拒绝无效训练！'),
+        { name:'臀桥（肩撑椅）', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12-15', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:blink('BV1VGaU63EGS', '【保姆级】标准臀桥教学，新手避坑不伤腰'),
           standard:'肩胛撑在椅面，髋顶起至肩-髋-膝成一条直线。',
           note:'顶峰主动夹臀停顿，别用腰顶。' },
       ]},
       core: { name:'核心日 · 腰腹', greeting:'核心稳了，全身都听话~', ex:[
-        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:blink('BV1mN4y1M7ko','慢动作卷腹教程来了，大家记得一起来打卡'),
+        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:blink('BV1s9pq63E6M', '卷腹动作细节解析'),
           standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
           note:'别用脖子拉，手别抱头使劲。' },
         { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:blink('BV1wvcozSEyJ', "反向卷腹-紧致下腹，新手友好不伤腰"),
           standard:'仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。',
           note:'落下时腰别弹起，慢速离心。' },
-        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1sU4y1E76b', "掌握平板支撑正确做法，轻松突破1分钟"),
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1tZ8FzBEgf', '20秒看懂平板支撑的正确姿势'),
           standard:'耳-肩-髋-踝一条直线，臀部与腹部同时收紧。',
           note:'别塌腰或撅屁股，撑不住就降膝盖。' },
-        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:blink('BV1HaigeJEiS', "腹肌训练入门动作简易俄罗斯转体"),
+        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:blink('BV1NH4y1K7wQ', '俄罗斯转体正确做法'),
           standard:'坐姿屈膝，双手持一只哑铃向身体两侧转体触地。',
           note:'别只甩手，用腹斜肌带动躯干旋转。' },
-        { name:'死虫式', muscle:'核心抗伸展 · 腹横肌', sets:3, reps:'12/侧', tempo:'2-1-2', breath:'伸展吸气，收回呼气', rest:40, base:0, video:blink('BV1i1w7zYEyh', "10分钟核心跟练「死虫」"),
+        { name:'死虫式', muscle:'核心抗伸展 · 腹横肌', sets:3, reps:'12/侧', tempo:'2-1-2', breath:'伸展吸气，收回呼气', rest:40, base:0, video:blink('BV15rhB6mEit', '死虫式保姆级教程'),
           standard:'仰卧，对侧手脚缓慢伸展，腰背始终贴紧地面。',
           note:'腰一旦离地就停止伸展，幅度宁小勿大。' },
-        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:blink('BV1eF3tzjEMk', "侧腹王牌训练动作：侧平板支撑保姆级教学"),
+        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:blink('BV1yqE16JEi1', '侧平板支撑详细教程'),
           standard:'肘在肩正下方，髋部抬起成一条直线。',
           note:'别塌髋，两侧时间要对称。' },
       ]},
@@ -155,47 +160,47 @@ const PLAN_SETS = {
     fit: '家里没有卧推椅，不想为训练添大件；上肢推类改用地板动作，行程受限但更安全、对肩更友好。',
     days: {
       push: { name:'推日 · 胸肩三头', greeting:'地板也能练出胸，今天稳稳推！', ex:[
-        { name:'地板哑铃卧推', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:blink('BV1mD421J7o3', "哑铃平板卧推详解"),
+        { name:'地板哑铃卧推', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:4, reps:'8-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.8, video:blink('BV1Wr4y1T7yH', '哑铃地板卧推'),
           standard:'仰卧地面屈膝，肘触地即停，推起时胸肌主动收缩。',
           note:'肘别外展 90° 直角，约 45° 更护肩。' },
         { name:'地板哑铃飞鸟', muscle:'胸大肌（拉伸位刺激）', sets:3, reps:'12-15', tempo:'2-1-1', breath:'展开吸气，合拢呼气', rest:45, base:0.3, video:blink('BV1TjEEzFEyY','第一天（胸）：地板哑铃飞鸟'),
           standard:'微屈肘画弧下放至肘接近地面，再靠胸肌合拢。',
           note:'别用太大重量，感受胸肌拉伸与收缩。' },
-        { name:'站姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:blink('BV1Ze411J7zs','肩部健身动作  站姿哑铃肩推'),
+        { name:'站姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:60, base:0.5, video:blink('BV1cSiRYREHk', '站姿哑铃推肩怎么做'),
           standard:'站姿核心收紧，推至顶端不锁死肘，肩胛稳定。',
           note:'腰别反弓代偿，站姿比坐姿更考验核心。' },
-        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:blink('BV18o4y147RH','哑铃侧平举——正确做法（全程无废话）'),
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.25, video:blink('BV16u4111716', '没有废话！1分钟哑铃侧平举教学，干货满满'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿。',
           note:'别甩重量，用肩中束发力。' },
-        { name:'哑铃俯身臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1sw411G7jY', "俯身哑铃臂屈伸详解"),
+        { name:'哑铃俯身臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:45, base:0.3, video:blink('BV1AohVz6EBb', '俯身哑铃臂屈伸动作讲解'),
           standard:'俯身约 45°，上臂贴紧身体并垂直地面，仅小臂向后伸直再收回，肘为固定支点。',
           note:'不甩重量；肘部固定不晃，重量宁轻勿重，避免用手腕带。居家无椅也能做，对肩关节压力小。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1di421D7rm', "俯身哑铃侧平举详解"),
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1KN41197tc', '俯身哑铃侧平举'),
           standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
           note:'脖子放松别耸肩。' },
       ]},
       pull: { name:'拉日 · 背二头', greeting:'没有椅子也能练背，拉起来！', ex:[
-        { name:'单臂哑铃划船（扶墙/凳）', muscle:'背阔肌 · 大圆肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:blink('BV1ij411H773','哑铃划船详解'),
+        { name:'单臂哑铃划船（扶墙/凳）', muscle:'背阔肌 · 大圆肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:60, base:0.7, video:blink('BV1E54BewEHA', '单臂划船动作纠正'),
           standard:'一手扶墙或稳固凳面，身体前倾，肘贴身体向后上方拉。',
           note:'别用惯性甩，顶峰夹背停 1 秒。' },
-        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1ij411H773', "哑铃划船详解"),
+        { name:'俯身哑铃划船（双手）', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:3, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:75, base:0.7, video:blink('BV1emHx6QEvJ', '俯身哑铃划船动作教学'),
           standard:'髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。',
           note:'腰别塌、别圆背。' },
-        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:blink('BV1t441187BT','哑铃耸肩 | 斜方肌训练01| 新手教程'),
+        { name:'哑铃耸肩', muscle:'斜方肌上部', sets:3, reps:'12-15', tempo:'1-1-1', breath:'耸起呼气，落下吸气', rest:45, base:0.8, video:blink('BV1N66yBKEH8', '居家哑铃耸肩练斜方肌教学'),
           standard:'直上直下耸肩，顶峰停顿 1 秒。',
           note:'别转肩画圈。' },
-        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:blink('BV19D421j7jV','【干货】精确打击肩后束！反向飞鸟？面拉？'),
+        { name:'俯身哑铃面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.2, video:blink('BV1ZT411H7JD', '绳索面拉的哑铃替代动作教学'),
           standard:'俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。',
           note:'改善圆肩，别耸肩。' },
         { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:45, base:0.3, video:blink('BV1uE411R7qv','每日一练:哑铃交替锤式弯举教学'),
           standard:'中立握，肘固定于身体两侧做弯举。',
           note:'别借力摆动身体。' },
-        { name:'集中弯举（坐姿）', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1bRDgYCEgm','手臂教程：哑铃弯举的动作模式、常见错误、发力技巧'),
+        { name:'集中弯举（坐姿）', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-2', breath:'弯起呼气，下落吸气', rest:45, base:0.2, video:blink('BV1vAem6LErW', '动作拆解：集中弯举'),
           standard:'坐地上或凳上，肘抵同侧大腿内侧，顶峰收缩二头。',
           note:'慢起慢落，别用手腕带。' },
       ]},
       legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
-        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:blink('BV1TT4y1p7YR','高脚杯深蹲详解'),
+        { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:75, base:1.0, video:blink('BV1rJsbzbEGu', '一个视频教会你高脚杯深蹲'),
           standard:'哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。',
           note:'膝盖跟脚尖同向，别内扣。' },
         { name:'哑铃罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:3, reps:'10-12', tempo:'3-1-1', breath:'下放吸气，起身呼气', rest:75, base:0.9, video:blink('BV1Q44y1Z7Xq','30秒教会你如何做一个标准的罗马尼亚硬拉'),
@@ -204,33 +209,33 @@ const PLAN_SETS = {
         { name:'哑铃相扑深蹲', muscle:'股四头肌内侧 · 臀大肌 · 大腿内收肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.7, video:blink('BV1ga4y1Z717', "哑铃相扑深蹲讲解"),
           standard:'宽站距、脚尖外展，哑铃垂于身前，髋膝同步下蹲。',
           note:'膝盖始终跟脚尖同向。' },
-        { name:'原地哑铃分腿蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1fs4y1k7BP', "分腿蹲教学，教你找对分腿蹲重心，两个技…"),
+        { name:'原地哑铃分腿蹲', muscle:'股四头肌 · 臀大肌 · 平衡能力', sets:3, reps:'12/腿', tempo:'2-0-1', breath:'下蹲吸气，起身呼气', rest:60, base:0.6, video:blink('BV1tV4y137gN', '原地箭步蹲教学版'),
           standard:'前后分腿站定，原地下降至前后腿各约 90°。',
           note:'躯干稳定，别左右晃。' },
         { name:'站姿提踵', muscle:'腓肠肌 · 比目鱼肌', sets:3, reps:'15-20', tempo:'1-1-2', breath:'踮起呼气，落下吸气', rest:40, base:0.8, video:blink('BV1gJfyBsEtf','1.站姿提踵'),
           standard:'踮到顶端停顿 1 秒，慢速落下充分拉伸。',
           note:'全程控制，别靠弹震借力。' },
-        { name:'单腿臀桥', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12/侧', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:blink('BV1cW421d7kj', "肌骨重建｜如何正确完成臀桥动作The …"),
+        { name:'单腿臀桥', muscle:'臀大肌 · 腘绳肌', sets:3, reps:'12/侧', tempo:'1-2-1', breath:'顶起呼气，落下吸气', rest:45, base:1.0, video:blink('BV1sxbj6hEco', '单腿臀桥逐帧纠动作'),
           standard:'仰卧地面，单脚支撑顶髋至肩-髋-膝一线，另腿伸直悬空。',
           note:'骨盆别歪，顶峰夹臀。' },
       ]},
       core: { name:'核心日 · 腰腹', greeting:'核心稳了，全身都听话~', ex:[
-        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:blink('BV1mN4y1M7ko','慢动作卷腹教程来了，大家记得一起来打卡'),
+        { name:'卷腹', muscle:'腹直肌上部', sets:3, reps:'15-20', tempo:'1-1-1', breath:'卷起呼气，躺下吸气', rest:40, base:0, video:blink('BV1s9pq63E6M', '卷腹动作细节解析'),
           standard:'靠腹肌收缩把胸肋向骨盆卷起，下背贴地。',
           note:'别用脖子拉，手别抱头使劲。' },
         { name:'反向卷腹', muscle:'腹直肌下部', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:40, base:0, video:blink('BV1wvcozSEyJ', "反向卷腹-紧致下腹，新手友好不伤腰"),
           standard:'仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。',
           note:'落下时腰别弹起，慢速离心。' },
-        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1sU4y1E76b', "掌握平板支撑正确做法，轻松突破1分钟"),
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1tZ8FzBEgf', '20秒看懂平板支撑的正确姿势'),
           standard:'耳-肩-髋-踝一条直线，臀部与腹部同时收紧。',
           note:'别塌腰或撅屁股，撑不住就降膝盖。' },
-        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:blink('BV1HaigeJEiS', "腹肌训练入门动作简易俄罗斯转体"),
+        { name:'哑铃俄罗斯转体', muscle:'腹斜肌', sets:3, reps:'20', tempo:'1-0-1', breath:'转体呼气，回正吸气', rest:40, base:0.15, video:blink('BV1NH4y1K7wQ', '俄罗斯转体正确做法'),
           standard:'坐姿屈膝，双手持一只哑铃向身体两侧转体触地。',
           note:'别只甩手，用腹斜肌带动躯干旋转。' },
         { name:'登山者', muscle:'核心 · 髋屈肌', sets:3, reps:'20', tempo:'快节奏', breath:'均匀呼吸，不憋气', rest:40, base:0, video:blink('BV1ft4y1q7QC', "【常见动作错误：登山者】"),
           standard:'俯撑姿势，交替把膝盖收向胸口，臀部不上抬。',
           note:'别撅屁股，速度服从姿势。' },
-        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:blink('BV1eF3tzjEMk', "侧腹王牌训练动作：侧平板支撑保姆级教学"),
+        { name:'侧平板支撑', muscle:'腹斜肌 · 腰方肌', sets:3, reps:'20-30秒/侧', tempo:'静态', breath:'自然呼吸，不憋气', rest:40, base:0, video:blink('BV1yqE16JEi1', '侧平板支撑详细教程'),
           standard:'肘在肩正下方，髋部抬起成一条直线。',
           note:'别塌髋，两侧时间要对称。' },
       ]},
@@ -246,22 +251,22 @@ const PLAN_SETS = {
     fit: '在健身房训练，想用杠铃与固定器械做标准分化（卧推 / 深蹲 / 硬拉 + 器械孤立动作）。',
     days: {
       push: { name:'推日 · 胸三头', greeting:'今天练胸，杠铃卧推给我顶起来！', ex:[
-        { name:'杠铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:90, base:0.45, kgBase:'bw', video:blink('BV1ra411d7y4', "怎么做平板杠铃卧推"),
+        { name:'杠铃平板卧推', muscle:'胸大肌（中胸）· 三角肌前束 · 肱三头肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:90, base:0.45, kgBase:'bw', video:blink('BV1QxGg6EEqj', '杠铃平板卧推标准动作完整教学'),
           standard:'肩胛后缩下沉贴凳，杠铃下放至乳线高度，推起时胸肌主动收缩，小臂全程垂直地面。',
           note:'手腕别翻；起桥适度即可，别靠腰反弹。' },
-        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.5, video:blink('BV1aa4y1o7XA', "上斜哑铃卧推详解"),
+        { name:'上斜哑铃卧推', muscle:'胸大肌（上胸）· 三角肌前束', sets:3, reps:'10-12', tempo:'2-1-1', breath:'下放吸气，推起呼气', rest:75, base:0.5, video:blink('BV1nNZRY3EJc', '上斜哑铃卧推动作全解析'),
           standard:'凳背调 30° 左右，哑铃下放至锁骨上方，推起轨迹略向内聚拢。',
           note:'角度别超过 45°，否则变肩推压肩膀。' },
-        { name:'坐姿器械推胸', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'推出呼气，收回吸气', rest:60, base:0.35, kgBase:'bw', video:blink('BV1Zf4y1T7QA', "健身房“坐姿推胸器”超详细版教学！学不…"),
+        { name:'坐姿器械推胸', muscle:'胸大肌 · 三角肌前束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'推出呼气，收回吸气', rest:60, base:0.35, kgBase:'bw', video:blink('BV1Gia76sEro', '器械精讲-坐姿推胸机'),
           standard:'座椅调至把手对齐乳线，肩胛贴靠背，推出到顶点不锁死肘。',
           note:'别耸肩；重量宁轻勿借，感受胸肌收缩。' },
-        { name:'平板哑铃飞鸟', muscle:'胸大肌（外侧与中缝）', sets:3, reps:'10-12', tempo:'2-1-2', breath:'张开吸气，合拢呼气', rest:60, base:0.25, video:blink('BV1V24y167jv', "胸肌变宽必练的动作，平板哑铃飞鸟"),
+        { name:'平板哑铃飞鸟', muscle:'胸大肌（外侧与中缝）', sets:3, reps:'10-12', tempo:'2-1-2', breath:'张开吸气，合拢呼气', rest:60, base:0.25, video:blink('BV1S54y1Z7pY', '平板哑铃飞鸟动作细节演示'),
           standard:'仰卧凳上，肘微屈固定角度，像抱树一样张开再合拢。',
           note:'别做成卧推；肘角度全程不变，重量轻一点。' },
         { name:'绳索夹胸', muscle:'胸大肌中缝', sets:3, reps:'12-15', tempo:'1-1-2', breath:'夹拢呼气，打开吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1fi4y1L774', "跪姿夹胸教学"),
           standard:'龙门架高位滑轮，身体略前倾，双手弧形向下向内夹拢。',
           note:'别用手臂硬压，靠胸肌把重量\"抱\"过来。' },
-        { name:'绳索下压', muscle:'肱三头肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'下压呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1q54y1r7UY', "手臂塑形弹力带臂下压训练肱三头肌健身教学"),
+        { name:'绳索下压', muscle:'肱三头肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'下压呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1CUpg6fEfX', '绳索臂屈伸完整教学'),
           standard:'肘夹紧身体两侧固定，仅小臂向下压到底并稍外分。',
           note:'肘别外撇上抬，否则三头发力大打折扣。' },
       ]},
@@ -272,10 +277,10 @@ const PLAN_SETS = {
         { name:'坐姿绳索划船', muscle:'背阔肌 · 菱形肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'后拉呼气，还原吸气', rest:75, base:0.4, kgBase:'bw', video:blink('BV15FbW6aEgk', "低位坐姿划船使用教程"),
           standard:'胸贴靠垫，脊柱中立，拉向腹部上沿，顶峰夹背停 1 秒。',
           note:'别圆背；还原时让肩胛充分前伸拉开。' },
-        { name:'杠铃俯身划船', muscle:'背阔肌 · 菱形肌 · 竖脊肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:90, base:0.35, kgBase:'bw', video:blink('BV1an4y1f73u', "练背教程：杠铃划船的动作模式、常见错误…"),
+        { name:'杠铃俯身划船', muscle:'背阔肌 · 菱形肌 · 竖脊肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:90, base:0.35, kgBase:'bw', video:blink('BV1zS2BBxEFn', '杠铃俯身划船保姆级教程'),
           standard:'髋部折叠约 45°，腰背挺直，杠铃沿大腿拉向下腹。',
           note:'最忌圆背硬拉；宁可用小重量也不要弓腰。' },
-        { name:'直臂下压', muscle:'背阔肌 · 大圆肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'下压呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV141gp6TEbX', "背部干货来了！赵师直臂下压教学，现场一…"),
+        { name:'直臂下压', muscle:'背阔肌 · 大圆肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'下压呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1RDtZ6hEiX', '直臂下压标准教学'),
           standard:'微前倾，双臂几乎伸直，从高位把绳索压到大腿前。',
           note:'手臂别弯成划船；保持直臂才能孤立背阔。' },
         { name:'哑铃弯举', muscle:'肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:60, base:0.25, video:blink('BV1X54y1a71n', "哑铃弯举动作教学"),
@@ -286,19 +291,19 @@ const PLAN_SETS = {
           note:'别外撇手腕，慢起慢落。' },
       ]},
       legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
-        { name:'杠铃深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:120, base:0.6, kgBase:'bw', video:blink('BV1MXm1BhEjx', "健身新手必看：力量训练之王杠铃深蹲详细…"),
+        { name:'杠铃深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:120, base:0.6, kgBase:'bw', video:blink('BV1zm4y1j7Cn', '保姆级杠铃深蹲教程'),
           standard:'杠铃置于斜方肌上，核心收紧，下蹲至大腿低于水平后蹬地起身。',
           note:'膝与脚尖同向；腰别塌，起不来就减重量。' },
-        { name:'腿举', muscle:'股四头肌 · 臀大肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'屈膝吸气，蹬出呼气', rest:90, base:1.2, kgBase:'bw', video:blink('BV1XJ411G7u3', "腿举机超详细教学！来看看这些错误是不是…"),
+        { name:'腿举', muscle:'股四头肌 · 臀大肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'屈膝吸气，蹬出呼气', rest:90, base:1.2, kgBase:'bw', video:blink('BV1BL4y1L7wt', '教你做一个标准的腿举'),
           standard:'腰臀贴紧靠背，膝屈至 90° 左右再蹬出，脚掌全程踩实。',
           note:'别让臀部离垫；膝别内扣，蹬到顶不锁死。' },
-        { name:'罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下放吸气，起身呼气', rest:90, base:0.5, kgBase:'bw', video:blink('BV1BJ41197mr', "［OTA］罗马尼亚硬拉动作详解"),
+        { name:'罗马尼亚硬拉', muscle:'腘绳肌 · 臀大肌 · 竖脊肌', sets:4, reps:'8-10', tempo:'2-1-1', breath:'下放吸气，起身呼气', rest:90, base:0.5, kgBase:'bw', video:blink('BV1SqYk6XEfv', '杠铃罗马尼亚硬拉讲解'),
           standard:'微屈膝，髋部向后推，杠铃贴腿下放到膝下，臀肌发力顶髋起身。',
           note:'全程腰背挺直，绝不圆背；感受腘绳肌拉伸。' },
-        { name:'坐姿腿屈伸', muscle:'股四头肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'伸直呼气，还原吸气', rest:60, base:0.25, kgBase:'bw', video:blink('BV1DT421a7Lq', "坐姿腿屈伸详解"),
+        { name:'坐姿腿屈伸', muscle:'股四头肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'伸直呼气，还原吸气', rest:60, base:0.25, kgBase:'bw', video:blink('BV1YR4y1x7ya', '新手健身教学：坐姿腿屈伸正确做法'),
           standard:'背部贴紧靠背，踝关节卡好滚垫，伸直到顶停 1 秒再慢放。',
           note:'别用爆发力甩，慢放更刺激股四头。' },
-        { name:'俯卧腿弯举', muscle:'腘绳肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'勾起呼气，还原吸气', rest:60, base:0.25, kgBase:'bw', video:blink('BV1kmaa6GEg8', "俯卧腿弯举机使用教程"),
+        { name:'俯卧腿弯举', muscle:'腘绳肌', sets:3, reps:'12-15', tempo:'1-1-2', breath:'勾起呼气，还原吸气', rest:60, base:0.25, kgBase:'bw', video:blink('BV1Vj411x73r', '俯卧腿弯举常见错误纠正'),
           standard:'俯卧，滚垫压在踝上方，向臀部勾起后缓慢还原。',
           note:'臀部别抬起借力，重量轻一点更找得到腘绳。' },
         { name:'站姿提踵', muscle:'小腿三头肌', sets:3, reps:'15-20', tempo:'1-2-1', breath:'提起呼气，落下吸气', rest:45, base:0.5, kgBase:'bw', video:blink('BV13r4y1P7G3', "半蹲提踵动作，让你跑步不粗腿！#健身教程"),
@@ -306,22 +311,22 @@ const PLAN_SETS = {
           note:'别借膝盖弹动；踝关节活动度做到位。' },
       ]},
       core: { name:'肩日 · 肩与核心', greeting:'肩练宽一点，核心稳一点！', ex:[
-        { name:'坐姿哑铃推举', muscle:'三角肌前束·中束 · 肱三头肌', sets:4, reps:'8-10', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:75, base:0.35, video:blink('BV1Lp411d7DU', "新手篇——哑铃坐姿推举"),
+        { name:'坐姿哑铃推举', muscle:'三角肌前束·中束 · 肱三头肌', sets:4, reps:'8-10', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:75, base:0.35, video:blink('BV1zi4y1y7QS', '坐姿哑铃推举教学'),
           standard:'靠背支撑，核心收紧，推至顶端不锁死肘。',
           note:'腰别反弓代偿，重量宁轻勿借。' },
-        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.15, video:blink('BV18o4y147RH', "哑铃侧平举——正确做法（全程无废话）"),
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:45, base:0.15, video:blink('BV16u4111716', '没有废话！1分钟哑铃侧平举教学，干货满满'),
           standard:'小臂略内旋做出\"倒水\"感，肘略高于腕，顶峰停顿 1 秒。',
           note:'别甩重量，用肩中束发力而不是斜方。' },
-        { name:'绳索面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV1wZ421e7K2', "绳索面拉详解"),
+        { name:'绳索面拉', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'后拉呼气，还原吸气', rest:45, base:0.15, kgBase:'bw', video:blink('BV17T2UYxE12', '绳索面拉动作细节'),
           standard:'滑轮调至面部高度，拉向眉心并外旋，后束主导。',
           note:'别耸肩；改善圆肩的王牌动作，重量轻即可。' },
-        { name:'负重卷腹', muscle:'腹直肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:45, base:0.2, video:blink('BV1K64y15745', "腹肌训练 负重卷腹"),
+        { name:'负重卷腹', muscle:'腹直肌', sets:3, reps:'12-15', tempo:'2-1-1', breath:'卷起呼气，落下吸气', rest:45, base:0.2, video:blink('BV13D421p75t', '负重卷腹教学'),
           standard:'仰卧屈膝，双手抱片于胸前，卷起时下背贴地、胸廓向骨盆靠拢。',
           note:'别用脖子发力硬拽，慢落更刺激腹直肌。' },
         { name:'悬垂举腿', muscle:'腹直肌下部 · 髋屈肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'举起呼气，落下吸气', rest:60, base:0, video:blink('BV1Uo4y1t7S6', "下腹王牌动作：悬垂举腿——正确做法（全…"),
           standard:'单杠悬挂，核心收紧把膝盖/双腿举至髋部屈曲，缓慢下落。',
           note:'别靠身体摆动甩腿，控制下落才是重点。' },
-        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1sU4y1E76b', "掌握平板支撑正确做法，轻松突破1分钟"),
+        { name:'平板支撑', muscle:'腹横肌 · 核心稳定肌群', sets:3, reps:'30-45秒', tempo:'静态', breath:'自然呼吸，不憋气', rest:45, base:0, video:blink('BV1tZ8FzBEgf', '20秒看懂平板支撑的正确姿势'),
           standard:'肘在肩正下方，身体成一条直线，核心持续收紧。',
           note:'别塌腰或撅屁股，撑不住就降膝盖。' },
       ]}
@@ -3826,6 +3831,47 @@ function pickLocalVideo(){
    引导 / 完成 / 计时 / toast
    ============================================================ */
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2200); }
+
+/* ---- 版本实时检查（v1.2.1）：发现线上新版本时提示一键刷新 ----
+   手机端装的是 PWA，若只靠 SW 后台更新，用户要「关掉再打开」才拿到新内容；
+   这里在 App 内主动比对线上版本号，让更新在一次打开内即可感知。
+   注意：请求必须带 __upd 参数（sw.js 对该参数放行走网络、不进缓存），否则拿到的是缓存旧文件。 */
+function showUpdateBar(v){
+  if(document.getElementById('upd-bar')) return;
+  const bar=document.createElement('div');
+  bar.id='upd-bar';
+  bar.setAttribute('role','status');
+  bar.textContent='发现新版本 v'+v+'，点击立即更新';
+  bar.onclick=async ()=>{
+    try{
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        for(const r of regs){ try{ await r.unregister(); }catch(_){} }
+      }
+      if(window.caches && caches.keys){
+        const keys=await caches.keys();
+        for(const k of keys){ try{ await caches.delete(k); }catch(_){} }
+      }
+    }catch(_){}
+    location.reload();
+  };
+  document.body.appendChild(bar);
+}
+let __updCheckedAt = 0;
+function checkAppUpdate(){
+  if(!navigator.onLine) return;
+  if(typeof fetch!=='function') return;          // 老浏览器/极端环境静默跳过
+  const now=Date.now();
+  if(now-__updCheckedAt < 60000) return;          // 一分钟内不重复查
+  __updCheckedAt=now;
+  fetch('app.js?__upd='+now, {cache:'no-store'})
+    .then(r=> (r && r.ok) ? r.text() : '')
+    .then(t=>{
+      const m=String(t).match(/APP_VERSION\s*=\s*'([^']+)'/);
+      if(m && m[1] && m[1] !== APP_VERSION) showUpdateBar(m[1]);
+    })
+    .catch(()=>{});
+}
 function showOnboard(){ if(STATE.isFirstLaunch){ $('#onboard').classList.add('show'); navOpen('onboard'); } }
 $('#ob-save') && ($('#ob-save').onclick=()=>{
   const h=+$('#ob-h').value, w=+$('#ob-w').value, d=+$('#ob-d').value;
@@ -3866,7 +3912,7 @@ function boot(){
   hideBoot();                        // 首屏已成型 → 立刻收启动画面（不再转圈）
   bindUI();                          // 事件绑定很轻，随首屏完成，保证点得动
   /* ---- ② 非关键：下一帧 / 空闲再做，避免拖慢首屏 ---- */
-  const later = ()=>{ showOnboard(); prewarmAssets(); };
+  const later = ()=>{ showOnboard(); prewarmAssets(); checkAppUpdate(); };
   if(typeof requestIdleCallback === 'function') requestIdleCallback(later, { timeout: 600 });
   else setTimeout(later, 0);
   // 真实 PWA：注册 Service Worker（仅 https/localhost 生效，file:// 静默跳过）
@@ -3895,7 +3941,7 @@ function bindUI(){
   // 视频同款：切后台说 bye，回来说 hi（wave 求偶池含 hi 台词）
   document.addEventListener('visibilitychange', ()=>{
     if(document.hidden){ petRoundBubble('bye'); voicePause(); }
-    else { petWake(); if(!$('#pet').classList.contains('mood-sleep')){ petGreet(); setMood('wave', 2200); } voiceResume(); }
+    else { petWake(); if(!$('#pet').classList.contains('mood-sleep')){ petGreet(); setMood('wave', 2200); } voiceResume(); checkAppUpdate(); }
   });
 }
 document.addEventListener('DOMContentLoaded', boot);
