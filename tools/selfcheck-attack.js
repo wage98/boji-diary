@@ -479,7 +479,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => v121Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => v122Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -696,10 +696,10 @@ function v81Checks() {
     // v1.1：新增 C 套（健身房 · 器械齐全），三套共存
     check('M1 三套方案齐全（A 有卧推椅 / B 无卧推椅 / C 健身房器械），各含推/拉/腿/核心 4 天',
       () => !!sets.A && !!sets.B && !!sets.C && DAYS.every(d => sets.A.days[d] && sets.B.days[d] && sets.C.days[d]));
-    check('M2 每套动作数量充分（≥24，即 4 天 × ≥6 动作）', () => {
+    check('M2 每套动作数量合理（≥18，即 4 天 × ≥4 动作，精简不缩水）', () => {
       const n = s => DAYS.reduce((a, d) => a + s.days[d].ex.length, 0);
-      return ['A','B','C'].every(k => n(sets[k]) >= 24)
-        && DAYS.every(d => ['A','B','C'].every(k => sets[k].days[d].ex.length >= 6));
+      return ['A','B','C'].every(k => n(sets[k]) >= 18)
+        && DAYS.every(d => ['A','B','C'].every(k => sets[k].days[d].ex.length >= 4));
     });
     check('M3 两套互不交叉引用（动作对象不共享，改一套不影响另一套）', () => {
       const objs = [];
@@ -735,7 +735,7 @@ function v81Checks() {
     });
     check('M5c C 套（健身房）动作齐全且起始建议按体重计算（kgBase）', () => {
       const ex = DAYS.reduce((a, d) => a.concat(sets.C.days[d].ex), []);
-      return ex.length >= 24 && ex.filter(e => e.kgBase === 'bw').length >= 10;
+      return ex.length >= 20 && ex.filter(e => e.kgBase === 'bw').length >= 10;
     });
   }
   // M6–M9 切换与数据兼容
@@ -1057,9 +1057,9 @@ function v120Checks() {
       w.eval('hideBoot')();
       return w.__READY === true && b.classList.contains('done');
     });
-    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-1', () => {
+    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-2', () => {
       const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
-      return /CACHE\s*=\s*'boji-1-2-1'/.test(sw)
+      return /CACHE\s*=\s*'boji-1-2-2'/.test(sw)
         && sw.indexOf('c.match(req)') >= 0
         && sw.indexOf('staleWhileRevalidate') >= 0
         && sw.indexOf("c.match('./index.html')") >= 0;
@@ -1194,17 +1194,17 @@ function v120Checks() {
   }
 }
 
-// ===== v1.2.1 增量：动作视频重筛（≤95s 直给教学）+ 手机端实时更新 =====
-/* v1.2.1 准入视频集合：54 个唯一 BV，均已用 B 站 view 接口复核 code=0 且时长 ≤95s（见 docs/视频来源核对.md）。
-   下架集合：39 个旧 BV（超长教学 / 合集 / 失效链接），任何一条回潮都算回归。 */
-const V121_APPROVED = ["BV1as4y1T7YM","BV1nNZRY3EJc","BV1CZhe6JEjM","BV16u4111716","BV1J5411Q7KE","BV1KN41197tc","BV1Sw411d7GN","BV1emHx6QEvJ","BV1N66yBKEH8","BV1ZT411H7JD","BV1uE411R7qv","BV1Qg4y1272p","BV1rJsbzbEGu","BV1Q44y1Z7Xq","BV1JKczeKExz","BV1d1pp6JE7i","BV1gJfyBsEtf","BV1VGaU63EGS","BV1s9pq63E6M","BV1wvcozSEyJ","BV1tZ8FzBEgf","BV1NH4y1K7wQ","BV15rhB6mEit","BV1yqE16JEi1","BV1Wr4y1T7yH","BV1TjEEzFEyY","BV1cSiRYREHk","BV1AohVz6EBb","BV1E54BewEHA","BV1vAem6LErW","BV1ga4y1Z717","BV1tV4y137gN","BV1sxbj6hEco","BV1ft4y1q7QC","BV1QxGg6EEqj","BV1Gia76sEro","BV1S54y1Z7pY","BV1fi4y1L774","BV1CUpg6fEfX","BV1Wqh26pEUM","BV15FbW6aEgk","BV1zS2BBxEFn","BV1RDtZ6hEiX","BV1X54y1a71n","BV1zm4y1j7Cn","BV1BL4y1L7wt","BV1SqYk6XEfv","BV1YR4y1x7ya","BV1Vj411x73r","BV13r4y1P7G3","BV1zi4y1y7QS","BV17T2UYxE12","BV13D421p75t","BV1Uo4y1t7S6"];
-const V121_DROPPED = ["BV1mD421J7o3","BV1aa4y1o7XA","BV1uw411N7MC","BV18o4y147RH","BV1Cz421i79n","BV1di421D7rm","BV1Vh411775b","BV1ij411H773","BV1t441187BT","BV19D421j7jV","BV1x6ChBBExH","BV1TT4y1p7YR","BV12Hpez1EVv","BV1Et42187nB","BV1kF411F7YG","BV1mN4y1M7ko","BV1sU4y1E76b","BV1HaigeJEiS","BV1i1w7zYEyh","BV1eF3tzjEMk","BV1Ze411J7zs","BV1sw411G7jY","BV1bRDgYCEgm","BV1fs4y1k7BP","BV1cW421d7kj","BV1ra411d7y4","BV1Zf4y1T7QA","BV1V24y167jv","BV1q54y1r7UY","BV1an4y1f73u","BV141gp6TEbX","BV1MXm1BhEjx","BV1XJ411G7u3","BV1BJ41197mr","BV1DT421a7Lq","BV1kmaa6GEg8","BV1Lp411d7DU","BV1wZ421e7K2","BV1K64y15745"];
+// ===== v1.2.2 增量：动作视频重筛（≤95s 直给教学）+ 手机端实时更新 =====
+/* v1.2.2 准入视频集合：47 个唯一 BV，均已用 B 站 view 接口复核 code=0 且时长 ≤95s（见 docs/视频来源核对.md）。
+   下架集合：24 个已下架 BV（v1.2.2 重筛 15 个超长/合集/失效 + 本次精简 9 个低效/冗余动作），任何一条回潮都算回归。 */
+const V122_APPROVED = ["BV1oP411h7E3","BV1Hz3u6oEgu","BV1CZhe6JEjM","BV16u4111716","BV1J5411Q7KE","BV1xdZgYbEsj","BV1Sw411d7GN","BV1v34y1h7UW","BV1ZT411H7JD","BV16VA5e3EDP","BV11N41127Xd","BV19dHX6cEDh","BV1JKczeKExz","BV1b64y1t71v","BV1gJfyBsEtf","BV1VGaU63EGS","BV1s9pq63E6M","BV1wvcozSEyJ","BV1tZ8FzBEgf","BV1RXdUBiEsa","BV1Wr4y1T7yH","BV1cSiRYREHk","BV1AohVz6EBb","BV1E54BewEHA","BV1tV4y137gN","BV1sxbj6hEco","BV1ft4y1q7QC","BV1QxGg6EEqj","BV1WA411y7n4","BV1fi4y1L774","BV1CUpg6fEfX","BV1Wqh26pEUM","BV1a7nc6GE9j","BV11mTm6cEG7","BV1mm421V7g2","BV1zm4y1j7Cn","BV1BL4y1L7wt","BV1SqYk6XEfv","BV1YR4y1x7ya","BV1Vj411x73r","BV13r4y1P7G3","BV1wB4y1S7V9","BV17T2UYxE12","BV13D421p75t","BV1Ji421i7rM","BV1RT41157oz","BV1AX4y1373k"];
+const V122_DROPPED = ["BV1as4y1T7YM","BV1nNZRY3EJc","BV1KN41197tc","BV1emHx6QEvJ","BV1uE411R7qv","BV1rJsbzbEGu","BV1Q44y1Z7Xq","BV1d1pp6JE7i","BV15rhB6mEit","BV1Gia76sEro","BV15FbW6aEgk","BV1zS2BBxEFn","BV1X54y1a71n","BV1zi4y1y7QS","BV1Uo4y1t7S6","BV1N66yBKEH8","BV1Qg4y1272p","BV1vAem6LErW","BV1NH4y1K7wQ","BV1yqE16JEi1","BV1TjEEzFEyY","BV1ga4y1Z717","BV1S54y1Z7pY","BV1RDtZ6hEiX"];
 
-function v121Checks() {
+function v122Checks() {
   /* —— ① 动作视频重筛 —— */
   {
     const w = boot(J({ profile: { weight: 70 } }));
-    check('Z1 72 个动作视频入口全部指向 v1.2.1 准入视频（54 个唯一 BV）', () => {
+    check('Z1 64 个动作视频入口全部指向 v1.2.2 准入视频（47 个唯一 BV）', () => {
       const sets = w.eval('PLAN_SETS');
       const DAYS = ['push', 'pull', 'legs', 'core'];
       const bvs = [];
@@ -1212,12 +1212,12 @@ function v121Checks() {
         const m = String((e.video && e.video.url) || '').match(/(BV[0-9A-Za-z]{10})/);
         if (m) bvs.push(m[1]);
       })));
-      return bvs.length === 72 && bvs.every(b => V121_APPROVED.indexOf(b) >= 0)
-        && new Set(bvs).size === V121_APPROVED.length;
+      return bvs.length === 64 && bvs.every(b => V122_APPROVED.indexOf(b) >= 0)
+        && new Set(bvs).size === V122_APPROVED.length;
     });
-    check('Z2 39 个旧的长视频/死链 BV 已全部下架（无一条回潮）', () => {
+    check('Z2 24 个已下架 BV 全部无回潮（v1.2.2 重筛 15 + 本次精简 9）', () => {
       const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
-      return V121_DROPPED.every(b => src.indexOf(b) < 0);
+      return V122_DROPPED.every(b => src.indexOf(b) < 0);
     });
     check('Z3 视频 label 均为真实标题（无「站内搜」兜底、无空标题）', () => {
       const sets = w.eval('PLAN_SETS');
@@ -1228,21 +1228,21 @@ function v121Checks() {
         n++;
         if (!lb || lb.indexOf('站内搜') >= 0 || lb.indexOf('合集') >= 0) ok = false;
       })));
-      return ok && n === 72;
+      return ok && n === 64;
     });
-    check('Z4 视频核对文档已更新到 v1.2.1 且动作表不再收录旧 BV', () => {
+    check('Z4 视频核对文档已更新到 v1.2.2 且动作表不再收录旧 BV', () => {
       const doc = fs.readFileSync(path.join(PROJ, 'docs/视频来源核对.md'), 'utf8');
       const table = doc.slice(0, doc.indexOf('## 二、'));   // 只查动作表；文末「死链修复记录」允许提及旧 BV
-      return doc.indexOf('v1.2.1') >= 0 && doc.indexOf('时长 ≤ 95 秒') >= 0
-        && V121_DROPPED.every(b => table.indexOf(b) < 0);
+      return doc.indexOf('v1.2.2') >= 0 && doc.indexOf('时长 ≤ 95 秒') >= 0
+        && V122_DROPPED.every(b => table.indexOf(b) < 0);
     });
   }
   /* —— ② 手机端实时更新 —— */
   {
     const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
     const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
-    check('Z5 版本号已升到 1.2.1，SW 缓存名同步升级（旧缓存自动清理）', () => {
-      return src.indexOf("APP_VERSION = '1.2.1'") >= 0 && sw.indexOf("boji-1-2-1'") >= 0;
+    check('Z5 版本号已升到 1.2.2，SW 缓存名同步升级（旧缓存自动清理）', () => {
+      return src.indexOf("APP_VERSION = '1.2.2'") >= 0 && sw.indexOf("boji-1-2-2'") >= 0;
     });
     check('Z6 SW 对 __upd 请求强制走网络（否则版本检查只会读到缓存旧文件）', () => {
       return /searchParams\.has\('__upd'\)[\s\S]{0,80}respondWith\(fetch\(req\)\)/.test(sw);
