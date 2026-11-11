@@ -479,7 +479,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => v122Checks()).then(() => v123Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => v122Checks()).then(() => v123Checks()).then(() => v124Checks()).then(() => v125Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -1057,9 +1057,9 @@ function v120Checks() {
       w.eval('hideBoot')();
       return w.__READY === true && b.classList.contains('done');
     });
-    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-3', () => {
+    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-5', () => {
       const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
-      return /CACHE\s*=\s*'boji-1-2-3'/.test(sw)
+      return /CACHE\s*=\s*'boji-1-2-5'/.test(sw)
         && sw.indexOf('c.match(req)') >= 0
         && sw.indexOf('staleWhileRevalidate') >= 0
         && sw.indexOf("c.match('./index.html')") >= 0;
@@ -1243,8 +1243,8 @@ function v122Checks() {
   {
     const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
     const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
-    check('Z5 版本号已升到 1.2.3，SW 缓存名同步升级（旧缓存自动清理）', () => {
-      return src.indexOf("APP_VERSION = '1.2.3'") >= 0 && sw.indexOf("boji-1-2-3'") >= 0;
+    check('Z5 版本号已升到 1.2.5，SW 缓存名同步升级（旧缓存自动清理）', () => {
+      return src.indexOf("APP_VERSION = '1.2.5'") >= 0 && sw.indexOf("boji-1-2-5'") >= 0;
     });
     check('Z6 SW 对 __upd 请求强制走网络（否则版本检查只会读到缓存旧文件）', () => {
       return /searchParams\.has\('__upd'\)[\s\S]{0,80}respondWith\(fetch\(req\)\)/.test(sw);
@@ -1383,13 +1383,13 @@ function v123Checks(){
     return bvs.length === 64 && new Set(bvs).size === 46 && bvs.every(b => V122_APPROVED.indexOf(b) >= 0);
   });
   check('VA13 版本/样式就位，且未引入任何新脚本或新依赖', () => {
-    return src.indexOf("APP_VERSION = '1.2.3'") >= 0
+    return src.indexOf("APP_VERSION = '1.2.5'") >= 0
       && css.indexOf('.today-why') >= 0 && css.indexOf('.ex-over.can-load') >= 0
       && html.indexOf('data-layer.js') < 0 && html.indexOf('release-config.js') < 0
       && (html.match(/<script src=/g) || []).length === 1;
   });
   check('VA14 旧备份导入同样补 exReps 容错，既有字段语义不变', () => {
-    return src.indexOf("planSet:'A', exReps:{}") >= 0
+    return src.indexOf("planSet:'A', exReps:{}, layoutV:1") >= 0
       && src.indexOf('Array.isArray(STATE.exReps)') >= 0
       && src.indexOf("STATE.exLast[t]=STATE.exLast[t]||{}") >= 0;
   });
@@ -1411,5 +1411,230 @@ function v123Checks(){
     return +w.__S.weights[p2][0] === 21
       && w.__S.exReps[p1][0].r === tm          // 历史记录保持原样，不被删除或改写
       && w.__S.exReps[p2][0].r === tm;
+  });
+}
+
+/* ===== v1.2.4 增量：动作布局调整 + 按「动作名」的索引迁移 =====
+   核心保证：末尾删除 + 末尾追加 → 其余动作下标不变；历史快照按日期原样保留。 */
+function v124Checks(){
+  const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+  const seed = extra => boot(J(Object.assign({ profile:{ weight:70, height:188, dumbbell:10 }, planSet:'A' }, extra)));
+
+  check('VB1 A/B 套俯身侧平举已从 push 日移到 pull 日末尾', () => {
+    const sets = seed({}).eval('PLAN_SETS');
+    return ['A','B'].every(k=>{
+      const pu = sets[k].days.push.ex, pl = sets[k].days.pull.ex;
+      return pu.every(e=>e.name!=='俯身侧平举')
+        && pl[pl.length-1].name==='俯身侧平举'
+        && pl.filter(e=>e.name==='俯身侧平举').length===1;
+    });
+  });
+  check('VB2 其余动作下标保持不变：push 全序列与 pull 前缀逐字对齐旧布局', () => {
+    const sets = seed({}).eval('PLAN_SETS');
+    const legacyPush = {
+      A:['哑铃平板卧推','上斜哑铃卧推','坐姿哑铃肩推','哑铃侧平举','仰卧哑铃臂屈伸'],
+      B:['地板哑铃卧推','站姿哑铃肩推','哑铃侧平举','哑铃俯身臂屈伸'] };
+    const legacyPull = {
+      A:['单臂哑铃划船（手撑椅）','俯身哑铃划船（双手）','哑铃仰卧上拉','俯身哑铃面拉','锤式弯举'],
+      B:['单臂哑铃划船（扶墙/凳）','俯身哑铃划船（双手）','哑铃仰卧上拉','俯身哑铃面拉','锤式弯举'] };
+    return ['A','B'].every(k=>{
+      const pu = sets[k].days.push.ex.map(e=>e.name), pl = sets[k].days.pull.ex.map(e=>e.name);
+      return JSON.stringify(pu)===JSON.stringify(legacyPush[k])
+        && JSON.stringify(pl.slice(0,-1))===JSON.stringify(legacyPull[k]);
+    });
+  });
+  check('VB3 A/B 哑铃侧平举 3→4 组，C 套容量本就平衡保持 3 组', () => {
+    const sets = seed({}).eval('PLAN_SETS');
+    return ['A','B'].every(k=>sets[k].days.push.ex.find(e=>e.name==='哑铃侧平举').sets===4)
+      && sets.C.days.core.ex.find(e=>e.name==='哑铃侧平举').sets===3;
+  });
+  check('VB4 动作总数仍 64 入口 / 46 唯一 BV，视频池零改动', () => {
+    const sets = seed({}).eval('PLAN_SETS'); const bvs = [];
+    ['A','B','C'].forEach(k=>['push','pull','legs','core'].forEach(d=>(sets[k].days[d].ex||[]).forEach(e=>{
+      const m = String((e.video && e.video.url) || '').match(/(BV[0-9A-Za-z]{10})/);
+      if(m) bvs.push(m[1]);
+    })));
+    return bvs.length===64 && new Set(bvs).size===46 && bvs.every(b=>V122_APPROVED.indexOf(b)>=0);
+  });
+  check('VB5 A 套老数据：planEdits/exLast 的 push[5] 按动作名搬到 pull[5]，源键删除', () => {
+    const w = seed({ planEdits:{ push:{ 5:{ sets:5, reps:'20' } } }, exLast:{ push:{ 5:'7.5' } } });
+    return !!w.__S.planEdits.pull && w.__S.planEdits.pull[5].sets===5
+      && w.__S.planEdits.push[5]===undefined
+      && w.__S.exLast.pull[5]==='7.5' && w.__S.exLast.push[5]===undefined
+      && w.__S.layoutV===2;
+  });
+  check('VB6 B 套老数据：push[4] → pull[5]，与 A 套共用新下标不冲突', () => {
+    const w = boot(J({ profile:{ weight:70 }, planSet:'B', planEdits:{ push:{ 4:{ sets:2 } } }, exLast:{ push:{ 4:'5' } } }));
+    return w.__S.planEdits.pull[5].sets===2 && w.__S.exLast.pull[5]==='5'
+      && w.__S.planEdits.push[4]===undefined;
+  });
+  check('VB7 迁移幂等：layoutV=2 后重复调用返回 false 且不改动数据', () => {
+    const w = seed({ planEdits:{ push:{ 5:{ sets:5 } } }, exLast:{ push:{ 5:'7.5' } } });
+    const before = JSON.stringify([w.__S.planEdits, w.__S.exLast]);
+    return w.eval('migrateLayoutV2()')===false
+      && JSON.stringify([w.__S.planEdits, w.__S.exLast])===before;
+  });
+  check('VB8 已是 layoutV=2 的备份不重复迁移，避免误伤', () => {
+    const w = seed({ layoutV:2, planEdits:{ push:{ 0:{ sets:5 } }, pull:{ 5:{ sets:4 } } } });
+    return w.__S.planEdits.push[0].sets===5 && w.__S.planEdits.pull[5].sets===4;
+  });
+  check('VB9 历史 weights / exReps / checkins.ex 按日期原样保留，绝不篡改', () => {
+    const d = '2026-11-1';
+    const w = boot(J({ planSet:'A', weights:{ [d]:{ 0:20, 5:5 } }, exReps:{ [d]:{ 5:{ r:12, kg:5 } } },
+      checkins:{ [d]:{ ex:{ 5:true }, at:1 } } }));
+    return w.__S.weights[d][0]===20 && w.__S.weights[d][5]===5
+      && w.__S.exReps[d][5].r===12 && w.__S.checkins[d].ex[5]===true && w.__S.checkins[d].at===1;
+  });
+  check('VB10 C 套没有俯身侧平举：不误搬任何 push 下标，仅记录布局版本', () => {
+    const w = boot(J({ profile:{ weight:70 }, planSet:'C', planEdits:{ push:{ 4:{ sets:5 } } }, exLast:{ push:{ 4:'8' } } }));
+    return w.__S.planEdits.push[4].sets===5 && w.__S.exLast.push[4]==='8'
+      && w.__S.planEdits.pull===undefined && w.__S.layoutV===2;
+  });
+  check('VB11 备份导入路径同样调用布局迁移，且位于方案键校验之后', () => {
+    const seg = src.slice(src.indexOf('function importJSON()'), src.indexOf('function importJSON()') + 3000);
+    const guard = seg.indexOf("if(['A','B','C'].indexOf(STATE.planSet) < 0)");
+    return guard>=0 && seg.indexOf('migrateLayoutV2();')>guard;
+  });
+  check('VB12 CSV 导出对旧布局越界下标补真实动作名并标注，不丢历史信息', () => {
+    return src.indexOf("'俯身侧平举（旧布局）'")>=0 && src.indexOf('const legacyName')>=0;
+  });
+  check('VB13 目标下标已有脏值时不覆盖用户数据（保守不丢）', () => {
+    const w = seed({ planEdits:{ push:{ 5:{ sets:5 } }, pull:{ 5:{ sets:9 } } },
+      exLast:{ push:{ 5:'7.5' }, pull:{ 5:'9' } } });
+    return w.__S.planEdits.pull[5].sets===9 && w.__S.exLast.pull[5]==='9'
+      && w.__S.planEdits.push[5]===undefined;
+  });
+  check('VB14 版本 1.2.5 与 SW 同步，且未引入新脚本或新依赖', () => {
+    const sw = fs.readFileSync(path.join(PROJ,'sw.js'),'utf8');
+    const html = fs.readFileSync(path.join(PROJ,'index.html'),'utf8');
+    return src.indexOf("APP_VERSION = '1.2.5'")>=0 && /CACHE\s*=\s*'boji-1-2-5'/.test(sw)
+      && (html.match(/<script src=/g)||[]).length===1 && html.indexOf('data-layer.js')<0;
+  });
+}
+
+/* ===== v1.2.5 增量：逐组记录 + RIR、视频错配反馈、真实打卡恢复提示 =====
+   核心保证：新数据全部由用户主动填写 —— 不补历史、不推导、不参与既有加重判定；
+   动作库 / 视频池 / 排程 / 日期语义一律不动。 */
+function v125Checks(){
+  const src = fs.readFileSync(path.join(PROJ,'app.js'),'utf8');
+  const css = fs.readFileSync(path.join(PROJ,'styles.css'),'utf8');
+  const html= fs.readFileSync(path.join(PROJ,'index.html'),'utf8');
+  const sw  = fs.readFileSync(path.join(PROJ,'sw.js'),'utf8');
+  const seed = extra => boot(J(Object.assign({ profile:{weight:70,height:188,dumbbell:10}, planSet:'A' }, extra)));
+  const d0 = seed({});
+  const pushDates = d0.eval("(function(){var out=[],d=new Date(2026,10,1);for(var i=0;i<40;i++){if(getDayType(d.getDay())==='push')out.push(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate());d.setDate(d.getDate()+1);}return out;})()");
+  const pd = pushDates[0];
+  const setCount = d0.eval("PLANS.push.ex[0].sets");
+  const exCount  = d0.eval("PLANS.push.ex.length");
+
+  check('VC1 老数据无 exSets / videoFlags：容错为空对象，绝不伪造历史逐组记录', () => {
+    const w = seed({});
+    return !!w.__S.exSets && typeof w.__S.exSets==='object' && Object.keys(w.__S.exSets).length===0
+      && !!w.__S.videoFlags && Object.keys(w.__S.videoFlags).length===0
+      && !w.__S.exReps[pd];
+  });
+  check('VC2 新字段脏值（字符串/数组/null）回落空对象，页面不崩', () => {
+    const a=seed({exSets:'bad', videoFlags:[1,2]});
+    const b=seed({exSets:[1], videoFlags:null});
+    a.goModule('training'); b.goModule('training');
+    return !!a.__S.exSets && !Array.isArray(a.__S.exSets) && !!b.__S.videoFlags
+      && !Array.isArray(b.__S.videoFlags) && Object.keys(a.__S.videoFlags).length===0;
+  });
+  check('VC3 训练页逐组记录区：按当前组数渲染，次数/重量/RIR 三列齐全', () => {
+    const w=seed({selDate:pd}); w.goModule('training');
+    const body=w.document.querySelector('#mod-body');
+    return body.querySelectorAll('input[data-sl="0"][data-k="r"]').length===setCount
+      && body.querySelectorAll('input[data-sl="0"][data-k="kg"]').length===setCount
+      && body.querySelectorAll('input[data-sl="0"][data-k="rir"]').length===setCount
+      && body.querySelectorAll('.ex-setslog').length===exCount;
+  });
+  check('VC4 端到端逐组记录：只填第 2 组 → 保留组序、第 1 组不伪造；清空即删除', () => {
+    const w=seed({selDate:pd}); w.goModule('training');
+    const body=w.document.querySelector('#mod-body');
+    const r2=body.querySelector('input[data-sl="0"][data-si="1"][data-k="r"]');
+    const kg2=body.querySelector('input[data-sl="0"][data-si="1"][data-k="kg"]');
+    const ir2=body.querySelector('input[data-sl="0"][data-si="1"][data-k="rir"]');
+    if(!r2||!kg2||!ir2) return false;
+    r2.value='12'; kg2.value='7.5'; ir2.value='2';
+    r2.dispatchEvent(new w.Event('change',{bubbles:true}));
+    const a=w.__S.exSets[pd] && w.__S.exSets[pd][0];
+    if(!Array.isArray(a) || a.length!==setCount || a[0]) return false;
+    if(!a[1] || a[1].r!==12 || a[1].kg!==7.5 || a[1].rir!==2) return false;
+    if(w.__S.exReps[pd] && w.__S.exReps[pd][0]) return false;   // 不回写「完成次数」
+    r2.value=''; kg2.value=''; ir2.value='';
+    r2.dispatchEvent(new w.Event('change',{bubbles:true}));
+    return !(w.__S.exSets[pd] && w.__S.exSets[pd][0]);
+  });
+  check('VC5 逐组数值清洗：负数/超大夹到合法区间，RIR=0 是合法力竭值', () => {
+    const w=seed({selDate:pd}); w.goModule('training');
+    const body=w.document.querySelector('#mod-body');
+    const el=k=>body.querySelector('input[data-sl="0"][data-si="0"][data-k="'+k+'"]');
+    const put=(k,v)=>{ el(k).value=v; el(k).dispatchEvent(new w.Event('change',{bubbles:true})); };
+    put('r','-5');  let a=w.__S.exSets[pd][0]; if(!a[0]||a[0].r!==0) return false;
+    put('r','100000'); a=w.__S.exSets[pd][0]; if(a[0].r!==999) return false;
+    put('rir','0');    a=w.__S.exSets[pd][0]; if(a[0].rir!==0) return false;
+    put('rir','99');   a=w.__S.exSets[pd][0]; if(a[0].rir!==10) return false;
+    return true;
+  });
+  check('VC6 逐组记录只作日志：不写入 exReps、不触发虚假加重建议', () => {
+    const w=seed({ selDate:pd, exLast:{push:{0:'20'}}, checkins:{[pd]:{ex:{},at:1}},
+      exSets:{ [pd]:{ 0:[{r:99,kg:20,rir:0}] } } });
+    const r=w.eval("overloadSuggestion('push',0)");
+    return r.ready===false && r.next===null && String(r.reason).indexOf('完成次数')>=0
+      && !(w.__S.exReps[pd] && w.__S.exReps[pd][0]);
+  });
+  check('VC7 端到端视频错配标记：点击写入、再点取消，按 BV 去重', () => {
+    const w=seed({selDate:pd}); w.goModule('training');
+    const b=w.document.querySelector('#mod-body [data-vflag]');
+    if(!b) return false;
+    const bv=b.dataset.vflag;
+    b.dispatchEvent(new w.Event('click',{bubbles:true}));
+    if(!w.__S.videoFlags[bv] || !b.classList.contains('on')) return false;
+    b.dispatchEvent(new w.Event('click',{bubbles:true}));
+    return !w.__S.videoFlags[bv] && !b.classList.contains('on');
+  });
+  check('VC8 动作库与视频池零改动：64 入口 / 46 唯一 BV', () => {
+    const a=JSON.parse(fs.readFileSync(path.join(PROJ,'tools','plan-audit.json'),'utf8'));
+    return a.totalEntries===64 && a.uniqueBv===46;
+  });
+  check('VC9 视频错配清单可导出：含版本 / BV / 标题 / 链接，空标记也不报错', () => {
+    const w=seed({ videoFlags:{ BV1KN41197tc:{ name:'俯身侧平举', label:'俯身哑铃侧平举', at:1 } } });
+    let out=''; w.downloadFile=(n,m,d)=>{ out=String(d); };
+    w.eval('exportVideoFlags()');
+    return out.indexOf('BV1KN41197tc')>=0 && out.indexOf('https://www.bilibili.com/video/')>=0
+      && out.indexOf('v1.2.5')>=0;
+  });
+  check('VC10 CSV 导出含逐组与视频反馈段，逐组数据按组序输出', () => {
+    const w=seed({ exSets:{ [pd]:{ 0:[null,{r:12,kg:7.5,rir:2}] } },
+      videoFlags:{ BVTESTFLAG:{ name:'测试动作', label:'测试标题', at:1 } } });
+    let out=''; w.downloadFile=(n,m,d)=>{ out=String(d); };
+    w.eval('exportCSV()');
+    return out.indexOf('组序')>=0 && out.indexOf('RIR')>=0
+      && out.indexOf('BVTESTFLAG')>=0 && out.indexOf('"2","12"')>=0;
+  });
+  check('VC11 旧备份导入同样补两项新字段容错，既有字段语义不变', () => {
+    return src.indexOf('exSets:{}, videoFlags:{}')>=0
+      && src.indexOf('Array.isArray(STATE.exSets)')>=0
+      && src.indexOf('Array.isArray(STATE.videoFlags)')>=0
+      && src.indexOf("planSet:'A', exReps:{}, layoutV:1")>=0;
+  });
+  check('VC12 恢复提示只依据真实打卡：无打卡不出现，本周 4 次打卡才出现', () => {
+    const a=seed({}); a.renderHome();
+    if(a.document.querySelector('.home-recovery')) return false;
+    const dates=a.eval("(function(){var out=[],d=new Date(),m=new Date(d);m.setDate(d.getDate()-((d.getDay()+6)%7));for(var i=0;i<4;i++){var x=new Date(m);x.setDate(m.getDate()+i);out.push(x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate());}return out;})()");
+    const ck={}; dates.forEach((k,n)=>{ ck[k]={ex:{},at:n+1}; });
+    const b=seed({checkins:ck}); b.renderHome();
+    return !!b.document.querySelector('.home-recovery');
+  });
+  check('VC13 排程与日期语义零改动：DAY_TYPES / getDayType 原样，不改训练频率', () => {
+    return src.indexOf("const DAY_TYPES = ['rest','push','pull','legs','core','push','pull']")>=0
+      && src.indexOf('const getDayType = w =>')>=0
+      && src.indexOf('weekCheckinDays')>=0
+      && src.indexOf('freqMode')<0;
+  });
+  check('VC14 版本 1.2.5 / SW 同步、样式就位、零新脚本零新依赖', () => {
+    return src.indexOf("APP_VERSION = '1.2.5'")>=0 && /CACHE\s*=\s*'boji-1-2-5'/.test(sw)
+      && (html.match(/<script src=/g)||[]).length===1 && html.indexOf('data-layer.js')<0
+      && css.indexOf('.ex-setslog')>=0 && css.indexOf('.ex-vflag')>=0 && css.indexOf('.home-recovery')>=0;
   });
 }

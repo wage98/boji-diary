@@ -1,6 +1,6 @@
 {
   "source": "wage98/boji-diary @ main (c60715a), app.js",
-  "appVersion": "1.2.2",
+  "appVersion": "1.2.5",
   "totalEntries": 64,
   "uniqueBv": 46,
   "perSet": {
@@ -10,14 +10,14 @@
   },
   "daysPerSet": {
     "A": {
-      "push": 6,
-      "pull": 5,
+      "push": 5,
+      "pull": 6,
       "legs": 6,
       "core": 5
     },
     "B": {
-      "push": 5,
-      "pull": 5,
+      "push": 4,
+      "pull": 6,
       "legs": 5,
       "core": 5
     },
@@ -94,7 +94,7 @@
       "order": 4,
       "name": "哑铃侧平举",
       "muscle": "三角肌中束",
-      "sets": 3,
+      "sets": 4,
       "reps": "12-15",
       "tempo": "1-1-2",
       "rest": 60,
@@ -123,25 +123,6 @@
       "label": "三头肌训练教学：哑铃仰卧臂屈伸",
       "standard": "仰卧在椅上，上臂保持垂直于地面，仅小臂做屈伸。",
       "note": "肘别外撇，动作放慢，别用手腕甩。"
-    },
-    {
-      "set": "A",
-      "setName": "居家 · 有卧推椅",
-      "day": "push",
-      "dayName": "推日 · 胸肩三头",
-      "order": 6,
-      "name": "俯身侧平举",
-      "muscle": "三角肌后束 · 斜方肌中下部",
-      "sets": 3,
-      "reps": "12-15",
-      "tempo": "1-1-2",
-      "rest": 60,
-      "base": 0.2,
-      "kgBase": null,
-      "bv": "BV1KN41197tc",
-      "label": "俯身哑铃侧平举",
-      "standard": "俯身约 45°，由后束主导把哑铃向两侧抬起。",
-      "note": "脖子放松别耸肩，重量轻一点更找得到后束。"
     },
     {
       "set": "A",
@@ -237,6 +218,25 @@
       "label": "让你锤式弯举感受更好的小细节",
       "standard": "中立握（锤式），肘固定于身体两侧做弯举。",
       "note": "别借力摆动身体。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 6,
+      "name": "俯身侧平举",
+      "muscle": "三角肌后束 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.2,
+      "kgBase": null,
+      "bv": "BV1KN41197tc",
+      "label": "俯身哑铃侧平举",
+      "standard": "俯身约 45°，由后束主导把哑铃向两侧抬起。",
+      "note": "脖子放松别耸肩，重量轻一点更找得到后束。"
     },
     {
       "set": "A",
@@ -493,7 +493,7 @@
       "order": 3,
       "name": "哑铃侧平举",
       "muscle": "三角肌中束",
-      "sets": 3,
+      "sets": 4,
       "reps": "12-15",
       "tempo": "1-1-2",
       "rest": 60,
@@ -522,25 +522,6 @@
       "label": "俯身哑铃臂屈伸动作讲解",
       "standard": "俯身约 45°，上臂贴紧身体并垂直地面，仅小臂向后伸直再收回，肘为固定支点。",
       "note": "不甩重量；肘部固定不晃，重量宁轻勿重，避免用手腕带。居家无椅也能做，对肩关节压力小。"
-    },
-    {
-      "set": "B",
-      "setName": "居家 · 无卧推椅",
-      "day": "push",
-      "dayName": "推日 · 胸肩三头",
-      "order": 5,
-      "name": "俯身侧平举",
-      "muscle": "三角肌后束 · 斜方肌中下部",
-      "sets": 3,
-      "reps": "12-15",
-      "tempo": "1-1-2",
-      "rest": 60,
-      "base": 0.2,
-      "kgBase": null,
-      "bv": "BV1KN41197tc",
-      "label": "俯身哑铃侧平举",
-      "standard": "俯身约 45°，由后束主导把哑铃向两侧抬起。",
-      "note": "脖子放松别耸肩。"
     },
     {
       "set": "B",
@@ -636,6 +617,25 @@
       "label": "让你锤式弯举感受更好的小细节",
       "standard": "中立握，肘固定于身体两侧做弯举。",
       "note": "别借力摆动身体。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 6,
+      "name": "俯身侧平举",
+      "muscle": "三角肌后束 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.2,
+      "kgBase": null,
+      "bv": "BV1KN41197tc",
+      "label": "俯身哑铃侧平举",
+      "standard": "俯身约 45°，由后束主导把哑铃向两侧抬起。",
+      "note": "脖子放松别耸肩。"
     },
     {
       "set": "B",
@@ -1297,18 +1297,6 @@
         "name": "仰卧哑铃臂屈伸"
       }
     ],
-    "BV1KN41197tc": [
-      {
-        "set": "A",
-        "day": "push",
-        "name": "俯身侧平举"
-      },
-      {
-        "set": "B",
-        "day": "push",
-        "name": "俯身侧平举"
-      }
-    ],
     "BV17mWJ6LEaH": [
       {
         "set": "A",
@@ -1367,6 +1355,18 @@
         "set": "C",
         "day": "pull",
         "name": "锤式弯举"
+      }
+    ],
+    "BV1KN41197tc": [
+      {
+        "set": "A",
+        "day": "pull",
+        "name": "俯身侧平举"
+      },
+      {
+        "set": "B",
+        "day": "pull",
+        "name": "俯身侧平举"
       }
     ],
     "BV11N41127Xd": [

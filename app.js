@@ -12,7 +12,7 @@
    历史版本流水见 docs/轮次总结.md，此处不再罗列。
    ============================================================ */
 'use strict';
-const APP_VERSION = '1.2.3';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
+const APP_VERSION = '1.2.5';   // 语义化版本 MAJOR.MINOR.PATCH；发布规范见 docs/产品评估与开源差距清单.md
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const el = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
@@ -133,15 +133,12 @@ const PLAN_SETS = {
         { name:'坐姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:75, base:0.5, video:blink('BV1CZhe6JEjM', '坐姿哑铃推肩教学｜避免脖子痛与斜方肌代偿'),
           standard:'靠背支撑，核心收紧，推至顶端不锁死肘，肩胛稳定。',
           note:'腰别反弓代偿，重量宁轻勿借。' },
-        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.25, video:blink('BV16u4111716', '没有废话！1分钟哑铃侧平举教学，干货满满'),
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:4, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.25, video:blink('BV16u4111716', '没有废话！1分钟哑铃侧平举教学，干货满满'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿 1 秒。',
           note:'别甩重量，用肩中束发力而不是斜方。' },
         { name:'仰卧哑铃臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:60, base:0.3, video:blink('BV1J5411Q7KE', '三头肌训练教学：哑铃仰卧臂屈伸'),
           standard:'仰卧在椅上，上臂保持垂直于地面，仅小臂做屈伸。',
-          note:'肘别外撇，动作放慢，别用手腕甩。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.2, video:blink('BV1KN41197tc', '俯身哑铃侧平举'),
-          standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
-          note:'脖子放松别耸肩，重量轻一点更找得到后束。' },
+          note:'肘别外撇，动作放慢，别用手腕甩。' }
       ]},
       pull: { name:'拉日 · 背二头', greeting:'练背啦，想象把世界拉向你(｡･ω･｡)', ex:[
         { name:'单臂哑铃划船（手撑椅）', muscle:'背阔肌 · 大圆肌 · 斜方肌中下部', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:90, base:0.7, video:blink('BV17mWJ6LEaH', 'B5单臂哑铃划船教学'),
@@ -159,6 +156,9 @@ const PLAN_SETS = {
         { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:60, base:0.3, video:blink('BV16VA5e3EDP', '让你锤式弯举感受更好的小细节'),
           standard:'中立握（锤式），肘固定于身体两侧做弯举。',
           note:'别借力摆动身体。' },
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.2, video:blink('BV1KN41197tc', '俯身哑铃侧平举'),
+          standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
+          note:'脖子放松别耸肩，重量轻一点更找得到后束。' }
       ]},
       legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
         { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:90, base:1.0, video:blink('BV11N41127Xd', '高脚杯深蹲 新手必练'),
@@ -213,15 +213,12 @@ const PLAN_SETS = {
         { name:'站姿哑铃肩推', muscle:'三角肌前束·中束 · 肱三头肌', sets:3, reps:'10-12', tempo:'2-0-1', breath:'上推呼气，下落吸气', rest:75, base:0.5, video:blink('BV1cSiRYREHk', '站姿哑铃推肩怎么做'),
           standard:'站姿核心收紧，推至顶端不锁死肘，肩胛稳定。',
           note:'腰别反弓代偿，站姿比坐姿更考验核心。' },
-        { name:'哑铃侧平举', muscle:'三角肌中束', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.25, video:blink('BV16u4111716', '没有废话！1分钟哑铃侧平举教学，干货满满'),
+        { name:'哑铃侧平举', muscle:'三角肌中束', sets:4, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.25, video:blink('BV16u4111716', '没有废话！1分钟哑铃侧平举教学，干货满满'),
           standard:'小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿。',
           note:'别甩重量，用肩中束发力。' },
         { name:'哑铃俯身臂屈伸', muscle:'肱三头肌（长头为主）', sets:3, reps:'10-12', tempo:'2-1-1', breath:'伸展呼气，屈肘吸气', rest:60, base:0.3, video:blink('BV1AohVz6EBb', '俯身哑铃臂屈伸动作讲解'),
           standard:'俯身约 45°，上臂贴紧身体并垂直地面，仅小臂向后伸直再收回，肘为固定支点。',
-          note:'不甩重量；肘部固定不晃，重量宁轻勿重，避免用手腕带。居家无椅也能做，对肩关节压力小。' },
-        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.2, video:blink('BV1KN41197tc', '俯身哑铃侧平举'),
-          standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
-          note:'脖子放松别耸肩。' },
+          note:'不甩重量；肘部固定不晃，重量宁轻勿重，避免用手腕带。居家无椅也能做，对肩关节压力小。' }
       ]},
       pull: { name:'拉日 · 背二头', greeting:'没有椅子也能练背，拉起来！', ex:[
         { name:'单臂哑铃划船（扶墙/凳）', muscle:'背阔肌 · 大圆肌', sets:4, reps:'10-12', tempo:'2-1-1', breath:'上拉呼气，下放吸气', rest:90, base:0.7, video:blink('BV1E54BewEHA', '单臂划船动作纠正'),
@@ -239,6 +236,9 @@ const PLAN_SETS = {
         { name:'锤式弯举', muscle:'肱肌 · 肱桡肌 · 肱二头肌', sets:3, reps:'10-12', tempo:'2-1-1', breath:'弯起呼气，下落吸气', rest:60, base:0.3, video:blink('BV16VA5e3EDP', '让你锤式弯举感受更好的小细节'),
           standard:'中立握，肘固定于身体两侧做弯举。',
           note:'别借力摆动身体。' },
+        { name:'俯身侧平举', muscle:'三角肌后束 · 斜方肌中下部', sets:3, reps:'12-15', tempo:'1-1-2', breath:'抬起呼气，下落吸气', rest:60, base:0.2, video:blink('BV1KN41197tc', '俯身哑铃侧平举'),
+          standard:'俯身约 45°，由后束主导把哑铃向两侧抬起。',
+          note:'脖子放松别耸肩。' }
       ]},
       legs: { name:'腿日 · 臀腿', greeting:'腿是发动机，今天好好虐它！', ex:[
         { name:'高脚杯深蹲', muscle:'股四头肌 · 臀大肌 · 核心', sets:4, reps:'10-12', tempo:'2-1-1', breath:'下蹲吸气，起身呼气', rest:90, base:1.0, video:blink('BV11N41127Xd', '高脚杯深蹲 新手必练'),
@@ -849,6 +849,9 @@ let STATE = Object.assign({
   petPos:null, petDock:null, petMood:'happy', lastPetTouch:Date.now(),
   planEdits:{}, exLast:{}, editPlan:false,   // 计划可编辑 + 渐进超负荷记忆
   exReps:{},                                 // v1.2.3 每动作「完成次数 + 当时重量」选填记录（按日期+下标，不填不参与加重判定）
+  layoutV:1, layoutSince:'',                 // v1.2.4 动作布局版本 + 迁移日期（仅记录，不参与任何判定）
+  exSets:{},                                 // v1.2.5 逐组记录（选填）：{[日期]:{[下标]:[{r,kg,rir}]}}，只存用户真实填写
+  videoFlags:{},                             // v1.2.5 视频错配标记：{[BV]:{name,label,at}}，仅供导出反馈清单，不改视频池
   petSkin:'spiderV3',                        // 桌宠皮肤 nahida / spiderV1 / spiderV2 / spiderV3（统一切换）
   myEx:[],                                   // 自定义动作 [{id,name,part,sets,reps,rest,note}]
   bodyWeights:[],                            // 体重曲线 [{d:'Y-M-D', w:70.5}]
@@ -899,6 +902,37 @@ if(STATE.exLast.pump && !STATE.exLast.core){ STATE.exLast.core = STATE.exLast.pu
 /* v1.2.3 新增字段容错：老版本没有 exReps → 空对象；绝不伪造历史完成次数。
    脏值（字符串/数组/null）一律回落空对象，且不影响任何既有字段。 */
 if(!STATE.exReps || typeof STATE.exReps !== 'object' || Array.isArray(STATE.exReps)) STATE.exReps = {};
+/* v1.2.5 新增字段容错：老版本没有逐组记录 / 视频错配标记 → 空对象。
+   两者都是「用户主动填写」的数据，绝不从别处推算、绝不补齐历史，脏值一律回落空对象。 */
+if(!STATE.exSets || typeof STATE.exSets !== 'object' || Array.isArray(STATE.exSets)) STATE.exSets = {};
+if(!STATE.videoFlags || typeof STATE.videoFlags !== 'object' || Array.isArray(STATE.videoFlags)) STATE.videoFlags = {};
+/* v1.2.4 按「动作名」的布局迁移：俯身侧平举由 push 日末尾移到 pull 日末尾。
+   为什么历史数据不用改：采用「末尾删除 + 末尾追加」，其余动作的下标一个都没变。
+   只搬当前编辑值 planEdits（组数覆盖）/ exLast（上次重量）；
+   历史快照 weights[日期] / exReps[日期] / checkins[日期].ex 一律原样保留，
+   绝不篡改、绝不伪造日期——某个日期对应哪个训练日是客观事实，不随新版布局改变。 */
+const LAYOUT_V2_FROM = { A:{ t:'push', i:5 }, B:{ t:'push', i:4 } };   // 旧布局里该动作的下标
+const LAYOUT_V2_TO   = { A:{ t:'pull', i:5 }, B:{ t:'pull', i:5 } };   // 新布局里该动作的下标
+function migrateLayoutV2(){
+  if(STATE.layoutV === 2) return false;                    // 幂等：只执行一次
+  const f = LAYOUT_V2_FROM[STATE.planSet], to = LAYOUT_V2_TO[STATE.planSet];
+  if(f && to){
+    ['planEdits','exLast'].forEach(field=>{
+      const bucket = STATE[field];
+      if(!bucket || typeof bucket !== 'object') return;
+      const src = bucket[f.t];
+      if(!src || typeof src !== 'object' || src[f.i] === undefined) return;
+      const dst = bucket[to.t] = (bucket[to.t] && typeof bucket[to.t] === 'object') ? bucket[to.t] : {};
+      // 目标下标在旧布局中越界，正常不会有值；万一有脏值则保留它，不覆盖用户数据
+      if(dst[to.i] === undefined) dst[to.i] = src[f.i];
+      delete src[f.i];
+    });
+  }
+  STATE.layoutV = 2;
+  if(!STATE.layoutSince){ const d = new Date(); STATE.layoutSince = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+  return true;
+}
+migrateLayoutV2();   // 启动即迁移；标记随下一次保存持久化，即使重复执行也无害
 /* 方案调度：切换只替换训练日数据源，打卡 / 重量 / 自定义动作等既有数据完全不动 */
 function planSetMeta(){ return PLAN_SETS[STATE.planSet] || PLAN_SETS.A; }
 function applyPlanSet(){ PLANS = planSetMeta().days; }
@@ -919,6 +953,16 @@ const suggKg = e => {
 // 仅勾选部分动作（STATE.checkins[k].ex 有 true 但无 at）不算完成，不计入连续/累计打卡。
 const isDayComplete = k => !!(STATE.checkins[k] && STATE.checkins[k].at);
 const dayCompleteCount = () => Object.keys(STATE.checkins).filter(isDayComplete).length;
+// v1.2.5：从视频链接取 BV 号（同一 BV 可对应多个动作入口，标记按 BV 去重）
+const bvOf = u => (String(u||'').match(/\/video\/(BV[0-9A-Za-z]+)/)||[])[1] || '';
+// v1.2.5：本周（周一起）真实打卡天数。只数写过 at 的完成日，绝不按计划推算「应该练了几天」
+function weekCheckinDays(){
+  const now=new Date(), mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  let n=0;
+  for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i);
+    if(isDayComplete(`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`)) n++; }
+  return n;
+}
 const streak = () => { let n=0; const d=new Date(); for(;;){ const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; if(isDayComplete(k)){n++; d.setDate(d.getDate()-1);} else break; } return n; };
 // 渐进超负荷：哑铃按 0.5kg 刻度取整，杠铃/器械按 2.5kg 片取整
 const roundHalf = x => Math.round((+x) * 2) / 2;
@@ -2046,6 +2090,16 @@ function renderHome(){
       <details class="today-why"><summary>为什么今天练这个？</summary>${whyTodayHTML(t, plan)}</details>`;
     $('#hc-go').onclick = ()=>goModule('training');
   }
+  /* v1.2.5 恢复提示（零迁移、零伪造）：只依据真实打卡数据，不改排程、不假装 AI 调整计划。
+     原本「把训练频率改成每周 2 次」会重写按星期固定的 4 天分化语义，
+     使历史打卡 / CSV / 加重判定失去日期基准，故改为只给提示、不动结构。 */
+  const _wk = weekCheckinDays(), _st = streak();
+  if(_wk >= 4 || _st >= 4){
+    ht.insertAdjacentHTML('beforeend',
+      `<div class="home-recovery"><b>🌿 恢复提醒</b>
+        <p>本周已打卡 <b>${_wk}</b> 次、连续 <b>${_st}</b> 天。频率不是越高越好：肌肉在休息时修复，建议本周再留 1–2 天做主动恢复（睡够 7.5h、蛋白吃够、快走或拉伸 20–30 分钟）。</p>
+        <small>此提示只统计你真实点过「完成今日训练并打卡」的记录；A/B/C 固定周安排不变，也不是 AI 生成的新计划。</small></div>`);
+  }
 }
 
 /* ============================================================
@@ -2410,6 +2464,34 @@ function renderRun(body){
     toast(STATE.settings.runMap ? '已开启地图底图（需联网）' : '已关闭地图底图，回到离线轨迹图'); };
 }
 
+/* v1.2.5 逐组记录写入：稀疏数组保留「第几组」的组序，全空行不落库。
+   只作为训练日志，不参与 overloadSuggestion、也不回写 exReps —— 两套数据互不推导，绝不伪造历史。 */
+function saveSetLog(sel, i, body){
+  const inputs = $$('#mod-body input[data-sl]').filter(x=>+x.dataset.sl===i);
+  const n = inputs.reduce((m,x)=>Math.max(m, +x.dataset.si+1), 0);
+  if(!n) return;
+  // step=0.5 用于重量（哑铃 0.5kg 刻度）；次数与 RIR 取整数
+  const clean = (v,max,step) => {
+    if(v==='' || v==null || !isFinite(+v)) return null;
+    const x = Math.max(0, Math.min(max, +v));
+    return step ? Math.round(x/step)*step : Math.round(x);
+  };
+  const arr = new Array(n);
+  for(let s=0;s<n;s++){
+    const get = k => { const el=inputs.find(x=>+x.dataset.si===s && x.dataset.k===k); return el ? String(el.value==null?'':el.value).trim() : ''; };
+    const rv=get('r'), kv=get('kg'), iv=get('rir');
+    if(rv==='' && kv==='' && iv==='') continue;                 // 这一组没填 → 不记、不补、不猜
+    arr[s] = { r:clean(rv,999), kg:clean(kv,999,0.5), rir:clean(iv,10) };
+  }
+  STATE.exSets = STATE.exSets || {};
+  STATE.exSets[sel] = STATE.exSets[sel] || {};
+  if(arr.some(Boolean)) STATE.exSets[sel][i] = arr; else delete STATE.exSets[sel][i];
+  if(!Object.keys(STATE.exSets[sel]).length) delete STATE.exSets[sel];
+  save();
+  const badge = body && body.querySelector(`[data-slcount="${i}"]`);
+  if(badge) badge.textContent = `${arr.filter(Boolean).length}/${n} 组`;
+}
+
 function renderModule(name){
   const body=$('#mod-body');
   if(name==='training') return renderTraining(body);
@@ -2454,14 +2536,35 @@ function renderTraining(body){
         : '';
       // v1.2.3：建议必须可解释、且只在用户确认后写入（借鉴 boji v2 的 requiresConfirmation）
       const overRow = `<div class="ex-over${ov.kind==='INCREASE_LOAD'?' can-load':''}"><span class="ex-prog-reason">💡 ${esc(ov.reason)}</span>${ov.ready && ov.kind==='INCREASE_LOAD' ? `<button data-apply="${i}">采用建议 ${ov.next}kg</button>` : ''}</div>`;
+      // v1.2.5 逐组记录（选填）：只回填用户真实填过的组，全空行不落库、不伪造历史逐组数据
+      const _sets = Math.max(1, Math.min(10, Math.round(+eff.sets || 3)));
+      const _logRaw = STATE.exSets?.[sel]?.[i];
+      const _log = Array.isArray(_logRaw) ? _logRaw : [];
+      let setRows = '';
+      for(let s=0;s<_sets;s++){
+        const rec = (_log[s] && typeof _log[s] === 'object' && !Array.isArray(_log[s])) ? _log[s] : {};
+        const av = v => (v==null || v==='') ? '' : esc(v);
+        setRows += `<div class="sl-row"><span class="sl-no">第${s+1}组</span>`+
+          `<input type="number" inputmode="numeric" min="0" max="999" placeholder="次数" value="${av(rec.r)}" data-sl="${i}" data-si="${s}" data-k="r" aria-label="第${s+1}组次数">`+
+          `<input type="number" inputmode="decimal" min="0" max="999" placeholder="kg" value="${av(rec.kg)}" data-sl="${i}" data-si="${s}" data-k="kg" aria-label="第${s+1}组重量">`+
+          `<input type="number" inputmode="numeric" min="0" max="10" placeholder="RIR" value="${av(rec.rir)}" data-sl="${i}" data-si="${s}" data-k="rir" aria-label="第${s+1}组RIR"></div>`;
+      }
+      const _loggedN = _log.filter(x => x && typeof x === 'object' && !Array.isArray(x)).length;
+      const setLogRow = `<details class="ex-setslog"><summary>逐组记录（选填）<span class="sl-count" data-slcount="${i}">${_loggedN}/${_sets} 组</span></summary><div class="sl-grid">${setRows}</div>`+
+        `<p class="sl-note">每组填「次数」即可，重量 / RIR 选填（RIR = 还能再做几次，0 = 力竭）。只保存你真正填过的组；加重判定仍以上方「完成次数」为准，两套数据不混用。</p></details>`;
+      // v1.2.5 视频错配标记：按 BV 去重，只标记、不换片、不改视频池
+      const _bv = bvOf(e.video.url);
+      const _flag = !!(_bv && STATE.videoFlags && STATE.videoFlags[_bv]);
+      const vflagRow = _bv ? `<div class="ex-vflag-row"><button class="ex-vflag${_flag?' on':''}" data-vflag="${esc(_bv)}" data-vname="${esc(e.name)}" data-vlabel="${esc(e.video.label)}">${_flag?'⚑ 已标记「视频不对」（再点取消）':'⚑ 视频不对？点一下标记'}</button></div>` : '';
       html+=`<div class="ex"><div class="ex-top"><span class="ex-no">${i+1}</span><span class="ex-name">${e.name}</span><span class="ex-sets">${eff.sets}×${eff.reps} · 休${e.rest}s</span></div>
         <div class="ex-muscle">${esc(e.muscle||'')}</div>
         <div class="ex-meta"><span>节奏 ${esc(e.tempo||'-')}</span><span>呼吸 ${esc(e.breath||'-')}</span></div>
         <div class="ex-kv"><span class="k">动作标准</span><span class="v ok">${e.standard}</span><span class="k">注意事项</span><span class="v warn">${e.note}</span></div>
         ${EX_TIPS[e.name] ? '<div class="ex-tips"><b>💡 动作要点</b><ul>' + EX_TIPS[e.name].map(t=>'<li>'+esc(t)+'</li>').join('') + '</ul></div>' : ''}
         <div class="ex-weight">起始重量 <input type="number" inputmode="decimal" value="${esc(STATE.weights[sel]?.[i] ?? (suggKg(e)||''))}" placeholder="kg" data-w="${i}"> kg<span class="r-sep">·</span>完成次数 <input type="number" inputmode="numeric" min="1" max="999" value="${esc(repsVal)}" placeholder="选填" data-r="${i}"> 次</div>
-        ${editRow}${overRow}
+        ${editRow}${overRow}${setLogRow}
         <div class="ex-video" data-v="${e.video.url}">▶ ${e.video.label}</div>
+        ${vflagRow}
         <button class="ex-do ${finished?'done':''}" data-ex="${i}">${finished?'已完成 ✓':'完成这组'}</button></div>`;
     });
     html+=`<button class="btn-grad" id="day-finish" style="margin-top:4px">${done?'今日已打卡 ✓':'完成今日训练并打卡'}</button>`;
@@ -2520,6 +2623,20 @@ function renderTraining(body){
       STATE.exReps[sel][i]={ r:n, kg };
     }
     save(); renderTraining(body);
+  });
+  // v1.2.5 逐组记录：只保存真实填过的组；不重渲染，避免打断连续输入
+  $$('#mod-body input[data-sl]').forEach(inp=>inp.onchange=()=>saveSetLog(sel, +inp.dataset.sl, body));
+  // v1.2.5 视频错配标记：只 toggle 标记，绝不替换视频、不改视频池
+  $$('#mod-body [data-vflag]').forEach(b=>b.onclick=()=>{
+    const bv=b.dataset.vflag;
+    STATE.videoFlags=STATE.videoFlags||{};
+    if(STATE.videoFlags[bv]) delete STATE.videoFlags[bv];
+    else STATE.videoFlags[bv]={ name:String(b.dataset.vname||''), label:String(b.dataset.vlabel||''), at:Date.now() };
+    save();
+    const on=!!STATE.videoFlags[bv];
+    b.classList.toggle('on', on);
+    b.textContent = on ? '⚑ 已标记「视频不对」（再点取消）' : '⚑ 视频不对？点一下标记';
+    toast(on ? '已标记。到「我的 → 导出视频错配清单」把名单发我，我再逐条核对' : '已取消标记');
   });
   // —— 自定义动作绑定（新增 / 完成 / 删除 / 重量）——
   const mxAdd=$('#mx-add'); if(mxAdd) mxAdd.onclick=()=>{ STATE.showExForm=true; renderTraining(body); };
@@ -3635,6 +3752,7 @@ function renderProfile(body){
       <h4 style="margin:8px 0 2px">数据管理</h4>
       <div class="list-row" id="exp-json"><span class="lr-ic">💾</span>导出备份 JSON<span class="lr-ar">›</span></div>
       <div class="list-row" id="exp-csv"><span class="lr-ic">📄</span>导出训练/饮食 CSV<span class="lr-ar">›</span></div>
+      <div class="list-row" id="exp-vflags"><span class="lr-ic">⚑</span>导出视频错配清单 <span class="tag">${Object.keys(STATE.videoFlags||{}).filter(bv=>STATE.videoFlags[bv]&&typeof STATE.videoFlags[bv]==='object').length} 条</span><span class="lr-ar">›</span></div>
       <div class="list-row" id="imp-json"><span class="lr-ic">📥</span>导入 JSON 备份<span class="lr-ar">›</span></div>
     </div>
     <div class="card" style="padding:6px 14px">
@@ -3820,6 +3938,7 @@ function renderProfile(body){
   $('#reset-all').onclick=()=>{ if(confirm('确定清空所有本地数据？')){ localStorage.removeItem(KEY); location.reload(); } };
   $('#exp-json') && ($('#exp-json').onclick=exportJSON);
   $('#exp-csv') && ($('#exp-csv').onclick=exportCSV);
+  $('#exp-vflags') && ($('#exp-vflags').onclick=exportVideoFlags);
   $('#imp-json') && ($('#imp-json').onclick=importJSON);
 }
 
@@ -3849,7 +3968,10 @@ function exportCSV(){
   Object.keys(STATE.weights||{}).sort().forEach(k=>{
     Object.keys(STATE.weights[k]).forEach(i=>{
       const [Y,M,D]=k.split('-').map(Number); const dt=new Date(Y,M-1,D); const t=getDayType(dt.getDay());
-      const name = t==='rest' ? '休息日' : (PLANS[t].ex[i] ? PLANS[t].ex[i].name : `动作${+i+1}`);
+      // 旧布局里被移走的动作在历史日期仍有重量快照：新布局该下标越界，补回真实动作名并标注「旧布局」，不丢信息
+      const _f = LAYOUT_V2_FROM[STATE.planSet];
+      const legacyName = (_f && t==='push' && +i===_f.i) ? '俯身侧平举（旧布局）' : null;
+      const name = t==='rest' ? '休息日' : (PLANS[t].ex[i] ? PLANS[t].ex[i].name : (legacyName || `动作${+i+1}`));
       wRows.push([k, t==='rest'?'-':PLANS[t].name, name, STATE.weights[k][i]]);
     });
   });
@@ -3860,9 +3982,55 @@ function exportCSV(){
         mRows.push([k, MEAL_NAMES[mi]||mi, f.n, q, +(f.p*q).toFixed(1), +(f.c*q).toFixed(1), +(f.f*q).toFixed(1)]); });
     });
   });
-  const csv = ckRows.map(_csvRow).join('\r\n') + '\r\n\r\n' + wRows.map(_csvRow).join('\r\n') + '\r\n\r\n' + mRows.map(_csvRow).join('\r\n');
+  // v1.2.5 逐组记录段：只导出用户真实填过的组，空组（null 空洞）跳过
+  const sRows=[['日期','计划','动作','组序','次数','重量(kg)','RIR']];
+  Object.keys(STATE.exSets||{}).sort().forEach(k=>{
+    const [Y,M,D]=k.split('-').map(Number); const dt=new Date(Y,M-1,D); const t=getDayType(dt.getDay());
+    Object.keys(STATE.exSets[k]||{}).forEach(i=>{
+      const arr=STATE.exSets[k][i]; if(!Array.isArray(arr)) return;
+      const _f=LAYOUT_V2_FROM[STATE.planSet];
+      const legacyName=(_f && t==='push' && +i===_f.i) ? '俯身侧平举（旧布局）' : null;
+      const name=t==='rest' ? '休息日' : (PLANS[t].ex[i] ? PLANS[t].ex[i].name : (legacyName || `动作${+i+1}`));
+      arr.forEach((rec,s)=>{
+        if(!rec || typeof rec!=='object') return;
+        sRows.push([k, t==='rest'?'-':PLANS[t].name, name, s+1,
+          rec.r==null?'':rec.r, rec.kg==null?'':rec.kg, rec.rir==null?'':rec.rir]);
+      });
+    });
+  });
+  // v1.2.5 视频错配标记段：便于把「哪些片不对」随记录一起带走
+  const vRows=[['BV','动作','视频标题','标记时间','链接']];
+  Object.keys(STATE.videoFlags||{}).sort().forEach(bv=>{
+    const f=STATE.videoFlags[bv]; if(!f || typeof f!=='object') return;
+    vRows.push([bv, f.name||'', f.label||'',
+      (f.at && isFinite(+f.at)) ? new Date(+f.at).toLocaleString('zh-CN') : '',
+      'https://www.bilibili.com/video/'+bv]);
+  });
+  const csv = [ckRows,wRows,mRows,sRows,vRows].map(rows=>rows.map(_csvRow).join('\r\n')).join('\r\n\r\n');
   downloadFile(`训练日记-记录-${todayKey()}.csv`, 'text/csv;charset=utf-8', '\ufeff' + csv);   // BOM：Excel 不乱码
-  toast('已导出 CSV（打卡/重量/饮食三段）');
+  toast('已导出 CSV（打卡/重量/饮食/逐组/视频反馈五段）');
+}
+/* v1.2.5 视频错配反馈清单：把「需要用户实测点名」变成可直接回传的名单，不自动换片 */
+function exportVideoFlags(){
+  const flags=(STATE.videoFlags && typeof STATE.videoFlags==='object') ? STATE.videoFlags : {};
+  const keys=Object.keys(flags).filter(bv=>flags[bv] && typeof flags[bv]==='object');
+  const lines=[
+    '训练日记 · 视频错配反馈清单',
+    `版本：v${APP_VERSION}　导出时间：${new Date().toLocaleString('zh-CN')}`,
+    `已标记：${keys.length} 个视频`, '',
+    '说明：以下为本机实测后手动标记的「画面与动作不符」视频，仅作反馈，未自动替换任何视频。', ''
+  ];
+  keys.forEach((bv,n)=>{
+    const f=flags[bv];
+    lines.push(`${n+1}. ${f.name||'(未记录动作名)'}　${bv}`);
+    lines.push(`   当前视频标题：${f.label||'(无)'}`);
+    lines.push(`   https://www.bilibili.com/video/${bv}`);
+    lines.push('   期望动作 / 问题描述：______________________');
+    lines.push('');
+  });
+  lines.push('把填好描述的清单发回，即可逐条核对，并按「≤95 秒 / 直给教学 / 变体精确 / 无死链」口径换片。');
+  downloadFile(`训练日记-视频错配清单-${todayKey()}.txt`, 'text/plain;charset=utf-8', '\ufeff' + lines.join('\r\n'));
+  toast(keys.length ? `已导出 ${keys.length} 条视频错配清单` : '还没有标记过视频，已导出空清单');
 }
 function importJSON(){
   const inp = document.createElement('input');
@@ -3879,13 +4047,19 @@ function importJSON(){
           profile:null, isFirstLaunch:true, checkins:{}, weights:{}, meals:{}, water:0, waterMl:null,
           scores:{},
           petPos:null, petDock:null, petMood:'happy', lastPetTouch:Date.now(),
-          planEdits:{}, exLast:{}, editPlan:false, planSet:'A', exReps:{},
+          planEdits:{}, exLast:{}, editPlan:false, planSet:'A', exReps:{}, layoutV:1, layoutSince:'',
+          exSets:{}, videoFlags:{},
         }, st);
         if(STATE.waterMl == null && STATE.water > 0) STATE.waterMl = Math.round(STATE.water * 250);
         if(!STATE.scores || typeof STATE.scores !== 'object') STATE.scores = {};
         if(!STATE.exReps || typeof STATE.exReps !== 'object' || Array.isArray(STATE.exReps)) STATE.exReps = {};
+        // v1.2.5 旧备份同样补逐组记录 / 视频标记容错，绝不伪造历史
+        if(!STATE.exSets || typeof STATE.exSets !== 'object' || Array.isArray(STATE.exSets)) STATE.exSets = {};
+        if(!STATE.videoFlags || typeof STATE.videoFlags !== 'object' || Array.isArray(STATE.videoFlags)) STATE.videoFlags = {};
         // 导入的方案键同样做校验 + pump→core 键名迁移
         if(['A','B','C'].indexOf(STATE.planSet) < 0) STATE.planSet = 'A';   // 脏值一律回落 A
+        // 旧备份同样过一遍布局迁移（方案键已合法后再按动作名搬，历史快照不动）
+        migrateLayoutV2();
         if(STATE.planEdits && STATE.planEdits.pump && !STATE.planEdits.core){ STATE.planEdits.core = STATE.planEdits.pump; delete STATE.planEdits.pump; }
         if(STATE.exLast && STATE.exLast.pump && !STATE.exLast.core){ STATE.exLast.core = STATE.exLast.pump; delete STATE.exLast.pump; }
         // 导入备份同样过一遍新字段容错（背景/教练/桌宠皮肤）
