@@ -1,0 +1,1663 @@
+{
+  "source": "wage98/boji-diary @ main (c60715a), app.js",
+  "appVersion": "1.2.2",
+  "totalEntries": 64,
+  "uniqueBv": 46,
+  "perSet": {
+    "A": 22,
+    "B": 20,
+    "C": 22
+  },
+  "daysPerSet": {
+    "A": {
+      "push": 6,
+      "pull": 5,
+      "legs": 6,
+      "core": 5
+    },
+    "B": {
+      "push": 5,
+      "pull": 5,
+      "legs": 5,
+      "core": 5
+    },
+    "C": {
+      "push": 5,
+      "pull": 5,
+      "legs": 6,
+      "core": 6
+    }
+  },
+  "entries": [
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 1,
+      "name": "哑铃平板卧推",
+      "muscle": "胸大肌（中胸）· 三角肌前束 · 肱三头肌",
+      "sets": 4,
+      "reps": "8-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.8,
+      "kgBase": null,
+      "bv": "BV1oP411h7E3",
+      "label": "保姆级卧推教程：教你如打造一个标准的哑铃卧推",
+      "standard": "肩胛后缩下沉贴住椅面，哑铃下放至胸侧乳线高度，推起时胸肌主动收缩。",
+      "note": "别耸肩借力；小臂保持垂直地面，手腕中立不翻。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 2,
+      "name": "上斜哑铃卧推",
+      "muscle": "胸大肌（上胸）· 三角肌前束",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 75,
+      "base": 0.6,
+      "kgBase": null,
+      "bv": "BV1Hz3u6oEgu",
+      "label": "专攻上胸线条｜上斜哑铃卧推标准教学",
+      "standard": "椅背调到 30° 左右，推举轨迹略向锁骨方向聚拢。",
+      "note": "角度别太高，超过 45° 就变成肩推，压肩膀。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 3,
+      "name": "坐姿哑铃肩推",
+      "muscle": "三角肌前束·中束 · 肱三头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-0-1",
+      "rest": 75,
+      "base": 0.5,
+      "kgBase": null,
+      "bv": "BV1CZhe6JEjM",
+      "label": "坐姿哑铃推肩教学｜避免脖子痛与斜方肌代偿",
+      "standard": "靠背支撑，核心收紧，推至顶端不锁死肘，肩胛稳定。",
+      "note": "腰别反弓代偿，重量宁轻勿借。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 4,
+      "name": "哑铃侧平举",
+      "muscle": "三角肌中束",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.25,
+      "kgBase": null,
+      "bv": "BV16u4111716",
+      "label": "没有废话！1分钟哑铃侧平举教学，干货满满",
+      "standard": "小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿 1 秒。",
+      "note": "别甩重量，用肩中束发力而不是斜方。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 5,
+      "name": "仰卧哑铃臂屈伸",
+      "muscle": "肱三头肌（长头为主）",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0.3,
+      "kgBase": null,
+      "bv": "BV1J5411Q7KE",
+      "label": "三头肌训练教学：哑铃仰卧臂屈伸",
+      "standard": "仰卧在椅上，上臂保持垂直于地面，仅小臂做屈伸。",
+      "note": "肘别外撇，动作放慢，别用手腕甩。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 6,
+      "name": "俯身侧平举",
+      "muscle": "三角肌后束 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.2,
+      "kgBase": null,
+      "bv": "BV1KN41197tc",
+      "label": "俯身哑铃侧平举",
+      "standard": "俯身约 45°，由后束主导把哑铃向两侧抬起。",
+      "note": "脖子放松别耸肩，重量轻一点更找得到后束。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 1,
+      "name": "单臂哑铃划船（手撑椅）",
+      "muscle": "背阔肌 · 大圆肌 · 斜方肌中下部",
+      "sets": 4,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.7,
+      "kgBase": null,
+      "bv": "BV17mWJ6LEaH",
+      "label": "B5单臂哑铃划船教学",
+      "standard": "一手一膝撑椅，脊柱中立，肘贴身体向后上方拉，背阔主导。",
+      "note": "别用惯性甩，顶峰夹背停 1 秒。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 2,
+      "name": "俯身哑铃划船（双手）",
+      "muscle": "背阔肌 · 菱形肌 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.7,
+      "kgBase": null,
+      "bv": "BV1v34y1h7UW",
+      "label": "哑铃俯身划船！！！新手强烈推荐",
+      "standard": "髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。",
+      "note": "腰别塌、别圆背，起身时不要用腰硬拽。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 3,
+      "name": "哑铃仰卧上拉",
+      "muscle": "背阔肌 · 胸大肌 · 肱三头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 75,
+      "base": 0.5,
+      "kgBase": null,
+      "bv": "BV1dY4u6RE6S",
+      "label": "哑铃仰卧上拉",
+      "standard": "仰卧凳上双手托铃于胸前，向头顶方向缓慢下放至胸背拉伸感最强，再原路压回。",
+      "note": "腰贴凳别顶起离凳；肘微屈固定，下放幅度以不砸头、肩不代偿为限；高个子肩活动度够再加深。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 4,
+      "name": "俯身哑铃面拉",
+      "muscle": "三角肌后束 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.2,
+      "kgBase": null,
+      "bv": "BV1ZT411H7JD",
+      "label": "绳索面拉的哑铃替代动作教学",
+      "standard": "俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。",
+      "note": "居家哑铃版面拉，改善圆肩，别耸肩。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 5,
+      "name": "锤式弯举",
+      "muscle": "肱肌 · 肱桡肌 · 肱二头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0.3,
+      "kgBase": null,
+      "bv": "BV16VA5e3EDP",
+      "label": "让你锤式弯举感受更好的小细节",
+      "standard": "中立握（锤式），肘固定于身体两侧做弯举。",
+      "note": "别借力摆动身体。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 1,
+      "name": "高脚杯深蹲",
+      "muscle": "股四头肌 · 臀大肌 · 核心",
+      "sets": 4,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 1,
+      "kgBase": null,
+      "bv": "BV11N41127Xd",
+      "label": "高脚杯深蹲 新手必练",
+      "standard": "哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。",
+      "note": "膝盖跟脚尖同向，别内扣。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 2,
+      "name": "哑铃罗马尼亚硬拉",
+      "muscle": "腘绳肌 · 臀大肌 · 竖脊肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "3-1-1",
+      "rest": 90,
+      "base": 0.9,
+      "kgBase": null,
+      "bv": "BV19dHX6cEDh",
+      "label": "哑铃罗马尼亚硬拉｜臀没感觉、腰先酸？先看完整动作，再拆 5 个要点",
+      "standard": "微屈膝固定，髋向后推，腘绳主导，背全程挺直。",
+      "note": "靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 3,
+      "name": "保加利亚分腿蹲（后脚搭椅）",
+      "muscle": "股四头肌 · 臀大肌",
+      "sets": 3,
+      "reps": "10-12/腿",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.6,
+      "kgBase": null,
+      "bv": "BV1JKczeKExz",
+      "label": "保加利亚分腿蹲：一分钟教会精准练臀",
+      "standard": "后脚背搭在椅面上，前腿下蹲至约 90°，躯干略前倾。",
+      "note": "核心收紧别晃。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 4,
+      "name": "哑铃箭步蹲",
+      "muscle": "股四头肌 · 臀大肌 · 平衡能力",
+      "sets": 3,
+      "reps": "12/腿",
+      "tempo": "2-0-1",
+      "rest": 90,
+      "base": 0.6,
+      "kgBase": null,
+      "bv": "BV1bG411q7gh",
+      "label": "哑铃箭步蹲讲解",
+      "standard": "向前迈步下蹲，前后腿各约 90°，后膝接近地面。",
+      "note": "躯干保持稳定，膝盖不内扣。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 5,
+      "name": "站姿提踵",
+      "muscle": "腓肠肌 · 比目鱼肌",
+      "sets": 3,
+      "reps": "15-20",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.8,
+      "kgBase": null,
+      "bv": "BV1gJfyBsEtf",
+      "label": "1.站姿提踵",
+      "standard": "踮到顶端停顿 1 秒，慢速落下充分拉伸。",
+      "note": "全程控制，别靠弹震借力。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 6,
+      "name": "臀桥（肩撑椅）",
+      "muscle": "臀大肌 · 腘绳肌",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-2-1",
+      "rest": 60,
+      "base": 1,
+      "kgBase": null,
+      "bv": "BV1VGaU63EGS",
+      "label": "【保姆级】标准臀桥教学，新手避坑不伤腰",
+      "standard": "肩胛撑在椅面，髋顶起至肩-髋-膝成一条直线。",
+      "note": "顶峰主动夹臀停顿，别用腰顶。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 1,
+      "name": "卷腹",
+      "muscle": "腹直肌上部",
+      "sets": 3,
+      "reps": "15-20",
+      "tempo": "1-1-1",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1s9pq63E6M",
+      "label": "卷腹动作细节解析",
+      "standard": "靠腹肌收缩把胸肋向骨盆卷起，下背贴地。",
+      "note": "别用脖子拉，手别抱头使劲。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 2,
+      "name": "反向卷腹",
+      "muscle": "腹直肌下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "2-1-1",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1wvcozSEyJ",
+      "label": "反向卷腹-紧致下腹，新手友好不伤腰",
+      "standard": "仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。",
+      "note": "落下时腰别弹起，慢速离心。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 3,
+      "name": "平板支撑",
+      "muscle": "腹横肌 · 核心稳定肌群",
+      "sets": 3,
+      "reps": "30-45秒",
+      "tempo": "静态",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1tZ8FzBEgf",
+      "label": "20秒看懂平板支撑的正确姿势",
+      "standard": "耳-肩-髋-踝一条直线，臀部与腹部同时收紧。",
+      "note": "别塌腰或撅屁股，撑不住就降膝盖。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 4,
+      "name": "鸟狗式",
+      "muscle": "核心抗伸展 · 腰臀稳定",
+      "sets": 3,
+      "reps": "12/侧",
+      "tempo": "2-1-2",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1AX4y1373k",
+      "label": "鸟狗式——核心稳定与控制练习",
+      "standard": "四足支撑，手在肩下、膝在髋下，对侧手腿缓慢伸直抬起，躯干保持水平。",
+      "note": "腰别塌、别撅屁股，核心全程收紧；停留 2 秒再收回，左右交替；新手可先只伸手或只伸腿。"
+    },
+    {
+      "set": "A",
+      "setName": "居家 · 有卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 5,
+      "name": "死虫式",
+      "muscle": "核心抗伸展 · 腹横肌",
+      "sets": 3,
+      "reps": "12/侧",
+      "tempo": "2-1-2",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1RXdUBiEsa",
+      "label": "一个标准的死虫式动作",
+      "standard": "仰卧，对侧手脚缓慢伸展，腰背始终贴紧地面。",
+      "note": "腰一旦离地就停止伸展，幅度宁小勿大。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 1,
+      "name": "地板哑铃卧推",
+      "muscle": "胸大肌 · 三角肌前束 · 肱三头肌",
+      "sets": 4,
+      "reps": "8-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.8,
+      "kgBase": null,
+      "bv": "BV1Wr4y1T7yH",
+      "label": "哑铃地板卧推",
+      "standard": "仰卧地面屈膝，肘触地即停，推起时胸肌主动收缩。",
+      "note": "肘别外展 90° 直角，约 45° 更护肩。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 2,
+      "name": "站姿哑铃肩推",
+      "muscle": "三角肌前束·中束 · 肱三头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-0-1",
+      "rest": 75,
+      "base": 0.5,
+      "kgBase": null,
+      "bv": "BV1cSiRYREHk",
+      "label": "站姿哑铃推肩怎么做",
+      "standard": "站姿核心收紧，推至顶端不锁死肘，肩胛稳定。",
+      "note": "腰别反弓代偿，站姿比坐姿更考验核心。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 3,
+      "name": "哑铃侧平举",
+      "muscle": "三角肌中束",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.25,
+      "kgBase": null,
+      "bv": "BV16u4111716",
+      "label": "没有废话！1分钟哑铃侧平举教学，干货满满",
+      "standard": "小臂略内旋做出“倒水”感，肘略高于腕，顶峰停顿。",
+      "note": "别甩重量，用肩中束发力。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 4,
+      "name": "哑铃俯身臂屈伸",
+      "muscle": "肱三头肌（长头为主）",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0.3,
+      "kgBase": null,
+      "bv": "BV1AohVz6EBb",
+      "label": "俯身哑铃臂屈伸动作讲解",
+      "standard": "俯身约 45°，上臂贴紧身体并垂直地面，仅小臂向后伸直再收回，肘为固定支点。",
+      "note": "不甩重量；肘部固定不晃，重量宁轻勿重，避免用手腕带。居家无椅也能做，对肩关节压力小。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "push",
+      "dayName": "推日 · 胸肩三头",
+      "order": 5,
+      "name": "俯身侧平举",
+      "muscle": "三角肌后束 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.2,
+      "kgBase": null,
+      "bv": "BV1KN41197tc",
+      "label": "俯身哑铃侧平举",
+      "standard": "俯身约 45°，由后束主导把哑铃向两侧抬起。",
+      "note": "脖子放松别耸肩。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 1,
+      "name": "单臂哑铃划船（扶墙/凳）",
+      "muscle": "背阔肌 · 大圆肌",
+      "sets": 4,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.7,
+      "kgBase": null,
+      "bv": "BV1E54BewEHA",
+      "label": "单臂划船动作纠正",
+      "standard": "一手扶墙或稳固凳面，身体前倾，肘贴身体向后上方拉。",
+      "note": "别用惯性甩，顶峰夹背停 1 秒。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 2,
+      "name": "俯身哑铃划船（双手）",
+      "muscle": "背阔肌 · 菱形肌 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.7,
+      "kgBase": null,
+      "bv": "BV1v34y1h7UW",
+      "label": "哑铃俯身划船！！！新手强烈推荐",
+      "standard": "髋部折叠约 45°，背挺直，哑铃沿大腿拉向腰侧。",
+      "note": "腰别塌、别圆背。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 3,
+      "name": "哑铃仰卧上拉",
+      "muscle": "背阔肌 · 胸大肌 · 肱三头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 75,
+      "base": 0.5,
+      "kgBase": null,
+      "bv": "BV1dY4u6RE6S",
+      "label": "哑铃仰卧上拉",
+      "standard": "仰卧凳上双手托铃于胸前，向头顶方向缓慢下放至胸背拉伸感最强，再原路压回。",
+      "note": "腰贴凳别顶起离凳；肘微屈固定，下放幅度以不砸头、肩不代偿为限；高个子肩活动度够再加深。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 4,
+      "name": "俯身哑铃面拉",
+      "muscle": "三角肌后束 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.2,
+      "kgBase": null,
+      "bv": "BV1ZT411H7JD",
+      "label": "绳索面拉的哑铃替代动作教学",
+      "standard": "俯身，双手各持一哑铃拉向眉心方向并外旋，后束主导。",
+      "note": "改善圆肩，别耸肩。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 5,
+      "name": "锤式弯举",
+      "muscle": "肱肌 · 肱桡肌 · 肱二头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0.3,
+      "kgBase": null,
+      "bv": "BV16VA5e3EDP",
+      "label": "让你锤式弯举感受更好的小细节",
+      "standard": "中立握，肘固定于身体两侧做弯举。",
+      "note": "别借力摆动身体。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 1,
+      "name": "高脚杯深蹲",
+      "muscle": "股四头肌 · 臀大肌 · 核心",
+      "sets": 4,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 1,
+      "kgBase": null,
+      "bv": "BV11N41127Xd",
+      "label": "高脚杯深蹲 新手必练",
+      "standard": "哑铃抱于胸前，髋膝同步下蹲至大腿接近水平，重心落在足中。",
+      "note": "膝盖跟脚尖同向，别内扣。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 2,
+      "name": "哑铃罗马尼亚硬拉",
+      "muscle": "腘绳肌 · 臀大肌 · 竖脊肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "3-1-1",
+      "rest": 90,
+      "base": 0.9,
+      "kgBase": null,
+      "bv": "BV19dHX6cEDh",
+      "label": "哑铃罗马尼亚硬拉｜臀没感觉、腰先酸？先看完整动作，再拆 5 个要点",
+      "standard": "微屈膝固定，髋向后推，腘绳主导，背全程挺直。",
+      "note": "靠腘绳拉伸感控制下放，背始终挺直、脊柱中立；腰椎出现刺痛或不适立刻减小幅度与重量，别硬扛。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 3,
+      "name": "原地哑铃分腿蹲",
+      "muscle": "股四头肌 · 臀大肌 · 平衡能力",
+      "sets": 3,
+      "reps": "12/腿",
+      "tempo": "2-0-1",
+      "rest": 90,
+      "base": 0.6,
+      "kgBase": null,
+      "bv": "BV16e4y1g7BL",
+      "label": "哑铃分腿蹲",
+      "standard": "前后分腿站定，原地下降至前后腿各约 90°。",
+      "note": "躯干稳定，别左右晃。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 4,
+      "name": "站姿提踵",
+      "muscle": "腓肠肌 · 比目鱼肌",
+      "sets": 3,
+      "reps": "15-20",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.8,
+      "kgBase": null,
+      "bv": "BV1gJfyBsEtf",
+      "label": "1.站姿提踵",
+      "standard": "踮到顶端停顿 1 秒，慢速落下充分拉伸。",
+      "note": "全程控制，别靠弹震借力。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 5,
+      "name": "单腿臀桥",
+      "muscle": "臀大肌 · 腘绳肌",
+      "sets": 3,
+      "reps": "12/侧",
+      "tempo": "1-2-1",
+      "rest": 60,
+      "base": 1,
+      "kgBase": null,
+      "bv": "BV1sxbj6hEco",
+      "label": "单腿臀桥逐帧纠动作",
+      "standard": "仰卧地面，单脚支撑顶髋至肩-髋-膝一线，另腿伸直悬空。",
+      "note": "骨盆别歪，顶峰夹臀。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 1,
+      "name": "卷腹",
+      "muscle": "腹直肌上部",
+      "sets": 3,
+      "reps": "15-20",
+      "tempo": "1-1-1",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1s9pq63E6M",
+      "label": "卷腹动作细节解析",
+      "standard": "靠腹肌收缩把胸肋向骨盆卷起，下背贴地。",
+      "note": "别用脖子拉，手别抱头使劲。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 2,
+      "name": "反向卷腹",
+      "muscle": "腹直肌下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "2-1-1",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1wvcozSEyJ",
+      "label": "反向卷腹-紧致下腹，新手友好不伤腰",
+      "standard": "仰卧，靠下腹把骨盆卷离地面，膝盖向胸口收。",
+      "note": "落下时腰别弹起，慢速离心。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 3,
+      "name": "平板支撑",
+      "muscle": "腹横肌 · 核心稳定肌群",
+      "sets": 3,
+      "reps": "30-45秒",
+      "tempo": "静态",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1tZ8FzBEgf",
+      "label": "20秒看懂平板支撑的正确姿势",
+      "standard": "耳-肩-髋-踝一条直线，臀部与腹部同时收紧。",
+      "note": "别塌腰或撅屁股，撑不住就降膝盖。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 4,
+      "name": "鸟狗式",
+      "muscle": "核心抗伸展 · 腰臀稳定",
+      "sets": 3,
+      "reps": "12/侧",
+      "tempo": "2-1-2",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1AX4y1373k",
+      "label": "鸟狗式——核心稳定与控制练习",
+      "standard": "四足支撑，手在肩下、膝在髋下，对侧手腿缓慢伸直抬起，躯干保持水平。",
+      "note": "腰别塌、别撅屁股，核心全程收紧；停留 2 秒再收回，左右交替；新手可先只伸手或只伸腿。"
+    },
+    {
+      "set": "B",
+      "setName": "居家 · 无卧推椅",
+      "day": "core",
+      "dayName": "核心日 · 腰腹",
+      "order": 5,
+      "name": "登山者",
+      "muscle": "核心 · 髋屈肌",
+      "sets": 3,
+      "reps": "20",
+      "tempo": "快节奏",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1ft4y1q7QC",
+      "label": "【常见动作错误：登山者】",
+      "standard": "俯撑姿势，交替把膝盖收向胸口，臀部不上抬。",
+      "note": "别撅屁股，速度服从姿势。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "push",
+      "dayName": "推日 · 胸三头",
+      "order": 1,
+      "name": "杠铃平板卧推",
+      "muscle": "胸大肌（中胸）· 三角肌前束 · 肱三头肌",
+      "sets": 4,
+      "reps": "8-10",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.4,
+      "kgBase": "bw",
+      "bv": "BV1QxGg6EEqj",
+      "label": "杠铃平板卧推标准动作完整教学",
+      "standard": "肩胛后缩下沉贴凳，杠铃下放至乳线高度，推起时胸肌主动收缩，小臂全程垂直地面。",
+      "note": "手腕别翻；起桥适度即可，别靠腰反弹。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "push",
+      "dayName": "推日 · 胸三头",
+      "order": 2,
+      "name": "上斜哑铃卧推",
+      "muscle": "胸大肌（上胸）· 三角肌前束",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 75,
+      "base": 0.5,
+      "kgBase": null,
+      "bv": "BV1Hz3u6oEgu",
+      "label": "专攻上胸线条｜上斜哑铃卧推标准教学",
+      "standard": "凳背调 30° 左右，哑铃下放至锁骨上方，推起轨迹略向内聚拢。",
+      "note": "角度别超过 45°，否则变肩推压肩膀。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "push",
+      "dayName": "推日 · 胸三头",
+      "order": 3,
+      "name": "坐姿器械推胸",
+      "muscle": "胸大肌 · 三角肌前束 · 肱三头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 75,
+      "base": 0.35,
+      "kgBase": "bw",
+      "bv": "BV1WA411y7n4",
+      "label": "【保姆级健身器械教程】坐姿推胸，练胸必做！",
+      "standard": "座椅调至把手对齐乳线，肩胛贴靠背，推出到顶点不锁死肘。",
+      "note": "别耸肩；重量宁轻勿借，感受胸肌收缩。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "push",
+      "dayName": "推日 · 胸三头",
+      "order": 4,
+      "name": "绳索夹胸",
+      "muscle": "胸大肌中缝",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.15,
+      "kgBase": "bw",
+      "bv": "BV1eY411C75Y",
+      "label": "【保姆级健身器械教程】绳索夹胸",
+      "standard": "龙门架高位滑轮，身体略前倾，双手弧形向下向内夹拢。",
+      "note": "别用手臂硬压，靠胸肌把重量\"抱\"过来。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "push",
+      "dayName": "推日 · 胸三头",
+      "order": 5,
+      "name": "绳索下压",
+      "muscle": "肱三头肌",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.15,
+      "kgBase": "bw",
+      "bv": "BV1CUpg6fEfX",
+      "label": "绳索臂屈伸完整教学",
+      "standard": "肘夹紧身体两侧固定，仅小臂向下压到底并稍外分。",
+      "note": "肘别外撇上抬，否则三头发力大打折扣。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 1,
+      "name": "高位下拉",
+      "muscle": "背阔肌 · 大圆肌 · 肱二头肌",
+      "sets": 4,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.4,
+      "kgBase": "bw",
+      "bv": "BV1Wqh26pEUM",
+      "label": "高位下拉保姆级教学",
+      "standard": "大腿固定好，躯干略后倾，肘向下向后走，拉到锁骨位置。",
+      "note": "别用身体后仰甩重量；肩胛先下沉再发力。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 2,
+      "name": "坐姿绳索划船",
+      "muscle": "背阔肌 · 菱形肌 · 斜方肌中下部",
+      "sets": 4,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.4,
+      "kgBase": "bw",
+      "bv": "BV1a7nc6GE9j",
+      "label": "坐姿绳索划船｜斜方酸？容易忽略的细节",
+      "standard": "胸贴靠垫，脊柱中立，拉向腹部上沿，顶峰夹背停 1 秒。",
+      "note": "别圆背；还原时让肩胛充分前伸拉开。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 3,
+      "name": "杠铃俯身划船",
+      "muscle": "背阔肌 · 菱形肌 · 竖脊肌",
+      "sets": 4,
+      "reps": "8-10",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.3,
+      "kgBase": "bw",
+      "bv": "BV11mTm6cEG7",
+      "label": "练背王牌动作｜标准杠铃俯身划船完整拆解",
+      "standard": "髋部折叠约 45°，腰背挺直，杠铃沿大腿拉向下腹。",
+      "note": "最忌圆背硬拉；宁可用小重量也不要弓腰。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 4,
+      "name": "哑铃弯举",
+      "muscle": "肱二头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0.25,
+      "kgBase": null,
+      "bv": "BV1mm421V7g2",
+      "label": "哑铃弯举动作细节",
+      "standard": "肘固定于身体两侧，全程只有小臂动，顶峰主动收缩。",
+      "note": "别借腰部摆动甩重量。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "pull",
+      "dayName": "拉日 · 背二头",
+      "order": 5,
+      "name": "锤式弯举",
+      "muscle": "肱肌 · 肱桡肌 · 肱二头肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0.25,
+      "kgBase": null,
+      "bv": "BV16VA5e3EDP",
+      "label": "让你锤式弯举感受更好的小细节",
+      "standard": "中立握（锤式），肘夹紧身体两侧做弯举。",
+      "note": "别外撇手腕，慢起慢落。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 1,
+      "name": "杠铃深蹲",
+      "muscle": "股四头肌 · 臀大肌 · 核心",
+      "sets": 4,
+      "reps": "8-10",
+      "tempo": "2-1-1",
+      "rest": 120,
+      "base": 0.5,
+      "kgBase": "bw",
+      "bv": "BV1zm4y1j7Cn",
+      "label": "保姆级杠铃深蹲教程",
+      "standard": "杠铃置于斜方肌上，核心收紧，下蹲至大腿低于水平后蹬地起身。",
+      "note": "膝与脚尖同向；腰别塌，起不来就减重量。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 2,
+      "name": "腿举",
+      "muscle": "股四头肌 · 臀大肌",
+      "sets": 4,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 1,
+      "kgBase": "bw",
+      "bv": "BV1BL4y1L7wt",
+      "label": "教你做一个标准的腿举",
+      "standard": "腰臀贴紧靠背，膝屈至 90° 左右再蹬出，脚掌全程踩实。",
+      "note": "别让臀部离垫；膝别内扣，蹬到顶不锁死。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 3,
+      "name": "罗马尼亚硬拉",
+      "muscle": "腘绳肌 · 臀大肌 · 竖脊肌",
+      "sets": 4,
+      "reps": "8-10",
+      "tempo": "2-1-1",
+      "rest": 90,
+      "base": 0.45,
+      "kgBase": "bw",
+      "bv": "BV1SqYk6XEfv",
+      "label": "杠铃罗马尼亚硬拉讲解",
+      "standard": "微屈膝，髋部向后推，杠铃贴腿下放到膝下，臀肌发力顶髋起身。",
+      "note": "全程腰背挺直，绝不圆背；感受腘绳肌拉伸。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 4,
+      "name": "坐姿腿屈伸",
+      "muscle": "股四头肌",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.25,
+      "kgBase": "bw",
+      "bv": "BV1YR4y1x7ya",
+      "label": "新手健身教学：坐姿腿屈伸正确做法",
+      "standard": "背部贴紧靠背，踝关节卡好滚垫，伸直到顶停 1 秒再慢放。",
+      "note": "别用爆发力甩，慢放更刺激股四头。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 5,
+      "name": "俯卧腿弯举",
+      "muscle": "腘绳肌",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.25,
+      "kgBase": "bw",
+      "bv": "BV1Vj411x73r",
+      "label": "俯卧腿弯举常见错误纠正",
+      "standard": "俯卧，滚垫压在踝上方，向臀部勾起后缓慢还原。",
+      "note": "臀部别抬起借力，重量轻一点更找得到腘绳。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "legs",
+      "dayName": "腿日 · 臀腿",
+      "order": 6,
+      "name": "站姿提踵",
+      "muscle": "小腿三头肌",
+      "sets": 3,
+      "reps": "15-20",
+      "tempo": "1-2-1",
+      "rest": 60,
+      "base": 0.5,
+      "kgBase": "bw",
+      "bv": "BV1gJfyBsEtf",
+      "label": "1.站姿提踵",
+      "standard": "前脚掌踩在台阶或踏板上，充分伸展后提踵到顶停顿。",
+      "note": "别借膝盖弹动；踝关节活动度做到位。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "core",
+      "dayName": "肩日 · 肩与核心",
+      "order": 1,
+      "name": "坐姿哑铃推举",
+      "muscle": "三角肌前束·中束 · 肱三头肌",
+      "sets": 4,
+      "reps": "8-10",
+      "tempo": "2-0-1",
+      "rest": 90,
+      "base": 0.35,
+      "kgBase": null,
+      "bv": "BV1wB4y1S7V9",
+      "label": "肩部训练——坐姿哑铃推举细节分享",
+      "standard": "靠背支撑，核心收紧，推至顶端不锁死肘。",
+      "note": "腰别反弓代偿，重量宁轻勿借。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "core",
+      "dayName": "肩日 · 肩与核心",
+      "order": 2,
+      "name": "哑铃侧平举",
+      "muscle": "三角肌中束",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.15,
+      "kgBase": null,
+      "bv": "BV16u4111716",
+      "label": "没有废话！1分钟哑铃侧平举教学，干货满满",
+      "standard": "小臂略内旋做出\"倒水\"感，肘略高于腕，顶峰停顿 1 秒。",
+      "note": "别甩重量，用肩中束发力而不是斜方。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "core",
+      "dayName": "肩日 · 肩与核心",
+      "order": 3,
+      "name": "绳索面拉",
+      "muscle": "三角肌后束 · 斜方肌中下部",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "1-1-2",
+      "rest": 60,
+      "base": 0.15,
+      "kgBase": "bw",
+      "bv": "BV17T2UYxE12",
+      "label": "绳索面拉动作细节",
+      "standard": "滑轮调至面部高度，拉向眉心并外旋，后束主导。",
+      "note": "别耸肩；改善圆肩的王牌动作，重量轻即可。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "core",
+      "dayName": "肩日 · 肩与核心",
+      "order": 4,
+      "name": "负重卷腹",
+      "muscle": "腹直肌",
+      "sets": 3,
+      "reps": "12-15",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0.2,
+      "kgBase": null,
+      "bv": "BV1vML36hEx1",
+      "label": "负重卷腹",
+      "standard": "仰卧屈膝，双手抱片于胸前，卷起时下背贴地、胸廓向骨盆靠拢。",
+      "note": "别用脖子发力硬拽，慢落更刺激腹直肌。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "core",
+      "dayName": "肩日 · 肩与核心",
+      "order": 5,
+      "name": "悬垂举腿",
+      "muscle": "腹直肌下部 · 髋屈肌",
+      "sets": 3,
+      "reps": "10-12",
+      "tempo": "2-1-1",
+      "rest": 60,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1Uo4y1t7S6",
+      "label": "下腹王牌动作：悬垂举腿——正确做法（全程无废话）",
+      "standard": "单杠悬挂，核心收紧把膝盖/双腿举至髋部屈曲，缓慢下落。",
+      "note": "别靠身体摆动甩腿，控制下落才是重点。"
+    },
+    {
+      "set": "C",
+      "setName": "健身房 · 器械齐全",
+      "day": "core",
+      "dayName": "肩日 · 肩与核心",
+      "order": 6,
+      "name": "平板支撑",
+      "muscle": "腹横肌 · 核心稳定肌群",
+      "sets": 3,
+      "reps": "30-45秒",
+      "tempo": "静态",
+      "rest": 45,
+      "base": 0,
+      "kgBase": null,
+      "bv": "BV1tZ8FzBEgf",
+      "label": "20秒看懂平板支撑的正确姿势",
+      "standard": "肘在肩正下方，身体成一条直线，核心持续收紧。",
+      "note": "别塌腰或撅屁股，撑不住就降膝盖。"
+    }
+  ],
+  "byBv": {
+    "BV1oP411h7E3": [
+      {
+        "set": "A",
+        "day": "push",
+        "name": "哑铃平板卧推"
+      }
+    ],
+    "BV1Hz3u6oEgu": [
+      {
+        "set": "A",
+        "day": "push",
+        "name": "上斜哑铃卧推"
+      },
+      {
+        "set": "C",
+        "day": "push",
+        "name": "上斜哑铃卧推"
+      }
+    ],
+    "BV1CZhe6JEjM": [
+      {
+        "set": "A",
+        "day": "push",
+        "name": "坐姿哑铃肩推"
+      }
+    ],
+    "BV16u4111716": [
+      {
+        "set": "A",
+        "day": "push",
+        "name": "哑铃侧平举"
+      },
+      {
+        "set": "B",
+        "day": "push",
+        "name": "哑铃侧平举"
+      },
+      {
+        "set": "C",
+        "day": "core",
+        "name": "哑铃侧平举"
+      }
+    ],
+    "BV1J5411Q7KE": [
+      {
+        "set": "A",
+        "day": "push",
+        "name": "仰卧哑铃臂屈伸"
+      }
+    ],
+    "BV1KN41197tc": [
+      {
+        "set": "A",
+        "day": "push",
+        "name": "俯身侧平举"
+      },
+      {
+        "set": "B",
+        "day": "push",
+        "name": "俯身侧平举"
+      }
+    ],
+    "BV17mWJ6LEaH": [
+      {
+        "set": "A",
+        "day": "pull",
+        "name": "单臂哑铃划船（手撑椅）"
+      }
+    ],
+    "BV1v34y1h7UW": [
+      {
+        "set": "A",
+        "day": "pull",
+        "name": "俯身哑铃划船（双手）"
+      },
+      {
+        "set": "B",
+        "day": "pull",
+        "name": "俯身哑铃划船（双手）"
+      }
+    ],
+    "BV1dY4u6RE6S": [
+      {
+        "set": "A",
+        "day": "pull",
+        "name": "哑铃仰卧上拉"
+      },
+      {
+        "set": "B",
+        "day": "pull",
+        "name": "哑铃仰卧上拉"
+      }
+    ],
+    "BV1ZT411H7JD": [
+      {
+        "set": "A",
+        "day": "pull",
+        "name": "俯身哑铃面拉"
+      },
+      {
+        "set": "B",
+        "day": "pull",
+        "name": "俯身哑铃面拉"
+      }
+    ],
+    "BV16VA5e3EDP": [
+      {
+        "set": "A",
+        "day": "pull",
+        "name": "锤式弯举"
+      },
+      {
+        "set": "B",
+        "day": "pull",
+        "name": "锤式弯举"
+      },
+      {
+        "set": "C",
+        "day": "pull",
+        "name": "锤式弯举"
+      }
+    ],
+    "BV11N41127Xd": [
+      {
+        "set": "A",
+        "day": "legs",
+        "name": "高脚杯深蹲"
+      },
+      {
+        "set": "B",
+        "day": "legs",
+        "name": "高脚杯深蹲"
+      }
+    ],
+    "BV19dHX6cEDh": [
+      {
+        "set": "A",
+        "day": "legs",
+        "name": "哑铃罗马尼亚硬拉"
+      },
+      {
+        "set": "B",
+        "day": "legs",
+        "name": "哑铃罗马尼亚硬拉"
+      }
+    ],
+    "BV1JKczeKExz": [
+      {
+        "set": "A",
+        "day": "legs",
+        "name": "保加利亚分腿蹲（后脚搭椅）"
+      }
+    ],
+    "BV1bG411q7gh": [
+      {
+        "set": "A",
+        "day": "legs",
+        "name": "哑铃箭步蹲"
+      }
+    ],
+    "BV1gJfyBsEtf": [
+      {
+        "set": "A",
+        "day": "legs",
+        "name": "站姿提踵"
+      },
+      {
+        "set": "B",
+        "day": "legs",
+        "name": "站姿提踵"
+      },
+      {
+        "set": "C",
+        "day": "legs",
+        "name": "站姿提踵"
+      }
+    ],
+    "BV1VGaU63EGS": [
+      {
+        "set": "A",
+        "day": "legs",
+        "name": "臀桥（肩撑椅）"
+      }
+    ],
+    "BV1s9pq63E6M": [
+      {
+        "set": "A",
+        "day": "core",
+        "name": "卷腹"
+      },
+      {
+        "set": "B",
+        "day": "core",
+        "name": "卷腹"
+      }
+    ],
+    "BV1wvcozSEyJ": [
+      {
+        "set": "A",
+        "day": "core",
+        "name": "反向卷腹"
+      },
+      {
+        "set": "B",
+        "day": "core",
+        "name": "反向卷腹"
+      }
+    ],
+    "BV1tZ8FzBEgf": [
+      {
+        "set": "A",
+        "day": "core",
+        "name": "平板支撑"
+      },
+      {
+        "set": "B",
+        "day": "core",
+        "name": "平板支撑"
+      },
+      {
+        "set": "C",
+        "day": "core",
+        "name": "平板支撑"
+      }
+    ],
+    "BV1AX4y1373k": [
+      {
+        "set": "A",
+        "day": "core",
+        "name": "鸟狗式"
+      },
+      {
+        "set": "B",
+        "day": "core",
+        "name": "鸟狗式"
+      }
+    ],
+    "BV1RXdUBiEsa": [
+      {
+        "set": "A",
+        "day": "core",
+        "name": "死虫式"
+      }
+    ],
+    "BV1Wr4y1T7yH": [
+      {
+        "set": "B",
+        "day": "push",
+        "name": "地板哑铃卧推"
+      }
+    ],
+    "BV1cSiRYREHk": [
+      {
+        "set": "B",
+        "day": "push",
+        "name": "站姿哑铃肩推"
+      }
+    ],
+    "BV1AohVz6EBb": [
+      {
+        "set": "B",
+        "day": "push",
+        "name": "哑铃俯身臂屈伸"
+      }
+    ],
+    "BV1E54BewEHA": [
+      {
+        "set": "B",
+        "day": "pull",
+        "name": "单臂哑铃划船（扶墙/凳）"
+      }
+    ],
+    "BV16e4y1g7BL": [
+      {
+        "set": "B",
+        "day": "legs",
+        "name": "原地哑铃分腿蹲"
+      }
+    ],
+    "BV1sxbj6hEco": [
+      {
+        "set": "B",
+        "day": "legs",
+        "name": "单腿臀桥"
+      }
+    ],
+    "BV1ft4y1q7QC": [
+      {
+        "set": "B",
+        "day": "core",
+        "name": "登山者"
+      }
+    ],
+    "BV1QxGg6EEqj": [
+      {
+        "set": "C",
+        "day": "push",
+        "name": "杠铃平板卧推"
+      }
+    ],
+    "BV1WA411y7n4": [
+      {
+        "set": "C",
+        "day": "push",
+        "name": "坐姿器械推胸"
+      }
+    ],
+    "BV1eY411C75Y": [
+      {
+        "set": "C",
+        "day": "push",
+        "name": "绳索夹胸"
+      }
+    ],
+    "BV1CUpg6fEfX": [
+      {
+        "set": "C",
+        "day": "push",
+        "name": "绳索下压"
+      }
+    ],
+    "BV1Wqh26pEUM": [
+      {
+        "set": "C",
+        "day": "pull",
+        "name": "高位下拉"
+      }
+    ],
+    "BV1a7nc6GE9j": [
+      {
+        "set": "C",
+        "day": "pull",
+        "name": "坐姿绳索划船"
+      }
+    ],
+    "BV11mTm6cEG7": [
+      {
+        "set": "C",
+        "day": "pull",
+        "name": "杠铃俯身划船"
+      }
+    ],
+    "BV1mm421V7g2": [
+      {
+        "set": "C",
+        "day": "pull",
+        "name": "哑铃弯举"
+      }
+    ],
+    "BV1zm4y1j7Cn": [
+      {
+        "set": "C",
+        "day": "legs",
+        "name": "杠铃深蹲"
+      }
+    ],
+    "BV1BL4y1L7wt": [
+      {
+        "set": "C",
+        "day": "legs",
+        "name": "腿举"
+      }
+    ],
+    "BV1SqYk6XEfv": [
+      {
+        "set": "C",
+        "day": "legs",
+        "name": "罗马尼亚硬拉"
+      }
+    ],
+    "BV1YR4y1x7ya": [
+      {
+        "set": "C",
+        "day": "legs",
+        "name": "坐姿腿屈伸"
+      }
+    ],
+    "BV1Vj411x73r": [
+      {
+        "set": "C",
+        "day": "legs",
+        "name": "俯卧腿弯举"
+      }
+    ],
+    "BV1wB4y1S7V9": [
+      {
+        "set": "C",
+        "day": "core",
+        "name": "坐姿哑铃推举"
+      }
+    ],
+    "BV17T2UYxE12": [
+      {
+        "set": "C",
+        "day": "core",
+        "name": "绳索面拉"
+      }
+    ],
+    "BV1vML36hEx1": [
+      {
+        "set": "C",
+        "day": "core",
+        "name": "负重卷腹"
+      }
+    ],
+    "BV1Uo4y1t7S6": [
+      {
+        "set": "C",
+        "day": "core",
+        "name": "悬垂举腿"
+      }
+    ]
+  }
+}

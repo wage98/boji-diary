@@ -1,0 +1,512 @@
+[
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "push",
+    "order": 1,
+    "name": "哑铃平板卧推",
+    "line": 127,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "push",
+    "order": 2,
+    "name": "上斜哑铃卧推",
+    "line": 130,
+    "old": 60,
+    "now": 75
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "push",
+    "order": 3,
+    "name": "坐姿哑铃肩推",
+    "line": 133,
+    "old": 60,
+    "now": 75
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "push",
+    "order": 4,
+    "name": "哑铃侧平举",
+    "line": 136,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "push",
+    "order": 5,
+    "name": "仰卧哑铃臂屈伸",
+    "line": 139,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "push",
+    "order": 6,
+    "name": "俯身侧平举",
+    "line": 142,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "pull",
+    "order": 1,
+    "name": "单臂哑铃划船（手撑椅）",
+    "line": 147,
+    "old": 60,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "pull",
+    "order": 2,
+    "name": "俯身哑铃划船（双手）",
+    "line": 150,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "pull",
+    "order": 3,
+    "name": "哑铃仰卧上拉",
+    "line": 153,
+    "old": 60,
+    "now": 75
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "pull",
+    "order": 4,
+    "name": "俯身哑铃面拉",
+    "line": 156,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "pull",
+    "order": 5,
+    "name": "锤式弯举",
+    "line": 159,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "legs",
+    "order": 1,
+    "name": "高脚杯深蹲",
+    "line": 164,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "legs",
+    "order": 2,
+    "name": "哑铃罗马尼亚硬拉",
+    "line": 167,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "legs",
+    "order": 3,
+    "name": "保加利亚分腿蹲（后脚搭椅）",
+    "line": 170,
+    "old": 60,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "legs",
+    "order": 4,
+    "name": "哑铃箭步蹲",
+    "line": 173,
+    "old": 60,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "legs",
+    "order": 5,
+    "name": "站姿提踵",
+    "line": 176,
+    "old": 40,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "legs",
+    "order": 6,
+    "name": "臀桥（肩撑椅）",
+    "line": 179,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "core",
+    "order": 1,
+    "name": "卷腹",
+    "line": 184,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "core",
+    "order": 2,
+    "name": "反向卷腹",
+    "line": 187,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "core",
+    "order": 4,
+    "name": "鸟狗式",
+    "line": 193,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "A",
+    "day": "core",
+    "order": 5,
+    "name": "死虫式",
+    "line": 196,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "push",
+    "order": 1,
+    "name": "地板哑铃卧推",
+    "line": 210,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "push",
+    "order": 2,
+    "name": "站姿哑铃肩推",
+    "line": 213,
+    "old": 60,
+    "now": 75
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "push",
+    "order": 3,
+    "name": "哑铃侧平举",
+    "line": 216,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "push",
+    "order": 4,
+    "name": "哑铃俯身臂屈伸",
+    "line": 219,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "push",
+    "order": 5,
+    "name": "俯身侧平举",
+    "line": 222,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "pull",
+    "order": 1,
+    "name": "单臂哑铃划船（扶墙/凳）",
+    "line": 227,
+    "old": 60,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "pull",
+    "order": 2,
+    "name": "俯身哑铃划船（双手）",
+    "line": 230,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "pull",
+    "order": 3,
+    "name": "哑铃仰卧上拉",
+    "line": 233,
+    "old": 60,
+    "now": 75
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "pull",
+    "order": 4,
+    "name": "俯身哑铃面拉",
+    "line": 236,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "pull",
+    "order": 5,
+    "name": "锤式弯举",
+    "line": 239,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "legs",
+    "order": 1,
+    "name": "高脚杯深蹲",
+    "line": 244,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "legs",
+    "order": 2,
+    "name": "哑铃罗马尼亚硬拉",
+    "line": 247,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "legs",
+    "order": 3,
+    "name": "原地哑铃分腿蹲",
+    "line": 250,
+    "old": 60,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "legs",
+    "order": 4,
+    "name": "站姿提踵",
+    "line": 253,
+    "old": 40,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "legs",
+    "order": 5,
+    "name": "单腿臀桥",
+    "line": 256,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "core",
+    "order": 1,
+    "name": "卷腹",
+    "line": 261,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "core",
+    "order": 2,
+    "name": "反向卷腹",
+    "line": 264,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "core",
+    "order": 4,
+    "name": "鸟狗式",
+    "line": 270,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "B",
+    "day": "core",
+    "order": 5,
+    "name": "登山者",
+    "line": 273,
+    "old": 40,
+    "now": 45
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "push",
+    "order": 3,
+    "name": "坐姿器械推胸",
+    "line": 295,
+    "old": 60,
+    "now": 75
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "push",
+    "order": 4,
+    "name": "绳索夹胸",
+    "line": 298,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "push",
+    "order": 5,
+    "name": "绳索下压",
+    "line": 301,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "pull",
+    "order": 1,
+    "name": "高位下拉",
+    "line": 306,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "pull",
+    "order": 2,
+    "name": "坐姿绳索划船",
+    "line": 309,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "legs",
+    "order": 6,
+    "name": "站姿提踵",
+    "line": 338,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "video",
+    "set": "C",
+    "day": "legs",
+    "order": 6,
+    "name": "站姿提踵",
+    "line": 338,
+    "old": "BV13r4y1P7G3 / 半蹲提踵动作…",
+    "now": "BV1gJfyBsEtf / 1.站姿提踵"
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "core",
+    "order": 1,
+    "name": "坐姿哑铃推举",
+    "line": 343,
+    "old": 75,
+    "now": 90
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "core",
+    "order": 2,
+    "name": "哑铃侧平举",
+    "line": 346,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "core",
+    "order": 3,
+    "name": "绳索面拉",
+    "line": 349,
+    "old": 45,
+    "now": 60
+  },
+  {
+    "type": "rest",
+    "set": "C",
+    "day": "core",
+    "order": 4,
+    "name": "负重卷腹",
+    "line": 352,
+    "old": 45,
+    "now": 60
+  }
+]

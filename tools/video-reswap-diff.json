@@ -1,0 +1,98 @@
+{
+  "swaps": [
+    {
+      "action": "俯身侧平举",
+      "old": "BV1xdZgYbEsj",
+      "next": "BV1KN41197tc",
+      "kind": "restore",
+      "why": "用户反馈画面不对；原片为营销式标题，回退到标题逐字精确的旧准入片",
+      "newTitle": "俯身哑铃侧平举",
+      "secs": 36,
+      "entries": 2,
+      "label": "blink('BV1KN41197tc', '俯身哑铃侧平举')"
+    },
+    {
+      "action": "单臂哑铃划船（手撑椅）",
+      "old": "BV1Sw411d7GN",
+      "next": "BV17mWJ6LEaH",
+      "kind": "fresh",
+      "why": "原片标题只写「哑铃划船」且带系列字样；新片明确「单臂哑铃划船教学」",
+      "newTitle": "B5单臂哑铃划船教学",
+      "secs": 69,
+      "entries": 1,
+      "label": "blink('BV17mWJ6LEaH', 'B5单臂哑铃划船教学')"
+    },
+    {
+      "action": "哑铃仰卧上拉",
+      "old": "BV1RT41157oz",
+      "next": "BV1dY4u6RE6S",
+      "kind": "fresh",
+      "why": "原片写「直臂上拉」与动作标准「肘微屈固定」冲突；新片标题即「哑铃仰卧上拉」",
+      "newTitle": "哑铃仰卧上拉",
+      "secs": 38,
+      "entries": 2,
+      "label": "blink('BV1dY4u6RE6S', '哑铃仰卧上拉')"
+    },
+    {
+      "action": "哑铃箭步蹲",
+      "old": "BV1b64y1t71v",
+      "next": "BV1bG411q7gh",
+      "kind": "fresh",
+      "why": "原片带【12】系列编号且为「交替箭步蹲」；新片「哑铃箭步蹲讲解」对应向前迈步",
+      "newTitle": "哑铃箭步蹲讲解",
+      "secs": 47,
+      "entries": 1,
+      "label": "blink('BV1bG411q7gh', '哑铃箭步蹲讲解')"
+    },
+    {
+      "action": "原地哑铃分腿蹲",
+      "old": "BV1tV4y137gN",
+      "next": "BV16e4y1g7BL",
+      "kind": "fresh",
+      "why": "原片标题「原地箭步蹲」术语混用；新片「哑铃分腿蹲」与静态分腿站动作一致",
+      "newTitle": "哑铃分腿蹲",
+      "secs": 42,
+      "entries": 1,
+      "label": "blink('BV16e4y1g7BL', '哑铃分腿蹲')"
+    },
+    {
+      "action": "绳索夹胸",
+      "old": "BV1fi4y1L774",
+      "next": "BV1eY411C75Y",
+      "kind": "fresh",
+      "why": "原片为「跪姿夹胸」变体；新片为「绳索夹胸」保姆级器械教程",
+      "newTitle": "【保姆级健身器械教程】绳索夹胸",
+      "secs": 79,
+      "entries": 1,
+      "label": "blink('BV1eY411C75Y', '【保姆级健身器械教程】绳索夹胸')"
+    },
+    {
+      "action": "负重卷腹",
+      "old": "BV13D421p75t",
+      "next": "BV1vML36hEx1",
+      "kind": "fresh",
+      "why": "原片带「每日结束动作」训练日志感；新片标题即「负重卷腹」",
+      "newTitle": "负重卷腹",
+      "secs": 62,
+      "entries": 1,
+      "label": "blink('BV1vML36hEx1', '负重卷腹')"
+    },
+    {
+      "action": "悬垂举腿",
+      "old": "BV1Ji421i7rM",
+      "next": "BV1Uo4y1t7S6",
+      "kind": "restore",
+      "why": "原片「踢法教学」与动作标准「举至髋屈曲、缓慢下落」变体不符；回退到「正确做法（全程无废话）」旧准入片",
+      "newTitle": "下腹王牌动作：悬垂举腿——正确做法（全程无废话）",
+      "secs": 74,
+      "entries": 1,
+      "label": "blink('BV1Uo4y1t7S6', '下腹王牌动作：悬垂举腿——正确做法（全程无废话）')"
+    }
+  ],
+  "keep": {
+    "action": "俯身哑铃面拉",
+    "bv": "BV1ZT411H7JD",
+    "why": "全网站索无更精确的「哑铃面拉」教学片，维持原片（语义本就对应）"
+  },
+  "totalEntriesChanged": 10
+}

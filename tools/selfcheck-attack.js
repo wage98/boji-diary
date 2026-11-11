@@ -479,7 +479,7 @@ async function aiChecks() {
   }
 }
 
-asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => v122Checks()).then(() => {
+asyncChecks().then(() => aiChecks()).then(() => v79Checks()).then(() => v710Checks()).then(() => v711Checks()).then(() => v80Checks()).then(() => v81Checks()).then(() => v110Checks()).then(() => v110bChecks()).then(() => v120Checks()).then(() => v122Checks()).then(() => v123Checks()).then(() => {
   console.log(results.join('\n'));
   console.log(`\n==== 攻击式自检：${pass} PASS / ${fail} FAIL ====`);
   process.exit(fail ? 1 : 0);
@@ -1057,9 +1057,9 @@ function v120Checks() {
       w.eval('hideBoot')();
       return w.__READY === true && b.classList.contains('done');
     });
-    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-2', () => {
+    check('Q3 Service Worker 改为缓存优先 + 版本号升到 boji-1-2-3', () => {
       const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
-      return /CACHE\s*=\s*'boji-1-2-2'/.test(sw)
+      return /CACHE\s*=\s*'boji-1-2-3'/.test(sw)
         && sw.indexOf('c.match(req)') >= 0
         && sw.indexOf('staleWhileRevalidate') >= 0
         && sw.indexOf("c.match('./index.html')") >= 0;
@@ -1195,16 +1195,18 @@ function v120Checks() {
 }
 
 // ===== v1.2.2 增量：动作视频重筛（≤95s 直给教学）+ 手机端实时更新 =====
-/* v1.2.2 准入视频集合：47 个唯一 BV，均已用 B 站 view 接口复核 code=0 且时长 ≤95s（见 docs/视频来源核对.md）。
-   下架集合：24 个已下架 BV（v1.2.2 重筛 15 个超长/合集/失效 + 本次精简 9 个低效/冗余动作），任何一条回潮都算回归。 */
-const V122_APPROVED = ["BV1oP411h7E3","BV1Hz3u6oEgu","BV1CZhe6JEjM","BV16u4111716","BV1J5411Q7KE","BV1xdZgYbEsj","BV1Sw411d7GN","BV1v34y1h7UW","BV1ZT411H7JD","BV16VA5e3EDP","BV11N41127Xd","BV19dHX6cEDh","BV1JKczeKExz","BV1b64y1t71v","BV1gJfyBsEtf","BV1VGaU63EGS","BV1s9pq63E6M","BV1wvcozSEyJ","BV1tZ8FzBEgf","BV1RXdUBiEsa","BV1Wr4y1T7yH","BV1cSiRYREHk","BV1AohVz6EBb","BV1E54BewEHA","BV1tV4y137gN","BV1sxbj6hEco","BV1ft4y1q7QC","BV1QxGg6EEqj","BV1WA411y7n4","BV1fi4y1L774","BV1CUpg6fEfX","BV1Wqh26pEUM","BV1a7nc6GE9j","BV11mTm6cEG7","BV1mm421V7g2","BV1zm4y1j7Cn","BV1BL4y1L7wt","BV1SqYk6XEfv","BV1YR4y1x7ya","BV1Vj411x73r","BV13r4y1P7G3","BV1wB4y1S7V9","BV17T2UYxE12","BV13D421p75t","BV1Ji421i7rM","BV1RT41157oz","BV1AX4y1373k"];
-const V122_DROPPED = ["BV1as4y1T7YM","BV1nNZRY3EJc","BV1KN41197tc","BV1emHx6QEvJ","BV1uE411R7qv","BV1rJsbzbEGu","BV1Q44y1Z7Xq","BV1d1pp6JE7i","BV15rhB6mEit","BV1Gia76sEro","BV15FbW6aEgk","BV1zS2BBxEFn","BV1X54y1a71n","BV1zi4y1y7QS","BV1Uo4y1t7S6","BV1N66yBKEH8","BV1Qg4y1272p","BV1vAem6LErW","BV1NH4y1K7wQ","BV1yqE16JEi1","BV1TjEEzFEyY","BV1ga4y1Z717","BV1S54y1Z7pY","BV1RDtZ6hEiX"];
+/* v1.2.2 准入视频集合：46 个唯一 BV，均已用 B 站 view 接口复核 code=0 且时长 ≤95s（见 docs/视频来源核对.md）。
+   2026-11-10 二次换片：用户反馈「动作对不上」，8 个 BV 换为更精确的片（10 个入口）；
+   其中 BV1KN41197tc / BV1Uo4y1t7S6 为纠正 v1.2.2 自动换片误判而主动恢复的旧准入片，已从下架集合移除（非误回潮）。
+   下架集合：31 个 BV（重筛 15 + 精简 9 + 错配 1 + 二次换片 8 - 主动恢复 2），任何一条回潮都算回归。 */
+const V122_APPROVED = ["BV1oP411h7E3","BV1Hz3u6oEgu","BV1CZhe6JEjM","BV16u4111716","BV1J5411Q7KE","BV1KN41197tc","BV17mWJ6LEaH","BV1v34y1h7UW","BV1ZT411H7JD","BV16VA5e3EDP","BV11N41127Xd","BV19dHX6cEDh","BV1JKczeKExz","BV1bG411q7gh","BV1gJfyBsEtf","BV1VGaU63EGS","BV1s9pq63E6M","BV1wvcozSEyJ","BV1tZ8FzBEgf","BV1RXdUBiEsa","BV1Wr4y1T7yH","BV1cSiRYREHk","BV1AohVz6EBb","BV1E54BewEHA","BV16e4y1g7BL","BV1sxbj6hEco","BV1ft4y1q7QC","BV1QxGg6EEqj","BV1WA411y7n4","BV1eY411C75Y","BV1CUpg6fEfX","BV1Wqh26pEUM","BV1a7nc6GE9j","BV11mTm6cEG7","BV1mm421V7g2","BV1zm4y1j7Cn","BV1BL4y1L7wt","BV1SqYk6XEfv","BV1YR4y1x7ya","BV1Vj411x73r","BV1wB4y1S7V9","BV17T2UYxE12","BV1vML36hEx1","BV1Uo4y1t7S6","BV1dY4u6RE6S","BV1AX4y1373k"];
+const V122_DROPPED = ["BV1as4y1T7YM","BV1nNZRY3EJc","BV1emHx6QEvJ","BV1uE411R7qv","BV1rJsbzbEGu","BV1Q44y1Z7Xq","BV1d1pp6JE7i","BV15rhB6mEit","BV1Gia76sEro","BV15FbW6aEgk","BV1zS2BBxEFn","BV1X54y1a71n","BV1zi4y1y7QS","BV1N66yBKEH8","BV1Qg4y1272p","BV1vAem6LErW","BV1NH4y1K7wQ","BV1yqE16JEi1","BV1TjEEzFEyY","BV1ga4y1Z717","BV1S54y1Z7pY","BV1RDtZ6hEiX","BV13r4y1P7G3","BV1xdZgYbEsj","BV1Sw411d7GN","BV1RT41157oz","BV1b64y1t71v","BV1tV4y137gN","BV1fi4y1L774","BV13D421p75t","BV1Ji421i7rM"];
 
 function v122Checks() {
   /* —— ① 动作视频重筛 —— */
   {
     const w = boot(J({ profile: { weight: 70 } }));
-    check('Z1 64 个动作视频入口全部指向 v1.2.2 准入视频（47 个唯一 BV）', () => {
+    check('Z1 64 个动作视频入口全部指向 v1.2.2 准入视频（46 个唯一 BV）', () => {
       const sets = w.eval('PLAN_SETS');
       const DAYS = ['push', 'pull', 'legs', 'core'];
       const bvs = [];
@@ -1215,7 +1217,7 @@ function v122Checks() {
       return bvs.length === 64 && bvs.every(b => V122_APPROVED.indexOf(b) >= 0)
         && new Set(bvs).size === V122_APPROVED.length;
     });
-    check('Z2 24 个已下架 BV 全部无回潮（v1.2.2 重筛 15 + 本次精简 9）', () => {
+    check('Z2 31 个已下架 BV 全部无回潮（重筛 15 + 精简 9 + 错配 1 + 换片 8 - 恢复 2）', () => {
       const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
       return V122_DROPPED.every(b => src.indexOf(b) < 0);
     });
@@ -1241,8 +1243,8 @@ function v122Checks() {
   {
     const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
     const sw = fs.readFileSync(path.join(PROJ, 'sw.js'), 'utf8');
-    check('Z5 版本号已升到 1.2.2，SW 缓存名同步升级（旧缓存自动清理）', () => {
-      return src.indexOf("APP_VERSION = '1.2.2'") >= 0 && sw.indexOf("boji-1-2-2'") >= 0;
+    check('Z5 版本号已升到 1.2.3，SW 缓存名同步升级（旧缓存自动清理）', () => {
+      return src.indexOf("APP_VERSION = '1.2.3'") >= 0 && sw.indexOf("boji-1-2-3'") >= 0;
     });
     check('Z6 SW 对 __upd 请求强制走网络（否则版本检查只会读到缓存旧文件）', () => {
       return /searchParams\.has\('__upd'\)[\s\S]{0,80}respondWith\(fetch\(req\)\)/.test(sw);
@@ -1268,4 +1270,146 @@ function v122Checks() {
       return txt.indexOf('9.9.9') >= 0;
     });
   }
+}
+
+/* ===== v1.2.3 增量：借鉴 boji v2 的可解释双进阶 + 计划依据（无新依赖、老数据兼容） ===== */
+function v123Checks(){
+  const src = fs.readFileSync(path.join(PROJ, 'app.js'), 'utf8');
+  const css = fs.readFileSync(path.join(PROJ, 'styles.css'), 'utf8');
+  const html = fs.readFileSync(path.join(PROJ, 'index.html'), 'utf8');
+  const d0 = boot(J({ profile:{ weight:70, height:188, dumbbell:10 }, planSet:'A' }));
+  const pushDates = d0.eval("(function(){var out=[],d=new Date(2026,10,1);for(var i=0;i<40;i++){if(getDayType(d.getDay())==='push')out.push(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate());d.setDate(d.getDate()+1);}return out;})()");
+  const p1 = pushDates[0], p2 = pushDates[1];
+  const tm = d0.eval("targetRepMax(PLANS.push.ex[0].reps)");
+  const ck = {}; ck[p1] = { ex:{}, at:1 }; ck[p2] = { ex:{}, at:2 };
+  const seed = extra => boot(J(Object.assign({ profile:{ weight:70, height:188, dumbbell:10 }, planSet:'A' }, extra)));
+  const twoHit = { exLast:{ push:{ 0:'20' } }, checkins:ck,
+    exReps:{ [p1]:{ 0:{ r:tm, kg:20 } }, [p2]:{ 0:{ r:tm, kg:20 } } },
+    weights:{ [p1]:{ 0:20 }, [p2]:{ 0:20 } } };
+
+  check('VA1 老数据无 exReps：容错为空对象、不伪造历史次数、判定不崩', () => {
+    const w = seed({ exLast:{ push:{ 0:'20' } } });
+    const r = w.eval("overloadSuggestion('push',0)");
+    return !!w.__S.exReps && Object.keys(w.__S.exReps).length === 0
+      && r.ready === false && r.next === null && r.cur === 20
+      && String(r.reason).indexOf('完成次数') >= 0;
+  });
+  check('VA2 exReps 脏值（字符串/数组/负数/超大）不崩且不产生虚假加重', () => {
+    const a = seed({ exReps:'bad' }), b = seed({ exReps:[1,2] });
+    const c = seed({ checkins:ck, exLast:{ push:{ 0:'20' } },
+      exReps:{ [p1]:{ 0:{ r:-5, kg:-1 } }, [p2]:{ 0:{ r:1e9, kg:20 } } } });
+    const r = c.eval("overloadSuggestion('push',0)");
+    return !!a.__S.exReps && typeof a.__S.exReps === 'object'
+      && !!b.__S.exReps && !Array.isArray(b.__S.exReps)
+      && r.ready === false && r.next === null && isFinite(r.cur);
+  });
+  check('VA3 未做满次数上限：保持重量先加次数，不给加重建议', () => {
+    const w = seed({ exLast:{ push:{ 0:'20' } }, checkins:ck,
+      exReps:{ [p2]:{ 0:{ r:8, kg:20 } } }, weights:{ [p2]:{ 0:20 } } });
+    const r = w.eval("overloadSuggestion('push',0)");
+    return r.kind === 'ADD_REPS' && r.ready === false && r.next === null && r.cur === 20
+      && String(r.reason).indexOf('保持') >= 0 && String(r.reason).indexOf(String(tm)) >= 0;
+  });
+  check('VA4 同重量连续 2 次做满上限：才给加重建议且必须用户确认', () => {
+    const w = seed(twoHit);
+    const r = w.eval("overloadSuggestion('push',0)");
+    return r.kind === 'INCREASE_LOAD' && r.ready === true && r.hit === 2
+      && r.next > 20 && r.next <= 22 && r.requiresConfirmation === true
+      && String(r.reason).indexOf('需要你确认') >= 0;
+  });
+  check('VA5 加重按器械刻度取整：哑铃 0.5kg / 杠铃器械 2.5kg', () => {
+    const a = d0.eval('roundStep(21.3, 0.5)'), b = d0.eval('roundStep(63.2, 2.5)');
+    return a === 21.5 && b === 62.5 && d0.eval("targetRepMax('8-12')") === 12
+      && d0.eval("targetRepMax('12')") === 12;
+  });
+  check('VA6 采纳加重后：旧达标记录因重量快照不同退出，不反复建议加重', () => {
+    const w = seed({ exLast:{ push:{ 0:'21' } }, checkins:ck,
+      exReps:{ [p1]:{ 0:{ r:tm, kg:20 } }, [p2]:{ 0:{ r:tm, kg:21 } } },
+      weights:{ [p1]:{ 0:20 }, [p2]:{ 0:21 } } });
+    const r = w.eval("overloadSuggestion('push',0)");
+    return r.ready === false && r.hit === 1 && r.cur === 21;
+  });
+  check('VA7 用户编辑的次数上限进入判定（不再读原模板）', () => {
+    const w = seed(Object.assign({}, twoHit, { planEdits:{ push:{ 0:{ reps:'20-30' } } } }));
+    const r = w.eval("overloadSuggestion('push',0)");
+    return r.ready === false && String(r.reason).indexOf('30') >= 0;
+  });
+  check('VA8 返回结构向后兼容：cur / next / ready 恒存在', () => {
+    const vals = [ d0.eval("overloadSuggestion('push',0)"), seed(twoHit).eval("overloadSuggestion('push',0)") ];
+    return vals.every(r => r && 'cur' in r && 'next' in r && 'ready' in r
+      && typeof r.ready === 'boolean' && (r.next === null || isFinite(r.next)));
+  });
+  check('VA9 训练页渲染：完成次数选填输入 + 可解释建议区，无达标记录不出加重按钮', () => {
+    const w = seed({ exLast:{ push:{ 0:'20' } } });
+    w.goModule('training');
+    const body = w.document.querySelector('#mod-body');
+    return body.querySelectorAll('input[data-r]').length > 0
+      && body.querySelectorAll('.ex-prog-reason').length > 0
+      && body.querySelectorAll('[data-apply]').length === 0;
+  });
+  check('VA9b 连续达标时训练页才出现「采用建议」按钮', () => {
+    const w = seed(Object.assign({ selDate:p2 }, twoHit));
+    w.goModule('training');
+    const body = w.document.querySelector('#mod-body');
+    return body.querySelectorAll('[data-apply]').length === 1
+      && body.querySelectorAll('.ex-over.can-load').length === 1;
+  });
+  check('VA10 首页与训练页出现计划依据，且明确「没有用 AI 生成新计划」', () => {
+    const w = seed({});
+    w.eval('renderHome()');
+    const home = w.document.querySelector('#home-today');
+    w.goModule('training');
+    const why = w.document.querySelectorAll('#mod-body .today-why');
+    return (home.innerHTML || '').indexOf('today-why') >= 0 && why.length >= 1
+      && (why[0].textContent || '').indexOf('没有用 AI 生成新计划') >= 0;
+  });
+  check('VA11 完成次数里的注入/脏值被清洗，不生成可执行节点也不虚假加重', () => {
+    const w = seed({ selDate:p2, checkins:ck, exLast:{ push:{ 0:'20' } },
+      exReps:{ [p2]:{ 0:{ r:'<img src=x onerror=alert(1)>', kg:20 } } } });
+    w.goModule('training');
+    const body = w.document.querySelector('#mod-body');
+    const inp = body.querySelector('input[data-r="0"]');
+    const r = w.eval("overloadSuggestion('push',0)");
+    return body.querySelectorAll('img[src="x"]').length === 0
+      && body.querySelectorAll('[onerror]').length === 0
+      && !!inp && inp.value === '' && r.ready === false;
+  });
+  check('VA12 本轮未改动动作库/顺序/视频池（64 入口 / 46 唯一 BV）', () => {
+    const sets = d0.eval('PLAN_SETS'), DAYS = ['push','pull','legs','core'], bvs = [];
+    ['A','B','C'].forEach(k => DAYS.forEach(d => (sets[k].days[d].ex || []).forEach(e => {
+      const m = String((e.video && e.video.url) || '').match(/(BV[0-9A-Za-z]{10})/);
+      if (m) bvs.push(m[1]);
+    })));
+    return bvs.length === 64 && new Set(bvs).size === 46 && bvs.every(b => V122_APPROVED.indexOf(b) >= 0);
+  });
+  check('VA13 版本/样式就位，且未引入任何新脚本或新依赖', () => {
+    return src.indexOf("APP_VERSION = '1.2.3'") >= 0
+      && css.indexOf('.today-why') >= 0 && css.indexOf('.ex-over.can-load') >= 0
+      && html.indexOf('data-layer.js') < 0 && html.indexOf('release-config.js') < 0
+      && (html.match(/<script src=/g) || []).length === 1;
+  });
+  check('VA14 旧备份导入同样补 exReps 容错，既有字段语义不变', () => {
+    return src.indexOf("planSet:'A', exReps:{}") >= 0
+      && src.indexOf('Array.isArray(STATE.exReps)') >= 0
+      && src.indexOf("STATE.exLast[t]=STATE.exLast[t]||{}") >= 0;
+  });
+  check('VA15 端到端交互：填完成次数 → 连续达标 → 采用建议写入重量，历史不被篡改', () => {
+    const w = seed({ selDate:p2, exLast:{ push:{ 0:'20' } }, checkins:ck,
+      exReps:{ [p1]:{ 0:{ r:tm, kg:20 } } }, weights:{ [p1]:{ 0:20 }, [p2]:{ 0:20 } } });
+    w.goModule('training');
+    let body = w.document.querySelector('#mod-body');
+    const inp = body.querySelector('input[data-r="0"]');
+    if (!inp) return false;
+    inp.value = String(tm);
+    inp.dispatchEvent(new w.Event('change', { bubbles:true }));
+    const saved = w.__S.exReps[p2] && w.__S.exReps[p2][0];
+    if (!saved || saved.r !== tm || saved.kg !== 20) return false;
+    body = w.document.querySelector('#mod-body');
+    const btn = body.querySelector('[data-apply="0"]');
+    if (!btn) return false;
+    btn.dispatchEvent(new w.Event('click', { bubbles:true }));
+    return +w.__S.weights[p2][0] === 21
+      && w.__S.exReps[p1][0].r === tm          // 历史记录保持原样，不被删除或改写
+      && w.__S.exReps[p2][0].r === tm;
+  });
 }
